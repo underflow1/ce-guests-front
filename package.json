@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:prod": "vite build --mode production && sudo chown -R ${DEPLOY_USER}:${DEPLOY_GROUP} ${BUILD_OUT_DIR}",
+    "build:prod": "vite build --mode production && bash -c 'source .env.production && sudo chown -R ${DEPLOY_USER}:${DEPLOY_GROUP} ${BUILD_OUT_DIR}'",
     "preview": "vite preview"
   },
   "dependencies": {

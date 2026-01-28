@@ -84,9 +84,13 @@ const App = () => {
       message.includes('403') ||
       message.includes('401') ||
       message.includes('деактивирован')
+    
+    const isSessionExpired = message.includes('Сессия истекла')
 
-    if (!isAuthError) {
-      pushToast({ type: 'error', title: 'Ошибка', message })
+    // Показываем toast для всех ошибок, кроме обычных auth ошибок
+    // Но показываем toast для истекшей сессии
+    if (!isAuthError || isSessionExpired) {
+      pushToast({ type: 'error', title: isSessionExpired ? 'Сессия истекла' : 'Ошибка', message })
     }
 
     lastErrorRef.current = error

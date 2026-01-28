@@ -9,7 +9,7 @@ import {
   extractTimeFromDateTime,
   formatDateTime,
 } from '../utils/date'
-import { apiGet, apiPost, apiPut, apiPatch, apiDelete, getAuthToken } from '../utils/api'
+import { apiGet, apiPost, apiPut, apiPatch, apiDelete, getAccessToken } from '../utils/api'
 import { API_BASE_URL } from '../config'
 import { useToast } from '../components/ToastProvider'
 
@@ -276,7 +276,7 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
     let shouldReconnect = true
 
     const connect = () => {
-      const token = getAuthToken()
+      const token = getAccessToken()
       if (!token) return
 
       const wsBase = API_BASE_URL.replace(/^http/, 'ws').replace(/\/api\/v1\/?$/, '')
