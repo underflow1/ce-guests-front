@@ -313,12 +313,13 @@ chown "$REAL_USER:$REAL_USER" "$ENV_FILE"
 step_done
 
 # ============================================================================
-# ОБНОВЛЕНИЕ NGINX.CONF
+# КОПИРОВАНИЕ И НАСТРОЙКА NGINX.CONF
 # ============================================================================
 
-step "Обновление nginx.conf"
+step "Копирование и настройка nginx.conf"
 
 NGINX_CONF="$REPO_PATH/nginx.conf"
+NGINX_SITE_FILE="/etc/nginx/sites-enabled/$SITE_NAME"
 
 if [ ! -f "$NGINX_CONF" ]; then
     step_progress_stop
@@ -326,32 +327,31 @@ if [ ! -f "$NGINX_CONF" ]; then
     exit 1
 fi
 
-# Заменяем плейсхолдеры
-sed -i "s|SITE_DOMAIN|$SITE_NAME|g" "$NGINX_CONF"
-sed -i "s|SITE_PATH|$BUILD_DIR|g" "$NGINX_CONF"
-sed -i "s|BACKEND_HOST|$BACKEND_HOST|g" "$NGINX_CONF"
-sed -i "s|BACKEND_PORT|$BACKEND_PORT|g" "$NGINX_CONF"
-
-chown "$REAL_USER:$REAL_USER" "$NGINX_CONF"
-step_done
-
-step "Копирование конфига в sites-enabled"
-
-NGINX_SITE_FILE="/etc/nginx/sites-enabled/$SITE_NAME"
-
+# Проверяем существование файла в sites-enabled
 if [ -f "$NGINX_SITE_FILE" ]; then
     step_progress_stop
     echo -ne "${YELLOW}Файл $NGINX_SITE_FILE уже существует. Перезаписать? [y/N]: ${NC}" >&2
     read -r OVERWRITE <&3
     if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
         warn "Пропускаем копирование nginx конфига"
+        step_done
     else
         step_progress "Копирование конфига в sites-enabled"
         cp "$NGINX_CONF" "$NGINX_SITE_FILE"
+        # Заменяем плейсхолдеры в скопированном файле
+        sed -i "s|SITE_DOMAIN|$SITE_NAME|g" "$NGINX_SITE_FILE"
+        sed -i "s|SITE_PATH|$BUILD_DIR|g" "$NGINX_SITE_FILE"
+        sed -i "s|BACKEND_HOST|$BACKEND_HOST|g" "$NGINX_SITE_FILE"
+        sed -i "s|BACKEND_PORT|$BACKEND_PORT|g" "$NGINX_SITE_FILE"
         step_done
     fi
 else
     cp "$NGINX_CONF" "$NGINX_SITE_FILE"
+    # Заменяем плейсхолдеры в скопированном файле
+    sed -i "s|SITE_DOMAIN|$SITE_NAME|g" "$NGINX_SITE_FILE"
+    sed -i "s|SITE_PATH|$BUILD_DIR|g" "$NGINX_SITE_FILE"
+    sed -i "s|BACKEND_HOST|$BACKEND_HOST|g" "$NGINX_SITE_FILE"
+    sed -i "s|BACKEND_PORT|$BACKEND_PORT|g" "$NGINX_SITE_FILE"
     step_done
 fi
 
