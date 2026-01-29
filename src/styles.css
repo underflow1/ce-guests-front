@@ -407,6 +407,12 @@ body.operator-mobile * {
   min-height: 0;
 }
 
+.app__top-row--operator-desktop {
+  max-width: 50%;
+  margin: 0 auto;
+  grid-template-columns: 1fr;
+}
+
 .app__bottom-row {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
