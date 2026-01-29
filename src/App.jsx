@@ -54,6 +54,7 @@ const App = () => {
     isSubmitDisabled,
     loading: entriesLoading,
     error: entriesError,
+    isWebSocketReady,
     handleDragStart,
     handleDrop,
     handleDoubleClick,
@@ -64,7 +65,7 @@ const App = () => {
     handleDeleteEntry,
   } = useEntries({ today, nameInputRef, interfaceType, isAuthenticated })
 
-  const isLoading = authLoading || entriesLoading
+  const isLoading = authLoading || entriesLoading || (isAuthenticated && !isWebSocketReady)
   const error = entriesError
 
   useEffect(() => {
@@ -179,8 +180,9 @@ const App = () => {
     return <LoginForm onLogin={login} />
   }
 
-  // Показываем загрузку пока загружаются данные
-  if (isLoading && !calendarStructure.length) {
+  // Показываем загрузку пока загружаются данные (entries должны быть полностью загружены перед показом интерфейса)
+  // WebSocket подключается в фоне и не вызывает перерисовку, поэтому ждем только загрузку entries
+  if (isLoading) {
     return (
       <div className="app">
         <div className={`app__layout ${isOperatorMobile ? 'app__layout--operator-mobile' : ''}`}>

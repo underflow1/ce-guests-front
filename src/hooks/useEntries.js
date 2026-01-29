@@ -25,6 +25,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isWebSocketReady, setIsWebSocketReady] = useState(false)
   const refetchTimerRef = useRef(null)
   const entriesByIdRef = useRef(new Map())
 
@@ -264,11 +265,15 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
 
   useEffect(() => {
     // Не подключаемся к WebSocket если пользователь не авторизован
-    if (!isAuthenticated) return
+    if (!isAuthenticated) {
+      setIsWebSocketReady(false)
+      return
+    }
 
     let socket
     let reconnectTimer
     let shouldReconnect = true
+    let wsReadyTimeout
 
     const connect = () => {
       const token = getAccessToken()
@@ -277,6 +282,21 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       const wsBase = API_BASE_URL.replace(/^http/, 'ws').replace(/\/api\/v1\/?$/, '')
       const wsUrl = `${wsBase}/ws/entries?token=${encodeURIComponent(token)}`
       socket = new WebSocket(wsUrl)
+
+      socket.onopen = () => {
+        // WebSocket подключен, можно показывать интерфейс
+        if (wsReadyTimeout) {
+          clearTimeout(wsReadyTimeout)
+          wsReadyTimeout = null
+        }
+        setIsWebSocketReady(true)
+      }
+
+      // Таймаут: если WebSocket не подключится за 3 секунды, все равно показываем интерфейс
+      // (WebSocket будет подключаться в фоне и переподключаться при необходимости)
+      wsReadyTimeout = setTimeout(() => {
+        setIsWebSocketReady(true)
+      }, 3000)
 
       socket.onmessage = (event) => {
         let payload
@@ -378,6 +398,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       }
 
       socket.onclose = (event) => {
+        setIsWebSocketReady(false)
         if (!shouldReconnect) return
         if (event?.code === 1008) return
         reconnectTimer = setTimeout(connect, 1500)
@@ -393,6 +414,9 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     return () => {
       shouldReconnect = false
       clearTimeout(reconnectTimer)
+      if (wsReadyTimeout) {
+        clearTimeout(wsReadyTimeout)
+      }
       socket?.close()
     }
   }, [pushToast, scheduleRefetch, shouldShowToast, isAuthenticated])
@@ -707,6 +731,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     isSubmitDisabled,
     loading,
     error,
+    isWebSocketReady,
     handleDragStart,
     handleDrop,
     handleDoubleClick,
