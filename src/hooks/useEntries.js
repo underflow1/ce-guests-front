@@ -565,12 +565,9 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     }
 
     try {
-      // Обновляем запись через API
-      const updatedEntry = await apiPut(`/entries/${entry.id}`, {
-        name: entry.name,
-        responsible: entry.responsible || '',
+      // Обновляем запись через API (отдельный роут для drag&drop)
+      const updatedEntry = await apiPatch(`/entries/${entry.id}/move`, {
         datetime: newDateTime,
-        is_completed: entry.is_completed || false,
       })
 
       // Обновляем локальное состояние
