@@ -307,7 +307,7 @@ const App = () => {
               onLogout={logout}
             />
           ) : (
-            <div className="app__top-row">
+            <div className="app__top-row app__top-row--operator-desktop">
               <DayPanel
                 title="Сегодня"
                 dateLabel={formatWeekdayWithDate(today)}
