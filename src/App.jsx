@@ -23,7 +23,7 @@ const App = () => {
     canEditEntryUi,
     interfaceType,
     isAdmin,
-  } = usePermissions()
+  } = usePermissions(user)
   const { pushToast } = useToast()
   const [today, setToday] = useState(() => new Date())
   const todayKeyRef = useRef(toDateKey(today))
