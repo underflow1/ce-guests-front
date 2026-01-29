@@ -1,7 +1,5 @@
-import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
-  addDays,
-  getNextSaturday,
   toDateKey,
   parseDateFromKey,
   formatShortDate,
@@ -13,63 +11,16 @@ import { apiGet, apiPost, apiPut, apiPatch, apiDelete, getAccessToken } from '..
 import { API_BASE_URL } from '../config'
 import { useToast } from '../components/ToastProvider'
 
-const getBottomColumns = (today) => {
-  const columns = []
-  let workdays = 0
-  let cursor = addDays(today, 2)
-  let weekendAdded = false
-
-  while (workdays < 5) {
-    const day = cursor.getDay()
-
-    if (day === 6) {
-      columns.push({
-        type: 'weekend',
-        saturday: cursor,
-        sunday: addDays(cursor, 1),
-      })
-      weekendAdded = true
-      cursor = addDays(cursor, 2)
-      continue
-    }
-
-    if (day === 0) {
-      columns.push({
-        type: 'weekend',
-        saturday: addDays(cursor, -1),
-        sunday: cursor,
-      })
-      weekendAdded = true
-      cursor = addDays(cursor, 1)
-      continue
-    }
-
-    columns.push({ type: 'workday', date: cursor })
-    workdays += 1
-    cursor = addDays(cursor, 1)
-  }
-
-  if (!weekendAdded) {
-    const lastWorkday = columns[columns.length - 1].date
-    const saturday = getNextSaturday(addDays(lastWorkday, 1))
-    columns.push({
-      type: 'weekend',
-      saturday,
-      sunday: addDays(saturday, 1),
-    })
-  }
-
-  return columns
-}
-
-const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType = 'user' }) => {
+const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticated = false }) => {
   const { pushToast } = useToast()
   const todayKey = toDateKey(today)
-  const tomorrowKey = tomorrow ? toDateKey(tomorrow) : null
-  const nextMondayKey = nextMonday ? toDateKey(nextMonday) : null
 
+  const [previousWorkday, setPreviousWorkday] = useState(null)
+  const [nextWorkday, setNextWorkday] = useState(null)
+  const [calendarStructure, setCalendarStructure] = useState([])
   const [todayPeople, setTodayPeople] = useState([])
-  const [tomorrowPeople, setTomorrowPeople] = useState([])
+  const [previousWorkdayPeople, setPreviousWorkdayPeople] = useState([])
+  const [nextWorkdayPeople, setNextWorkdayPeople] = useState([])
   const [bottomEntries, setBottomEntries] = useState({})
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [loading, setLoading] = useState(true)
@@ -77,33 +28,53 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
   const refetchTimerRef = useRef(null)
   const entriesByIdRef = useRef(new Map())
 
-  const bottomColumns = useMemo(() => getBottomColumns(today), [today])
+  const previousWorkdayKey = previousWorkday ? toDateKey(previousWorkday) : null
+  const nextWorkdayKey = nextWorkday ? toDateKey(nextWorkday) : null
 
+  // Получаем все dateKey из calendar_structure для нижнего ряда
   const availableDateKeys = useMemo(() => {
     const keys = new Set()
-    if (nextMondayKey) keys.add(nextMondayKey)
-    bottomColumns.forEach((column) => {
-      if (column.type === 'weekend') {
-        keys.add(toDateKey(column.saturday))
-        keys.add(toDateKey(column.sunday))
-      } else {
-        keys.add(toDateKey(column.date))
+    calendarStructure.forEach((item) => {
+      if (item.date) {
+        keys.add(item.date)
       }
     })
     return keys
-  }, [bottomColumns, nextMondayKey])
+  }, [calendarStructure])
 
   const loadEntries = useCallback(async () => {
-    if (!tomorrow || !nextMonday) return
+    // Не загружаем данные если пользователь не авторизован
+    if (!isAuthenticated) {
+      setLoading(false)
+      return
+    }
 
     try {
       setLoading(true)
       setError(null)
 
-      // Получаем записи за период (от сегодня + 8 дней)
-      const response = await apiGet(`/entries?today=${todayKey}`)
+      // Получаем записи за период (текущая неделя + предыдущий рабочий день)
+      const response = await apiGet('/entries')
       const entries = response.entries || []
       entriesByIdRef.current = new Map(entries.map((entry) => [entry.id, entry]))
+
+      // Парсим reference_dates
+      let prevWorkday = null
+      let nextWorkdayDate = null
+      if (response.reference_dates) {
+        if (response.reference_dates.previous_workday) {
+          prevWorkday = parseDateFromKey(response.reference_dates.previous_workday)
+          setPreviousWorkday(prevWorkday)
+        }
+        if (response.reference_dates.next_workday) {
+          nextWorkdayDate = parseDateFromKey(response.reference_dates.next_workday)
+          setNextWorkday(nextWorkdayDate)
+        }
+      }
+
+      // Парсим calendar_structure
+      const calendarStruct = response.calendar_structure || []
+      setCalendarStructure(calendarStruct)
 
       // Группируем записи по датам (извлекаем дату из datetime)
       const entriesByDate = {}
@@ -115,13 +86,30 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
         entriesByDate[dateKey].push(entry)
       })
 
-      // Устанавливаем записи для сегодня и завтра
-      setTodayPeople(entriesByDate[todayKey] || [])
-      setTomorrowPeople(entriesByDate[tomorrowKey] || [])
+      // Вычисляем ключи для рабочих дней
+      const prevWorkdayKey = prevWorkday ? toDateKey(prevWorkday) : null
+      const nextWorkdayKeyLocal = nextWorkdayDate ? toDateKey(nextWorkdayDate) : null
 
-      // Устанавливаем записи для нижнего ряда
+      // Получаем все dateKey из calendar_structure для нижнего ряда
+      const dateKeys = new Set()
+      calendarStruct.forEach((item) => {
+        if (item.date) {
+          dateKeys.add(item.date)
+        }
+      })
+
+      // Устанавливаем записи для сегодня, предыдущего и следующего рабочего дня
+      setTodayPeople(entriesByDate[todayKey] || [])
+      if (prevWorkdayKey) {
+        setPreviousWorkdayPeople(entriesByDate[prevWorkdayKey] || [])
+      }
+      if (nextWorkdayKeyLocal) {
+        setNextWorkdayPeople(entriesByDate[nextWorkdayKeyLocal] || [])
+      }
+
+      // Устанавливаем записи для нижнего ряда (текущая неделя)
       const bottomEntriesData = {}
-      availableDateKeys.forEach((dateKey) => {
+      dateKeys.forEach((dateKey) => {
         bottomEntriesData[dateKey] = entriesByDate[dateKey] || []
       })
       setBottomEntries(bottomEntriesData)
@@ -136,20 +124,24 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
       const responsiblesList = Array.from(responsiblesSet).sort()
       setAllResponsibles(responsiblesList)
     } catch (err) {
-      setError(err.message)
-      console.error('Ошибка загрузки записей:', err)
+      // Не устанавливаем ошибку если пользователь не авторизован (это нормально)
+      if (isAuthenticated) {
+        setError(err.message)
+        console.error('Ошибка загрузки записей:', err)
+      }
     } finally {
       setLoading(false)
     }
-  }, [todayKey, tomorrowKey, tomorrow, nextMonday, availableDateKeys])
+  }, [todayKey, isAuthenticated])
 
   const formatEntryDateLabel = useCallback((entry) => {
     const dateKey = entry?.datetime ? extractDateFromDateTime(entry.datetime) : ''
     if (!dateKey) return ''
     if (dateKey === todayKey) return 'Сегодня'
-    if (dateKey === tomorrowKey) return 'Завтра'
+    if (dateKey === nextWorkdayKey) return 'Следующий рабочий день'
+    if (dateKey === previousWorkdayKey) return 'Предыдущий рабочий день'
     return formatShortDate(parseDateFromKey(dateKey))
-  }, [todayKey, tomorrowKey])
+  }, [todayKey, nextWorkdayKey, previousWorkdayKey])
 
   const formatEntryWeekday = useCallback((entry) => {
     const dateKey = entry?.datetime ? extractDateFromDateTime(entry.datetime) : ''
@@ -168,7 +160,7 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
     const weekdayLabel = formatEntryWeekday(entry)
     const parts = []
     if (name) parts.push(name)
-    if (weekdayLabel && dateLabel !== 'Сегодня' && dateLabel !== 'Завтра') parts.push(weekdayLabel)
+    if (weekdayLabel && dateLabel !== 'Сегодня' && dateLabel !== 'Следующий рабочий день' && dateLabel !== 'Предыдущий рабочий день') parts.push(weekdayLabel)
     if (dateLabel) parts.push(dateLabel)
     if (time) parts.push(time)
     const base = parts.length ? parts.join(' · ') : 'Запись'
@@ -271,6 +263,9 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
   }, [interfaceType, todayKey])
 
   useEffect(() => {
+    // Не подключаемся к WebSocket если пользователь не авторизован
+    if (!isAuthenticated) return
+
     let socket
     let reconnectTimer
     let shouldReconnect = true
@@ -400,19 +395,22 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
       clearTimeout(reconnectTimer)
       socket?.close()
     }
-  }, [pushToast, scheduleRefetch, shouldShowToast])
+  }, [pushToast, scheduleRefetch, shouldShowToast, isAuthenticated])
 
   const getListForDateKey = (dateKey) => {
     if (dateKey === todayKey) return todayPeople
-    if (dateKey === tomorrowKey) return tomorrowPeople
+    if (dateKey === previousWorkdayKey) return previousWorkdayPeople
+    if (dateKey === nextWorkdayKey) return nextWorkdayPeople
     return bottomEntries[dateKey] ?? []
   }
 
   const updateListForDateKey = (dateKey, newList) => {
     if (dateKey === todayKey) {
       setTodayPeople(newList)
-    } else if (dateKey === tomorrowKey) {
-      setTomorrowPeople(newList)
+    } else if (dateKey === previousWorkdayKey) {
+      setPreviousWorkdayPeople(newList)
+    } else if (dateKey === nextWorkdayKey) {
+      setNextWorkdayPeople(newList)
     } else {
       setBottomEntries((prev) => ({ ...prev, [dateKey]: newList }))
     }
@@ -420,18 +418,16 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
 
   const getTargetDateKey = () => {
     if (form.target === 'today') return todayKey
-    if (form.target === 'tomorrow') return tomorrowKey
-    if (form.target === 'monday') return nextMondayKey
+    if (form.target === 'next_workday') return nextWorkdayKey
+    if (form.target === 'previous_workday') return previousWorkdayKey
     if (form.target === 'other') return form.otherDate
     return null
   }
 
   const resolveTarget = (dateKey) => {
     if (dateKey === todayKey) return { target: 'today', otherDate: '' }
-    if (dateKey === tomorrowKey) return { target: 'tomorrow', otherDate: '' }
-    if (dateKey === nextMondayKey) {
-      return { target: 'monday', otherDate: nextMondayKey }
-    }
+    if (dateKey === nextWorkdayKey) return { target: 'next_workday', otherDate: '' }
+    if (dateKey === previousWorkdayKey) return { target: 'previous_workday', otherDate: '' }
     if (availableDateKeys.has(dateKey)) {
       return { target: 'other', otherDate: dateKey }
     }
@@ -696,11 +692,14 @@ const useEntries = ({ today, tomorrow, nextMonday, nameInputRef, interfaceType =
 
   return {
     todayKey,
-    tomorrowKey,
-    nextMondayKey,
+    previousWorkday,
+    previousWorkdayKey,
+    nextWorkday,
+    nextWorkdayKey,
+    calendarStructure,
     todayPeople,
-    tomorrowPeople,
-    bottomColumns,
+    previousWorkdayPeople,
+    nextWorkdayPeople,
     bottomEntries,
     allResponsibles,
     form,

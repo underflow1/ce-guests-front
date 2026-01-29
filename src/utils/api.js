@@ -164,8 +164,11 @@ export const apiFetch = async (endpoint, options = {}) => {
         !endpoint.includes('/auth/refresh') && 
         !endpoint.includes('/auth/login') && 
         !endpoint.includes('/auth/logout')) {
+      // Проверяем, был ли пользователь авторизован (есть ли токен)
+      const hadToken = !!accessToken || !!getRefreshToken()
       clearTokens()
-      if (onLogoutCallback) {
+      // Вызываем logout только если пользователь был авторизован
+      if (hadToken && onLogoutCallback) {
         onLogoutCallback()
       }
       // Для 403 добавляем понятное сообщение
