@@ -26,7 +26,6 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isWebSocketReady, setIsWebSocketReady] = useState(false)
-  const refetchTimerRef = useRef(null)
   const entriesByIdRef = useRef(new Map())
 
   const previousWorkdayKey = previousWorkday ? toDateKey(previousWorkday) : null
@@ -218,17 +217,80 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     loadEntries()
   }, [loadEntries])
 
-  useEffect(() => () => {
-    clearTimeout(refetchTimerRef.current)
-  }, [])
 
-  const scheduleRefetch = useCallback(() => {
-    if (refetchTimerRef.current) return
-    refetchTimerRef.current = setTimeout(() => {
-      refetchTimerRef.current = null
-      loadEntries()
-    }, 150)
-  }, [loadEntries])
+  // Функция для обновления локального состояния из данных WebSocket
+  const updateStateFromWebSocketData = useCallback((data) => {
+    if (!data) return
+
+    const entries = data.entries || []
+    entriesByIdRef.current = new Map(entries.map((entry) => [entry.id, entry]))
+
+    // Парсим reference_dates
+    let prevWorkday = null
+    let nextWorkdayDate = null
+    if (data.reference_dates) {
+      if (data.reference_dates.previous_workday) {
+        prevWorkday = parseDateFromKey(data.reference_dates.previous_workday)
+        setPreviousWorkday(prevWorkday)
+      }
+      if (data.reference_dates.next_workday) {
+        nextWorkdayDate = parseDateFromKey(data.reference_dates.next_workday)
+        setNextWorkday(nextWorkdayDate)
+      }
+    }
+
+    // Парсим calendar_structure
+    const calendarStruct = data.calendar_structure || []
+    setCalendarStructure(calendarStruct)
+
+    // Группируем записи по датам (извлекаем дату из datetime)
+    const entriesByDate = {}
+    entries.forEach((entry) => {
+      const dateKey = extractDateFromDateTime(entry.datetime)
+      if (!entriesByDate[dateKey]) {
+        entriesByDate[dateKey] = []
+      }
+      entriesByDate[dateKey].push(entry)
+    })
+
+    // Вычисляем ключи для рабочих дней
+    const prevWorkdayKey = prevWorkday ? toDateKey(prevWorkday) : null
+    const nextWorkdayKeyLocal = nextWorkdayDate ? toDateKey(nextWorkdayDate) : null
+
+    // Получаем все dateKey из calendar_structure для нижнего ряда
+    const dateKeys = new Set()
+    calendarStruct.forEach((item) => {
+      if (item.date) {
+        dateKeys.add(item.date)
+      }
+    })
+
+    // Устанавливаем записи для сегодня, предыдущего и следующего рабочего дня
+    setTodayPeople(entriesByDate[todayKey] || [])
+    if (prevWorkdayKey) {
+      setPreviousWorkdayPeople(entriesByDate[prevWorkdayKey] || [])
+    }
+    if (nextWorkdayKeyLocal) {
+      setNextWorkdayPeople(entriesByDate[nextWorkdayKeyLocal] || [])
+    }
+
+    // Устанавливаем записи для нижнего ряда (текущая неделя)
+    const bottomEntriesData = {}
+    dateKeys.forEach((dateKey) => {
+      bottomEntriesData[dateKey] = entriesByDate[dateKey] || []
+    })
+    setBottomEntries(bottomEntriesData)
+
+    // Извлекаем все уникальные значения responsible из всех записей
+    const responsiblesSet = new Set()
+    entries.forEach((entry) => {
+      if (entry.responsible && entry.responsible.trim()) {
+        responsiblesSet.add(entry.responsible.trim())
+      }
+    })
+    const responsiblesList = Array.from(responsiblesSet).sort()
+    setAllResponsibles(responsiblesList)
+  }, [todayKey])
 
   // Проверка, нужно ли показывать попап для оперативного дежурного
   // Для оперативного дежурного показываем попапы только для записей с датой сегодня или старой (прошлой)
@@ -311,21 +373,16 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
           return
         }
 
-        if (payload?.type) {
-          scheduleRefetch()
+        // Обновляем локальное состояние из полных данных недели
+        if (payload?.data) {
+          updateStateFromWebSocketData(payload.data)
         }
 
+        // Обрабатываем события и показываем тосты
         if (payload?.type === 'entry_created') {
-          const entry = payload.entry
+          const entry = payload.change?.entry
           if (!entry) return
           
-          // Обновляем кэш записи (без кэширования - просто для отслеживания изменений)
-          if (entry?.id) {
-            entriesByIdRef.current.set(entry.id, entry)
-          }
-          
-          // Показываем попап только если нужно (для оперативного дежурного фильтруем по дате)
-          // Для обычного интерфейса попап показывается ВСЕГДА
           if (shouldShowToast(entry)) {
             pushToast({
               type: 'success',
@@ -333,48 +390,49 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
               message: buildToastMessage('Добавлена запись', entry),
             })
           }
-        } else if (payload?.type === 'entry_updated' || payload?.type === 'entry_completed') {
-          // Обрабатываем entry_updated и entry_completed одинаково
-          // entry_completed - устаревшее событие, должно быть заменено на entry_updated
-          const entry = payload.entry
+        } else if (payload?.type === 'entry_updated') {
+          const entry = payload.change?.entry
           if (!entry) return
           
-          // Сохраняем предыдущее состояние ДО обновления кэша
-          const prevEntry = entry?.id ? entriesByIdRef.current.get(entry.id) : null
-          
-          // Обновляем кэш записи (без кэширования - просто для отслеживания изменений)
-          if (entry?.id) {
-            entriesByIdRef.current.set(entry.id, entry)
-          }
-          
-          // Всегда обновляем данные через refetch (без кэша)
-          // Попап показываем только если нужно (для оперативного дежурного фильтруем по дате)
-          // Для обычного интерфейса попап показывается ВСЕГДА
           if (shouldShowToast(entry)) {
-            const details = buildUpdateDetails(prevEntry, entry)
-            const statusChanged =
-              prevEntry && Boolean(prevEntry.is_completed) !== Boolean(entry?.is_completed)
-            const statusLabel = entry?.is_completed ? 'Гость принят' : 'Встреча возвращена'
-            const label = statusChanged ? statusLabel : 'Обновлена запись'
-            // Показываем попап - для обычного интерфейса всегда, для оперативного дежурного только если дата подходит
-            // Каждый попап показывается независимо, без проверки на дубликаты
             pushToast({
               type: 'info',
               title: '',
-              message: buildToastMessage(label, entry, details),
+              message: buildToastMessage('Обновлена запись', entry),
             })
           }
-        } else if (payload?.type === 'entry_deleted') {
-          const entry = payload.entry
+        } else if (payload?.type === 'entry_completed') {
+          const entry = payload.change?.entry
           if (!entry) return
           
-          // Удаляем из кэша (без кэширования - просто для отслеживания изменений)
-          if (entry?.id) {
-            entriesByIdRef.current.delete(entry.id)
+          if (shouldShowToast(entry)) {
+            pushToast({
+              type: 'info',
+              title: '',
+              message: buildToastMessage('Гость принят', entry),
+            })
           }
+        } else if (payload?.type === 'entry_uncompleted') {
+          const entry = payload.change?.entry
+          if (!entry) return
           
-          // Показываем попап только если нужно (для оперативного дежурного фильтруем по дате)
-          // Для обычного интерфейса попап показывается ВСЕГДА
+          if (shouldShowToast(entry)) {
+            pushToast({
+              type: 'info',
+              title: '',
+              message: buildToastMessage('Встреча возвращена', entry),
+            })
+          }
+        } else if (payload?.type === 'entry_moved') {
+          const entry = payload.change?.entry
+          if (!entry) return
+          
+          // Для entry_moved не показываем тосты, так как пользователь сам перетаскивает
+          // Тосты будут только от других пользователей, но это редко
+        } else if (payload?.type === 'entry_deleted') {
+          const entry = payload.change?.entry
+          if (!entry) return
+          
           if (shouldShowToast(entry)) {
             pushToast({
               type: 'warning',
@@ -419,7 +477,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       }
       socket?.close()
     }
-  }, [pushToast, scheduleRefetch, shouldShowToast, isAuthenticated])
+  }, [pushToast, shouldShowToast, isAuthenticated, updateStateFromWebSocketData])
 
   const getListForDateKey = (dateKey) => {
     if (dateKey === todayKey) return todayPeople
