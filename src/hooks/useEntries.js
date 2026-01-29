@@ -443,14 +443,8 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
         } else if (payload?.type === 'entries_deleted_all') {
           pushToast({
             type: 'warning',
-            title: 'Удалены все записи',
-            message: 'Список очищен',
-          })
-        } else if (payload?.type === 'entries_deleted_future') {
-          pushToast({
-            type: 'warning',
-            title: 'Удалены будущие записи',
-            message: 'Список обновлен',
+            title: 'База данных очищена',
+            message: 'Все события удалены',
           })
         }
       }
