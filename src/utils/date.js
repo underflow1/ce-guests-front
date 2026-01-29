@@ -80,3 +80,28 @@ export const extractTimeFromDateTime = (datetime) => {
   if (!timePart) return '00:00'
   return timePart.substring(0, 5) // Берем только HH:MM
 }
+
+// Маппинг английских названий дней недели на русские
+const weekdayMap = {
+  'Monday': 'Понедельник',
+  'Tuesday': 'Вторник',
+  'Wednesday': 'Среда',
+  'Thursday': 'Четверг',
+  'Friday': 'Пятница',
+  'Saturday': 'Суббота',
+  'Sunday': 'Воскресенье',
+}
+
+// Локализовать день недели (английский → русский)
+export const localizeWeekday = (weekday) => {
+  return weekdayMap[weekday] || weekday
+}
+
+// Форматировать день недели и дату для панелей
+export const formatWeekdayAndDate = (weekday, dateKey) => {
+  if (!weekday || !dateKey) return ''
+  const localizedWeekday = localizeWeekday(weekday)
+  const date = parseDateFromKey(dateKey)
+  const dateStr = formatShortDate(date)
+  return `${localizedWeekday}, ${dateStr}`
+}

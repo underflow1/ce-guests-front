@@ -11,7 +11,6 @@ const EntryForm = ({
   dateInputRef,
   today,
   todayKey,
-  nextMondayKey,
   isEditing,
   allResponsibles = [],
   canEditEntry = true,
@@ -191,8 +190,8 @@ const EntryForm = ({
             <input
               type="radio"
               name="target"
-              value="tomorrow"
-              checked={form.target === 'tomorrow'}
+              value="next_workday"
+              checked={form.target === 'next_workday'}
               onChange={(event) =>
                 setForm((prev) => ({
                   ...prev,
@@ -200,23 +199,7 @@ const EntryForm = ({
                 }))
               }
             />
-            <span>Завтра</span>
-          </label>
-          <label className="form__option">
-            <input
-              type="radio"
-              name="target"
-              value="monday"
-              checked={form.target === 'monday'}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  target: event.target.value,
-                  otherDate: nextMondayKey,
-                }))
-              }
-            />
-            <span>Понедельник</span>
+            <span>Следующий рабочий день</span>
           </label>
           <label className="form__option">
             <input

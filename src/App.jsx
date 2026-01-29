@@ -9,10 +9,9 @@ import MaintenancePanel from './components/MaintenancePanel'
 import OperatorMobileView from './components/OperatorMobileView'
 import { useToast } from './components/ToastProvider'
 import useEntries from './hooks/useEntries'
-import useWorkDays from './hooks/useWorkDays'
 import useAuth from './hooks/useAuth'
 import usePermissions from './hooks/usePermissions'
-import { formatWeekdayWithDate, toDateKey } from './utils/date'
+import { formatWeekdayWithDate, toDateKey, formatWeekdayAndDate, localizeWeekday, parseDateFromKey, formatShortDate } from './utils/date'
 
 const App = () => {
   const { user, loading: authLoading, isAuthenticated, login, logout } = useAuth()
@@ -24,7 +23,7 @@ const App = () => {
     canEditEntryUi,
     interfaceType,
     isAdmin,
-  } = usePermissions()
+  } = usePermissions(user)
   const { pushToast } = useToast()
   const [today, setToday] = useState(() => new Date())
   const todayKeyRef = useRef(toDateKey(today))
@@ -38,17 +37,16 @@ const App = () => {
   const dropdownRef = useRef(null)
   const lastErrorRef = useRef(null)
 
-  // Загружаем данные только если пользователь авторизован
-  const { tomorrow, nextMonday, loading: datesLoading, error: datesError } = useWorkDays(
-    isAuthenticated ? today : null
-  )
   const {
     todayKey,
-    tomorrowKey,
-    nextMondayKey,
+    previousWorkday,
+    previousWorkdayKey,
+    nextWorkday,
+    nextWorkdayKey,
+    calendarStructure,
     todayPeople,
-    tomorrowPeople,
-    bottomColumns,
+    previousWorkdayPeople,
+    nextWorkdayPeople,
     bottomEntries,
     allResponsibles,
     form,
@@ -56,6 +54,7 @@ const App = () => {
     isSubmitDisabled,
     loading: entriesLoading,
     error: entriesError,
+    isWebSocketReady,
     handleDragStart,
     handleDrop,
     handleDoubleClick,
@@ -64,10 +63,10 @@ const App = () => {
     handleSubmit,
     handleToggleCompleted,
     handleDeleteEntry,
-  } = useEntries({ today, tomorrow, nextMonday, nameInputRef, interfaceType })
+  } = useEntries({ today, nameInputRef, interfaceType, isAuthenticated })
 
-  const isLoading = authLoading || datesLoading || entriesLoading
-  const error = datesError || entriesError
+  const isLoading = authLoading || entriesLoading || (isAuthenticated && !isWebSocketReady)
+  const error = entriesError
 
   useEffect(() => {
     if (!error) {
@@ -175,15 +174,15 @@ const App = () => {
     return <LoginForm onLogin={login} />
   }
 
-  // Если ошибка авторизации (401/403), показываем форму логина
-  if ((datesError && (datesError.includes('403') || datesError.includes('401') || datesError.includes('деактивирован'))) ||
-      (entriesError && (entriesError.includes('403') || entriesError.includes('401') || entriesError.includes('деактивирован')))) {
+  // Если ошибка авторизации (401/403) и пользователь был авторизован, показываем форму логина
+  if (isAuthenticated && entriesError && (entriesError.includes('403') || entriesError.includes('401') || entriesError.includes('деактивирован'))) {
     logout()
     return <LoginForm onLogin={login} />
   }
 
-  // Показываем загрузку пока загружаются данные
-  if (isLoading && !tomorrow) {
+  // Показываем загрузку пока загружаются данные (entries должны быть полностью загружены перед показом интерфейса)
+  // WebSocket подключается в фоне и не вызывает перерисовку, поэтому ждем только загрузку entries
+  if (isLoading) {
     return (
       <div className="app">
         <div className={`app__layout ${isOperatorMobile ? 'app__layout--operator-mobile' : ''}`}>
@@ -331,6 +330,30 @@ const App = () => {
       ) : (
         <div className="app__layout">
         <div className="app__top-row">
+          {previousWorkday && previousWorkdayKey && (
+            <DayPanel
+              title="Предыдущий рабочий день"
+              dateLabel={(() => {
+                const item = calendarStructure.find(item => item.date === previousWorkdayKey)
+                return item?.weekday 
+                  ? formatWeekdayAndDate(item.weekday, previousWorkdayKey)
+                  : formatWeekdayWithDate(previousWorkday)
+              })()}
+              people={previousWorkdayPeople}
+              dateKey={previousWorkdayKey}
+              onDragStart={handleDragStart}
+              onDrop={handleDrop}
+              onDoubleClick={handleDoubleClick}
+              onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
+              onToggleCompleted={handleToggleCompleted}
+              onDeleteEntry={handleDeleteEntry}
+              canDelete={canDeleteUi()}
+              canMarkCompleted={canMarkCompletedUi()}
+              canUnmarkCompleted={canUnmarkCompletedUi()}
+              canMove={canMoveUi()}
+            />
+          )}
+
           <DayPanel
             title="Сегодня"
             dateLabel={formatWeekdayWithDate(today)}
@@ -348,12 +371,17 @@ const App = () => {
             canMove={canMoveUi()}
           />
 
-          {tomorrow && (
+          {nextWorkday && nextWorkdayKey && (
             <DayPanel
-              title="Завтра"
-              dateLabel={formatWeekdayWithDate(tomorrow)}
-              people={tomorrowPeople}
-              dateKey={tomorrowKey}
+              title="Следующий рабочий день"
+              dateLabel={(() => {
+                const item = calendarStructure.find(item => item.date === nextWorkdayKey)
+                return item?.weekday 
+                  ? formatWeekdayAndDate(item.weekday, nextWorkdayKey)
+                  : formatWeekdayWithDate(nextWorkday)
+              })()}
+              people={nextWorkdayPeople}
+              dateKey={nextWorkdayKey}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
               onDoubleClick={handleDoubleClick}
@@ -382,7 +410,6 @@ const App = () => {
               dateInputRef={dateInputRef}
               today={today}
               todayKey={todayKey}
-              nextMondayKey={nextMondayKey}
               isEditing={Boolean(form.editingEntryId)}
               allResponsibles={allResponsibles}
               canEditEntry={canEditEntryUi()}
@@ -391,59 +418,76 @@ const App = () => {
         </div>
 
         <div className="app__bottom-row">
-          {bottomColumns.map((column, index) => {
-            if (column.type === 'weekend') {
-              return (
-                <section className="panel panel--compact" key={`weekend-${index}`}>
-                  <header className="panel__header">
-                    <h3 className="panel__title">Суббота / Воскресенье</h3>
-                  </header>
-                  <div className="panel__content">
-                    <WeekendBlock
-                      saturday={column.saturday}
-                      sunday={column.sunday}
-                      saturdayKey={toDateKey(column.saturday)}
-                      sundayKey={toDateKey(column.sunday)}
-                      saturdayPeople={bottomEntries[toDateKey(column.saturday)] ?? []}
-                      sundayPeople={bottomEntries[toDateKey(column.sunday)] ?? []}
-                      onDragStart={handleDragStart}
-                      onDrop={handleDrop}
-                      onDoubleClick={handleDoubleClick}
-                      onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
-                      onToggleCompleted={handleToggleCompleted}
-                      onDeleteEntry={handleDeleteEntry}
-                      canDelete={canDeleteUi()}
-                      canMarkCompleted={canMarkCompletedUi()}
-                      canUnmarkCompleted={canUnmarkCompletedUi()}
-                      canMove={canMoveUi()}
-                    />
-                  </div>
-                </section>
-              )
-            }
+          {(() => {
+            // Находим субботу и воскресенье в calendar_structure
+            const saturdayItem = calendarStructure.find(item => item.weekday === 'Saturday')
+            const sundayItem = calendarStructure.find(item => item.weekday === 'Sunday')
+            const weekendRendered = saturdayItem && sundayItem
 
-            return (
-              <DayPanel
-                key={column.date.toISOString()}
-                title={formatWeekdayWithDate(column.date)}
-                titleAs="h3"
-                people={bottomEntries[toDateKey(column.date)] ?? []}
-                dateKey={toDateKey(column.date)}
-                compact
-                onDragStart={handleDragStart}
-                onDrop={handleDrop}
-                onDoubleClick={handleDoubleClick}
-                onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-                onToggleCompleted={handleToggleCompleted}
-                onDeleteEntry={handleDeleteEntry}
-                canDelete={canDeleteUi()}
-                canMarkCompleted={canMarkCompletedUi()}
-                canUnmarkCompleted={canUnmarkCompletedUi()}
-                canMove={canMoveUi()}
-                isAdmin={user?.is_admin || false}
-              />
-            )
-          })}
+            // Рендерим дни недели для нижнего ряда
+            const bottomRowItems = []
+            calendarStructure.forEach((item, index) => {
+              // Пропускаем субботу и воскресенье - они будут отображены вместе
+              if (item.weekday === 'Saturday' || item.weekday === 'Sunday') {
+                // Отображаем weekend блок только один раз (для субботы)
+                if (item.weekday === 'Saturday' && weekendRendered) {
+                  bottomRowItems.push(
+                    <section className="panel panel--compact" key={`weekend-${index}`}>
+                      <header className="panel__header">
+                        <h3 className="panel__title">Суббота / Воскресенье</h3>
+                      </header>
+                      <div className="panel__content">
+                        <WeekendBlock
+                          saturday={parseDateFromKey(saturdayItem.date)}
+                          sunday={parseDateFromKey(sundayItem.date)}
+                          saturdayKey={saturdayItem.date}
+                          sundayKey={sundayItem.date}
+                          saturdayPeople={bottomEntries[saturdayItem.date] ?? []}
+                          sundayPeople={bottomEntries[sundayItem.date] ?? []}
+                          onDragStart={handleDragStart}
+                          onDrop={handleDrop}
+                          onDoubleClick={handleDoubleClick}
+                          onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
+                          onToggleCompleted={handleToggleCompleted}
+                          onDeleteEntry={handleDeleteEntry}
+                          canDelete={canDeleteUi()}
+                          canMarkCompleted={canMarkCompletedUi()}
+                          canUnmarkCompleted={canUnmarkCompletedUi()}
+                          canMove={canMoveUi()}
+                        />
+                      </div>
+                    </section>
+                  )
+                }
+                return
+              }
+
+              // Обычные дни недели
+              bottomRowItems.push(
+                <DayPanel
+                  key={item.date}
+                  title={localizeWeekday(item.weekday)}
+                  dateLabel={formatShortDate(parseDateFromKey(item.date))}
+                  titleAs="h3"
+                  people={bottomEntries[item.date] ?? []}
+                  dateKey={item.date}
+                  compact
+                  onDragStart={handleDragStart}
+                  onDrop={handleDrop}
+                  onDoubleClick={handleDoubleClick}
+                  onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
+                  onToggleCompleted={handleToggleCompleted}
+                  onDeleteEntry={handleDeleteEntry}
+                  canDelete={canDeleteUi()}
+                  canMarkCompleted={canMarkCompletedUi()}
+                  canUnmarkCompleted={canUnmarkCompletedUi()}
+                  canMove={canMoveUi()}
+                  isAdmin={user?.is_admin || false}
+                />
+              )
+            })
+            return bottomRowItems
+          })()}
         </div>
       </div>
       )}

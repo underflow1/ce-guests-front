@@ -1,12 +1,11 @@
 import { useMemo } from 'react'
-import useAuth from './useAuth'
 
 /**
  * Хук для проверки прав пользователя
+ * @param {Object} user - Объект пользователя из useAuth
  * @returns {Object} Объект с функциями проверки прав и информацией о роли
  */
-const usePermissions = () => {
-  const { user } = useAuth()
+const usePermissions = (user) => {
 
   const permissions = useMemo(() => {
     if (!user) return new Set()

@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { apiDelete } from '../utils/api'
-import { toDateKey } from '../utils/date'
 import { useToast } from './ToastProvider'
 
 const MaintenancePanel = ({ today, onBack, onSuccess }) => {
   const [loading, setLoading] = useState(false)
   const { pushToast } = useToast()
 
-  const handleDeleteAll = async () => {
+  const handleClearDatabase = async () => {
     const confirmed = window.confirm(
-      'Вы уверены, что хотите удалить ВСЕ события из базы данных?\n\nЭто действие нельзя отменить!'
+      'ВНИМАНИЕ! ЖЕСТКОЕ УДАЛЕНИЕ!\n\n' +
+      'Вы уверены, что хотите полностью очистить базу данных от всех событий?\n\n' +
+      'Это действие НЕОБРАТИМО и отменить его НЕВОЗМОЖНО!\n\n' +
+      'Все события будут удалены навсегда!'
     )
     
     if (!confirmed) return
@@ -33,41 +35,7 @@ const MaintenancePanel = ({ today, onBack, onSuccess }) => {
       pushToast({
         type: 'error',
         title: 'Ошибка',
-        message: err.message || 'Ошибка при удалении записей',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDeleteFuture = async () => {
-    const todayKey = toDateKey(today)
-    const confirmed = window.confirm(
-      `Вы уверены, что хотите удалить все события от ${todayKey} и в будущем?\n\nЭто действие нельзя отменить!`
-    )
-    
-    if (!confirmed) return
-
-    try {
-      setLoading(true)
-      const response = await apiDelete(`/entries/future?today=${todayKey}`)
-      pushToast({
-        type: 'success',
-        title: 'Готово',
-        message: `Успешно удалено ${response.deleted_count || 0} записей от ${todayKey} и в будущем`,
-      })
-      
-      // Обновляем данные если есть callback
-      if (onSuccess) {
-        setTimeout(() => {
-          onSuccess()
-        }, 1000)
-      }
-    } catch (err) {
-      pushToast({
-        type: 'error',
-        title: 'Ошибка',
-        message: err.message || 'Ошибка при удалении записей',
+        message: err.message || 'Ошибка при очистке базы данных',
       })
     } finally {
       setLoading(false)
@@ -90,38 +58,20 @@ const MaintenancePanel = ({ today, onBack, onSuccess }) => {
         </header>
 
         <div className="panel__content">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-            <div>
-              <h3 style={{ marginBottom: 'var(--space-2)', fontSize: '14px', fontWeight: 600 }}>
-                Очистить все события
-              </h3>
-              <p style={{ marginBottom: 'var(--space-3)', fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                Удаляет все события из базы данных (мягкое удаление). Это действие нельзя отменить.
-              </p>
-              <button
-                className="button button--danger"
-                onClick={handleDeleteAll}
-                disabled={loading}
-              >
-                {loading ? 'Удаление...' : 'Очистить все события'}
-              </button>
-            </div>
-
-            <div style={{ borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-4)' }}>
-              <h3 style={{ marginBottom: 'var(--space-2)', fontSize: '14px', fontWeight: 600 }}>
-                Очистить текущее и будущее
-              </h3>
-              <p style={{ marginBottom: 'var(--space-3)', fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                Удаляет все события от сегодняшнего дня и в будущем (мягкое удаление). Это действие нельзя отменить.
-              </p>
-              <button
-                className="button button--danger"
-                onClick={handleDeleteFuture}
-                disabled={loading}
-              >
-                {loading ? 'Удаление...' : 'Очистить текущее и будущее'}
-              </button>
-            </div>
+          <div>
+            <h3 style={{ marginBottom: 'var(--space-2)', fontSize: '14px', fontWeight: 600 }}>
+              Очистка базы данных от событий
+            </h3>
+            <p style={{ marginBottom: 'var(--space-3)', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+              Жесткое удаление всех событий из базы данных. Это действие необратимо и отменить его невозможно!
+            </p>
+            <button
+              className="button button--danger"
+              onClick={handleClearDatabase}
+              disabled={loading}
+            >
+              {loading ? 'Очистка...' : 'Очистить базу данных от событий'}
+            </button>
           </div>
         </div>
       </div>
