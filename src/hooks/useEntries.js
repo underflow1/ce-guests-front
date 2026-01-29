@@ -427,8 +427,13 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
           const entry = payload.change?.entry
           if (!entry) return
           
-          // Для entry_moved не показываем тосты, так как пользователь сам перетаскивает
-          // Тосты будут только от других пользователей, но это редко
+          if (shouldShowToast(entry)) {
+            pushToast({
+              type: 'info',
+              title: '',
+              message: buildToastMessage('Перемещена запись', entry),
+            })
+          }
         } else if (payload?.type === 'entry_deleted') {
           const entry = payload.change?.entry
           if (!entry) return
