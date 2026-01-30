@@ -159,21 +159,6 @@ const SimplePeopleList = ({
     )
   }
 
-  const renderDeleteBadge = (person) => (
-    <button
-      type="button"
-      className="list__badge list__badge--delete"
-      onClick={(e) => {
-        e.stopPropagation()
-        onDeleteEntry?.(person.id, dateKey)
-      }}
-      title="Удалить запись"
-      aria-label="Удалить запись"
-    >
-      <i className="fa-regular fa-trash-can" aria-hidden="true" />
-    </button>
-  )
-
   return (
       <div
       className={`simple-list ${isDragOver ? 'simple-list--dragover' : ''}`}
@@ -214,16 +199,15 @@ const SimplePeopleList = ({
                   {renderCancelBadge(person)}
                   {renderAcceptedBadge(person)}
                 </span>
-                <span className="list__text">{person.name}</span>
-                {person.responsible && (
-                  <span className={`list__responsible ${responsibleClass}`}>
-                    {' '}
-                    / {person.responsible}
-                  </span>
-                )}
-              </span>
-              <span className="list__controls">
-                {canDelete && renderDeleteBadge(person)}
+                <span className="list__content">
+                  <span className="list__text">{person.name}</span>
+                  {person.responsible && (
+                    <span className={`list__responsible ${responsibleClass}`}>
+                      {' '}
+                      / {person.responsible}
+                    </span>
+                  )}
+                </span>
               </span>
             </li>
           ))}
