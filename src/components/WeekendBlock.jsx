@@ -25,10 +25,14 @@ const WeekendBlock = ({
   canMarkPass = false,
   canRevokePass = false,
   canMove = false,
+  peopleTypographyVariant,
 }) => (
   <div className="weekend text">
     <div className="weekend__section">
-      <div className="weekend__title text text--down text--muted">{formatWeekdayWithDate(saturday)}</div>
+      {(() => {
+        const titleClass = peopleTypographyVariant === 'base-light' ? 'weekend__title text' : 'weekend__title text text--down text--muted'
+        return <div className={titleClass}>{formatWeekdayWithDate(saturday)}</div>
+      })()}
       <SimplePeopleList
         people={saturdayPeople}
         compact
@@ -50,10 +54,14 @@ const WeekendBlock = ({
         canMarkPass={canMarkPass}
         canRevokePass={canRevokePass}
         canMove={canMove}
+        typographyVariant={peopleTypographyVariant}
       />
     </div>
     <div className="weekend__section">
-      <div className="weekend__title text text--down text--muted">{formatWeekdayWithDate(sunday)}</div>
+      {(() => {
+        const titleClass = peopleTypographyVariant === 'base-light' ? 'weekend__title text' : 'weekend__title text text--down text--muted'
+        return <div className={titleClass}>{formatWeekdayWithDate(sunday)}</div>
+      })()}
       <SimplePeopleList
         people={sundayPeople}
         compact
@@ -75,6 +83,7 @@ const WeekendBlock = ({
         canMarkPass={canMarkPass}
         canRevokePass={canRevokePass}
         canMove={canMove}
+        typographyVariant={peopleTypographyVariant}
       />
     </div>
   </div>
