@@ -704,20 +704,6 @@ body.interface-user-new .panel__content {
   padding-bottom: 8px;
 }
 
-.app--operator .list__checkbox {
-  width: 24px;
-  height: 24px;
-}
-
-.app--operator .list__delete-btn {
-  width: 24px;
-  height: 24px;
-  font-size: 22px;
-}
-
-.app--operator .list__time {
-  font-size: 14px;
-}
 
 .operator-mobile {
   flex: 1;
@@ -827,28 +813,6 @@ body.interface-user-new .panel__content {
   }
 }
 
-.operator-mobile .list__checkbox {
-  width: 28px;
-  height: 28px;
-}
-
-.operator-mobile .list__checkbox:disabled {
-  opacity: 1;
-}
-
-.operator-mobile__checkbox {
-  pointer-events: none;
-}
-
-.operator-mobile .list__delete-btn {
-  width: 28px;
-  height: 28px;
-  font-size: 24px;
-}
-
-.operator-mobile .list__time {
-  font-size: 16px;
-}
 
 .operator-mobile__empty {
   font-size: 16px;
@@ -923,48 +887,64 @@ body.interface-user-new .panel__content {
   gap: var(--space-1);
 }
 
-.pass-badge {
-  width: 1em;
-  height: 1em;
-  min-width: 1em;
-  min-height: 1em;
-  border-radius: 999px;
-  display: inline-block;
-  flex: 0 0 auto;
+.list__badges {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.list__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1em;
+  height: 1.1em;
+  font-size: 1em;
+  line-height: 1;
+  border: none;
   padding: 0;
-  border: 1px solid var(--color-border);
+  margin: 0;
   background: transparent;
-  box-sizing: border-box;
-  appearance: none;
+  color: var(--color-text-muted);
 }
 
-.pass-badge--ordered {
-  background: #28a745;
-  border-color: #28a745;
+.list__badge i {
+  line-height: 1;
 }
 
-.pass-badge--failed {
-  background: #dc3545;
-  border-color: #dc3545;
-}
-
-.pass-badge--revoked {
-  background: #6c757d;
-  border-color: #6c757d;
-}
-
-.pass-badge--none {
-  background: transparent;
-  border-color: var(--color-border);
-}
-
-.pass-badge--clickable {
+.list__badge--clickable {
   cursor: pointer;
 }
 
-.pass-badge:disabled {
+.list__badge:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.list__badge--state-ordered,
+.list__badge--state-on {
+  color: #28a745;
+}
+
+.list__badge--state-failed {
+  color: #dc3545;
+}
+
+.list__badge--state-off,
+.list__badge--state-none {
+  color: var(--color-text-muted);
+}
+
+.list__badge--cancel.list__badge--state-on {
+  color: #b26a00;
+}
+
+.list__badge--delete {
+  color: var(--color-text-subtle);
+}
+
+.list__badge--delete:hover:not(:disabled) {
+  color: #dc3545;
 }
 
 .list__item--cancelled .list__name {
@@ -982,71 +962,6 @@ body.interface-user-new .panel__content {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.list__flag-btn {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text);
-  font-size: var(--text-size-down);
-  line-height: 1;
-  padding: 3px 6px;
-  border-radius: 999px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.list__flag-btn--active {
-  border-color: #dc3545;
-  color: #dc3545;
-}
-
-.list__flag-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.list__checkbox {
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  flex-shrink: 0;
-}
-
-.list__checkbox:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.list__delete-btn {
-  background: transparent;
-  border: none;
-  color: #dc3545;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-  flex-shrink: 0;
-}
-
-.list__delete-btn:hover {
-  opacity: 1;
-}
-
-.list__delete-btn:active {
-  opacity: 0.5;
-}
-
-.list__time {
-  color: var(--color-text-muted);
 }
 
 .list__empty {
