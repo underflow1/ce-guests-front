@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { extractTimeFromDateTime } from '../utils/date'
 
 const SimplePeopleList = ({
   people,
@@ -31,38 +30,112 @@ const SimplePeopleList = ({
   const isBase = typographyVariant === 'base'
   const isBaseLight = typographyVariant === 'base-light'
   const nameClass = isBase ? 'list__name text' : isBaseLight ? 'list__name text text--thin' : 'list__name text'
-  const timeClass = isBase ? 'list__time text text--muted' : isBaseLight ? 'list__time text text--thin text--muted' : 'list__time text text--down text--muted'
   const responsibleClass = isBase ? 'list__responsible text text--subtle' : isBaseLight ? 'list__responsible text text--thin text--subtle' : 'list__responsible text text--italic text--subtle'
 
   const renderPassBadge = (person) => {
     const status = getPassStatus(person)
-    const action = status === 'ordered' ? 'revoke' : 'order'
-    const isAllowed = action === 'order' ? canMarkPass : canRevokePass
-
+    const state =
+      status === 'ordered'
+        ? 'ordered'
+        : status === 'failed'
+        ? 'failed'
+        : 'none'
     const title =
-      action === 'order'
-        ? (isAllowed ? 'Заказать пропуск' : 'Нет прав на заказ пропуска')
-        : (isAllowed ? 'Отозвать пропуск' : 'Нет прав на отзыв пропуска')
+      status === 'ordered'
+        ? 'Пропуск заказан'
+        : status === 'failed'
+        ? 'Ошибка заказа пропуска'
+        : 'Пропуск не заказан'
 
-    const className = `pass-badge pass-badge--${status || 'none'} ${isAllowed ? 'pass-badge--clickable' : ''}`
+    const className = [
+      'list__badge',
+      'list__badge--pass',
+      `list__badge--state-${state}`,
+      'list__badge--static',
+    ]
+      .filter(Boolean)
+      .join(' ')
 
-    const handleClick = (e) => {
-      e.stopPropagation()
-      if (!isAllowed) return
-      if (action === 'order') onOrderPass?.(person.id, dateKey)
-      if (action === 'revoke') onRevokePass?.(person.id, dateKey)
-    }
+    return (
+      <span className={className} title={title} aria-label={title}>
+        <i className="fa-solid fa-id-card-clip" aria-hidden="true" />
+      </span>
+    )
+  }
+
+  const renderCancelBadge = (person) => {
+    const isCancelled = Boolean(person.is_cancelled)
+    const isCompleted = Boolean(person.is_completed)
+    const isAllowed = !isCompleted && (isCancelled ? canUnmarkCancelled : canMarkCancelled)
+    const title = isCancelled ? 'Снять отмену визита' : 'Отменить визит'
+    const className = [
+      'list__badge',
+      'list__badge--cancel',
+      `list__badge--state-${isCancelled ? 'on' : 'off'}`,
+      isAllowed ? 'list__badge--clickable' : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
 
     return (
       <button
         type="button"
         className={className}
         title={title}
-        onClick={handleClick}
-        onDoubleClick={(e) => e.stopPropagation()}
         disabled={!isAllowed}
+        onClick={(e) => {
+          e.stopPropagation()
+          const nextValue = !isCancelled
+          if (nextValue && canMarkCancelled) {
+            onToggleCancelled?.(person.id, dateKey, true)
+          }
+          if (!nextValue && canUnmarkCancelled) {
+            onToggleCancelled?.(person.id, dateKey, false)
+          }
+        }}
+        onDoubleClick={(e) => e.stopPropagation()}
         aria-label={title}
-      />
+      >
+        <i className="fa-solid fa-person-running" aria-hidden="true" />
+      </button>
+    )
+  }
+
+  const renderAcceptedBadge = (person) => {
+    const isCompleted = Boolean(person.is_completed)
+    const isCancelled = Boolean(person.is_cancelled)
+    const isAllowed = !isCancelled && (isCompleted ? canUnmarkCompleted : canMarkCompleted)
+    const title = isCompleted ? 'Гость принят' : 'Гость не принят'
+    const className = [
+      'list__badge',
+      'list__badge--accepted',
+      `list__badge--state-${isCompleted ? 'on' : 'off'}`,
+      isAllowed ? 'list__badge--clickable' : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+
+    return (
+      <button
+        type="button"
+        className={className}
+        title={title}
+        disabled={!isAllowed}
+        onClick={(e) => {
+          e.stopPropagation()
+          const nextValue = !isCompleted
+          if (nextValue && canMarkCompleted) {
+            onToggleCompleted?.(person.id, dateKey, true)
+          }
+          if (!nextValue && canUnmarkCompleted) {
+            onToggleCompleted?.(person.id, dateKey, false)
+          }
+        }}
+        onDoubleClick={(e) => e.stopPropagation()}
+        aria-label={title}
+      >
+        <i className="fa-solid fa-user-check" aria-hidden="true" />
+      </button>
     )
   }
 
@@ -87,9 +160,9 @@ const SimplePeopleList = ({
               className={`list__item ${person.is_completed ? 'list__item--completed' : ''} ${
                 person.is_cancelled ? 'list__item--cancelled' : ''
               }`}
-              draggable={!person.is_completed && canMove}
+              draggable={!person.is_completed && !person.is_cancelled && canMove}
               onDragStart={(event) => {
-                if (!canMove || person.is_completed) {
+                if (!canMove || person.is_completed || person.is_cancelled) {
                   event.preventDefault()
                   return
                 }
@@ -101,74 +174,19 @@ const SimplePeopleList = ({
               }}
             >
               <span className={nameClass}>
-                {renderPassBadge(person)}
-                {person.name}
-              </span>
-              <span className="list__controls">
-                {(canMarkCancelled || canUnmarkCancelled) && (
-                  <button
-                    type="button"
-                    className={`list__flag-btn ${person.is_cancelled ? 'list__flag-btn--active' : ''}`}
-                    title={person.is_cancelled ? 'Снять отмену визита' : 'Отменить визит'}
-                    disabled={person.is_cancelled ? !canUnmarkCancelled : !canMarkCancelled}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const nextValue = !person.is_cancelled
-                      if (nextValue && canMarkCancelled) {
-                        onToggleCancelled?.(person.id, dateKey, true)
-                      }
-                      if (!nextValue && canUnmarkCancelled) {
-                        onToggleCancelled?.(person.id, dateKey, false)
-                      }
-                    }}
-                  >
-                    Отм
-                  </button>
-                )}
-                {canDelete && (
-                  <button
-                    className="list__delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDeleteEntry?.(person.id, dateKey)
-                    }}
-                    title="Удалить запись"
-                  >
-                    ×
-                  </button>
-                )}
-                <input
-                  type="checkbox"
-                  checked={person.is_completed || false}
-                  disabled={
-                    person.is_completed
-                      ? !canUnmarkCompleted
-                      : !canMarkCompleted
-                  }
-                  onChange={(e) => {
-                    e.stopPropagation()
-                    const nextValue = e.target.checked
-                    if (nextValue && canMarkCompleted) {
-                      onToggleCompleted?.(person.id, dateKey, true)
-                    }
-                    if (!nextValue && canUnmarkCompleted) {
-                      onToggleCompleted?.(person.id, dateKey, false)
-                    }
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    // Предотвращаем клик если нет прав на соответствующее действие
-                    if (
-                      (person.is_completed && !canUnmarkCompleted) ||
-                      (!person.is_completed && !canMarkCompleted)
-                    ) {
-                      e.preventDefault()
-                    }
-                  }}
-                  className="list__checkbox"
-                />
-                <span className={timeClass}>
-                  {person.datetime ? extractTimeFromDateTime(person.datetime) : (person.time || '')}
+                <span className="list__badges">
+                  {renderPassBadge(person)}
+                  {renderCancelBadge(person)}
+                  {renderAcceptedBadge(person)}
+                </span>
+                <span className="list__content">
+                  <span className="list__text">{person.name}</span>
+                  {person.responsible && (
+                    <span className={`list__responsible ${responsibleClass}`}>
+                      {' '}
+                      / {person.responsible}
+                    </span>
+                  )}
                 </span>
               </span>
             </li>

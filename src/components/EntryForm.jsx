@@ -12,14 +12,51 @@ const EntryForm = ({
   today,
   todayKey,
   isEditing,
+  editingEntry,
   allResponsibles = [],
   canEditEntry = true,
+  canDeleteEntry = false,
+  canMarkPass = false,
+  canRevokePass = false,
   labelTextClassName,
+  interfaceType = 'user',
+  isFormActive = true,
+  onOrderPass,
+  onRevokePass,
+  onDeleteEntry,
 }) => {
   const { suggestions, isLoading, showDropdown, setShowDropdown } = useResponsibleAutocomplete(form.responsible)
   const [showAllResponsiblesDropdown, setShowAllResponsiblesDropdown] = useState(false)
   const autocompleteRef = useRef(null)
   const responsibleInputRef = useRef(null)
+  const isUserNew = interfaceType === 'user_new'
+  const editingDateKey = form.editingDateKey
+  const entry = editingEntry
+  const isEditingActive = Boolean(isEditing && entry && editingDateKey)
+  const isCancelled = Boolean(entry?.is_cancelled)
+  const isCompleted = Boolean(entry?.is_completed)
+  const isFormLocked = isUserNew && !isFormActive
+  const isEntryLocked = isEditingActive && (isCancelled || isCompleted)
+  const isFieldDisabled = isFormLocked || isEntryLocked || (isEditing && !canEditEntry)
+  const passStatus = entry?.pass_status || null
+  const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
+  const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
+  const passState =
+    passStatus === 'ordered'
+      ? 'ordered'
+      : passStatus === 'failed'
+      ? 'failed'
+      : 'none'
+  const passTitle =
+    passStatus === 'ordered'
+      ? 'Пропуск заказан'
+      : passStatus === 'failed'
+      ? 'Ошибка заказа пропуска'
+      : 'Пропуск не заказан'
+  const passDisabled = !isEditingActive || isCancelled || isCompleted || !canPassAction
+  const passActionTitle = passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск'
+
+  const deleteDisabled = !isEditingActive || isCancelled || isCompleted || !canDeleteEntry
 
   // Закрываем дропдаун при клике вне его
   useEffect(() => {
@@ -65,7 +102,16 @@ const EntryForm = ({
   }
 
   return (
-  <form className="form panel__content text" onSubmit={onSubmit}>
+  <form
+    className={[
+      'form',
+      'panel__content',
+      'text',
+      isUserNew ? 'form--stacked' : '',
+      isFormLocked ? 'form--inactive' : '',
+    ].join(' ')}
+    onSubmit={onSubmit}
+  >
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>ФИО</span>
       <div className="form__control">
@@ -78,7 +124,7 @@ const EntryForm = ({
             setForm((prev) => ({ ...prev, name: event.target.value }))
           }
           placeholder="Например, Иван Петров"
-          disabled={isEditing && !canEditEntry}
+          disabled={isFieldDisabled}
         />
       </div>
     </label>
@@ -106,7 +152,7 @@ const EntryForm = ({
             }
           }}
           placeholder="Например, Анна Соколова"
-          disabled={isEditing && !canEditEntry}
+          disabled={isFieldDisabled}
         />
         {showAllResponsiblesDropdown && allResponsibles.length > 0 && (
           <div className="autocomplete__dropdown">
@@ -143,6 +189,17 @@ const EntryForm = ({
       </div>
     </label>
 
+    <div className="form__submit-row">
+      <button
+        className="button button--primary text form__submit"
+        type="submit"
+        disabled={isSubmitDisabled || isFormLocked || isEntryLocked}
+      >
+        {isEditing ? 'Сохранить' : 'Создать'}
+      </button>
+    </div>
+
+    {!isUserNew && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Время</span>
       <div className="form__control">
@@ -152,6 +209,7 @@ const EntryForm = ({
           onChange={(event) =>
             setForm((prev) => ({ ...prev, time: event.target.value }))
           }
+          disabled={isFieldDisabled}
         >
           {Array.from({ length: 10 }, (_, idx) => {
             const hour = String(9 + idx).padStart(2, '0')
@@ -167,7 +225,9 @@ const EntryForm = ({
         </select>
       </div>
     </label>
+    )}
 
+    {!isUserNew && (
     <div className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Куда добавить</span>
       <div className="form__control">
@@ -184,6 +244,7 @@ const EntryForm = ({
                   target: event.target.value,
                 }))
               }
+              disabled={isFieldDisabled}
             />
             <span className="text">Сегодня</span>
           </label>
@@ -199,6 +260,7 @@ const EntryForm = ({
                   target: event.target.value,
                 }))
               }
+              disabled={isFieldDisabled}
             />
             <span className="text">Следующий рабочий день</span>
           </label>
@@ -218,13 +280,16 @@ const EntryForm = ({
                       : prev.otherDate,
                 }))
               }
+              disabled={isFieldDisabled}
             />
             <span className="text">Другой день</span>
           </label>
         </div>
       </div>
     </div>
+    )}
 
+    {!isUserNew && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Дата</span>
       <div
@@ -251,7 +316,7 @@ const EntryForm = ({
           type="date"
           value={form.otherDate}
           min={todayKey}
-          disabled={form.target !== 'other'}
+          disabled={isFieldDisabled || form.target !== 'other'}
           onClick={(event) => {
             if (form.target === 'other' && dateInputRef.current?.showPicker) {
               event.preventDefault()
@@ -267,10 +332,37 @@ const EntryForm = ({
         />
       </div>
     </label>
+    )}
 
-    <button className="button button--primary text" type="submit" disabled={isSubmitDisabled}>
-      {isEditing ? 'Сохранить' : 'Создать'}
-    </button>
+    <div className="form__bottom-actions">
+      <button
+        type="button"
+        className="button text"
+        title={`${passTitle}. ${passActionTitle}`}
+        aria-label={`${passTitle}. ${passActionTitle}`}
+        disabled={passDisabled}
+        onClick={() => {
+          if (passDisabled) return
+          if (passAction === 'order') onOrderPass?.(entry.id, editingDateKey)
+          if (passAction === 'revoke') onRevokePass?.(entry.id, editingDateKey)
+        }}
+      >
+        {passActionTitle}
+      </button>
+      <button
+        type="button"
+        className="button button--danger text"
+        title="Удалить запись"
+        aria-label="Удалить запись"
+        disabled={deleteDisabled}
+        onClick={() => {
+          if (deleteDisabled) return
+          onDeleteEntry?.(entry.id, editingDateKey)
+        }}
+      >
+        Удалить
+      </button>
+    </div>
   </form>
   )
 }

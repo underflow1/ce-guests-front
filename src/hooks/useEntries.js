@@ -580,6 +580,11 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     editingDateKey: null,
     isCompleted: false,
   })
+  const [isFormActive, setIsFormActive] = useState(interfaceType !== 'user_new')
+
+  useEffect(() => {
+    setIsFormActive(interfaceType !== 'user_new')
+  }, [interfaceType])
 
   const handleDragStart = (event, entry, sourceDateKey) => {
     // Не позволяем перетаскивать принятых гостей
@@ -751,6 +756,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     const { target, otherDate } = resolveTarget(dateKey)
     const entryTime = entry.datetime ? extractTimeFromDateTime(entry.datetime) : (entry.time || '00:00')
 
+    setIsFormActive(true)
     setForm({
       name: entry.name,
       responsible: entry.responsible || '',
@@ -771,6 +777,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   const handleEmptyRowDoubleClick = (dateKey, hour) => {
     const { target, otherDate } = resolveTarget(dateKey)
 
+    setIsFormActive(true)
     setForm({
       name: '',
       responsible: '',
@@ -790,6 +797,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   const handleWeekendEmptyRowDoubleClick = (dateKey) => {
     const { target, otherDate } = resolveTarget(dateKey)
 
+    setIsFormActive(true)
     setForm({
       name: '',
       responsible: '',
@@ -806,7 +814,9 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     }, 0)
   }
 
+  const isFormActiveEffective = interfaceType === 'user_new' ? isFormActive : true
   const isSubmitDisabled =
+    !isFormActiveEffective ||
     form.name.trim().length === 0 ||
     form.time.trim().length === 0 ||
     (form.target === 'other' && form.otherDate.trim().length === 0)
@@ -871,11 +881,19 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
         editingDateKey: null,
         isCompleted: false,
       })
+      if (interfaceType === 'user_new') {
+        setIsFormActive(false)
+      }
     } catch (err) {
       console.error('Ошибка при сохранении записи:', err)
       setError(err.message)
     }
   }
+
+  const getEntryById = useCallback((entryId) => {
+    if (!entryId) return null
+    return entriesByIdRef.current.get(entryId) || null
+  }, [])
 
   return {
     todayKey,
@@ -891,6 +909,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     allResponsibles,
     form,
     setForm,
+    isFormActive: isFormActiveEffective,
     isSubmitDisabled,
     loading,
     error,
@@ -906,6 +925,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     handleOrderPass,
     handleRevokePass,
     handleDeleteEntry,
+    getEntryById,
   }
 }
 
