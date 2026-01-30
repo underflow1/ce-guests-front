@@ -26,7 +26,9 @@ const SettingsPanel = ({ onBack }) => {
       providers: {
         max_via_green_api: {
           enabled: false,
-          url: '',
+          base_url: '',
+          instance_id: '',
+          api_token: '',
           chat_id: '',
         },
         telegram: {
@@ -63,7 +65,9 @@ const SettingsPanel = ({ onBack }) => {
               providers: {
                 max_via_green_api: {
                   enabled: !!maxProvider.enabled,
-                  url: maxProvider.url || '',
+                  base_url: maxProvider.base_url || '',
+                  instance_id: maxProvider.instance_id || '',
+                  api_token: maxProvider.api_token || '',
                   chat_id: maxProvider.chat_id || '',
                 },
                 telegram: {
@@ -107,7 +111,9 @@ const SettingsPanel = ({ onBack }) => {
     const telegramProvider = providers.telegram || {}
 
     if (maxProvider.enabled) {
-      if (!String(maxProvider.url || '').trim()) return false
+      if (!String(maxProvider.base_url || '').trim()) return false
+      if (!String(maxProvider.instance_id || '').trim()) return false
+      if (!String(maxProvider.api_token || '').trim()) return false
       if (!String(maxProvider.chat_id || '').trim()) return false
     }
 
@@ -247,15 +253,45 @@ const SettingsPanel = ({ onBack }) => {
 
               <div style={{ marginTop: 'var(--space-3)' }}>
                 <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
-                  URL для отправки:
+                  Базовый URL:
                 </label>
                 <input
                   type="text"
                   className="input"
-                  value={form.notifications.providers.max_via_green_api.url}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'url', e.target.value)}
+                  value={form.notifications.providers.max_via_green_api.base_url}
+                  onChange={(e) => updateProviderConfig('max_via_green_api', 'base_url', e.target.value)}
                   disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="https://api.example.com/v1/send/xxx"
+                  placeholder="https://3100.api.green-api.com/v3"
+                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                />
+              </div>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                  Instance ID:
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={form.notifications.providers.max_via_green_api.instance_id}
+                  onChange={(e) => updateProviderConfig('max_via_green_api', 'instance_id', e.target.value)}
+                  disabled={!form.notifications.providers.max_via_green_api.enabled}
+                  placeholder="110000"
+                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                />
+              </div>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                  API Token:
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={form.notifications.providers.max_via_green_api.api_token}
+                  onChange={(e) => updateProviderConfig('max_via_green_api', 'api_token', e.target.value)}
+                  disabled={!form.notifications.providers.max_via_green_api.enabled}
+                  placeholder="token123"
                   style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
                 />
               </div>
