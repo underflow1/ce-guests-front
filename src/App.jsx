@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, useEffect } from 'react'
 import DayPanel from './components/DayPanel'
 import EntryForm from './components/EntryForm'
 import WeekendBlock from './components/WeekendBlock'
+import SimplePeopleList from './components/SimplePeopleList'
 import LoginForm from './components/LoginForm'
 import UserManagement from './components/UserManagement'
 import RoleManagement from './components/RoleManagement'
@@ -508,38 +509,69 @@ const App = () => {
                 if (item.weekday === 'Saturday' || item.weekday === 'Sunday') {
                   if (item.weekday === 'Saturday' && weekendRendered) {
                     bottomRowItems.push(
-                      <section className="panel panel--compact" key={`weekend-${index}`}>
-                      <header className="panel__header text">
-                          <div className="text">Суббота / Воскресенье</div>
-                        </header>
-                        <div className="panel__content text">
-                          <WeekendBlock
-                            saturday={parseDateFromKey(saturdayItem.date)}
-                            sunday={parseDateFromKey(sundayItem.date)}
-                            saturdayKey={saturdayItem.date}
-                            sundayKey={sundayItem.date}
-                            saturdayPeople={bottomEntries[saturdayItem.date] ?? []}
-                            sundayPeople={bottomEntries[sundayItem.date] ?? []}
-                            onDragStart={handleDragStart}
-                            onDrop={handleDrop}
-                            onDoubleClick={handleDoubleClick}
-                            onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
-                            onToggleCompleted={handleToggleCompleted}
-                            onToggleCancelled={handleToggleCancelled}
-                            onOrderPass={handleOrderPass}
-                            onRevokePass={handleRevokePass}
-                            onDeleteEntry={handleDeleteEntry}
-                            canDelete={canDeleteUi()}
-                            canMarkCompleted={canMarkCompletedUi()}
-                            canUnmarkCompleted={canUnmarkCompletedUi()}
-                            canMarkCancelled={canMarkCancelledUi()}
-                            canUnmarkCancelled={canUnmarkCancelledUi()}
-                            canMarkPass={canMarkPassUi()}
-                            canRevokePass={canRevokePassUi()}
-                            canMove={canMoveUi()}
-                          />
-                        </div>
-                      </section>
+                      <div className="weekend-stack" key={`weekend-stack-${index}`}>
+                        <section className="panel panel--compact">
+                          <header className="panel__header text">
+                            <div className="text">Суббота</div>
+                          </header>
+                          <div className="panel__content text">
+                            <SimplePeopleList
+                              people={bottomEntries[saturdayItem.date] ?? []}
+                              compact
+                              dateKey={saturdayItem.date}
+                              onDragStart={handleDragStart}
+                              onDrop={handleDrop}
+                              onDoubleClick={(entry) => handleDoubleClick?.(entry, saturdayItem.date)}
+                              onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
+                              onToggleCompleted={handleToggleCompleted}
+                              onToggleCancelled={handleToggleCancelled}
+                              onOrderPass={handleOrderPass}
+                              onRevokePass={handleRevokePass}
+                              onDeleteEntry={handleDeleteEntry}
+                              canDelete={canDeleteUi()}
+                              canMarkCompleted={canMarkCompletedUi()}
+                              canUnmarkCompleted={canUnmarkCompletedUi()}
+                              canMarkCancelled={canMarkCancelledUi()}
+                              canUnmarkCancelled={canUnmarkCancelledUi()}
+                              canMarkPass={canMarkPassUi()}
+                              canRevokePass={canRevokePassUi()}
+                              canMove={canMoveUi()}
+                              typographyVariant="base-light"
+                            />
+                          </div>
+                        </section>
+
+                        <section className="panel panel--compact">
+                          <header className="panel__header text">
+                            <div className="text">Воскресенье</div>
+                          </header>
+                          <div className="panel__content text">
+                            <SimplePeopleList
+                              people={bottomEntries[sundayItem.date] ?? []}
+                              compact
+                              dateKey={sundayItem.date}
+                              onDragStart={handleDragStart}
+                              onDrop={handleDrop}
+                              onDoubleClick={(entry) => handleDoubleClick?.(entry, sundayItem.date)}
+                              onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
+                              onToggleCompleted={handleToggleCompleted}
+                              onToggleCancelled={handleToggleCancelled}
+                              onOrderPass={handleOrderPass}
+                              onRevokePass={handleRevokePass}
+                              onDeleteEntry={handleDeleteEntry}
+                              canDelete={canDeleteUi()}
+                              canMarkCompleted={canMarkCompletedUi()}
+                              canUnmarkCompleted={canUnmarkCompletedUi()}
+                              canMarkCancelled={canMarkCancelledUi()}
+                              canUnmarkCancelled={canUnmarkCancelledUi()}
+                              canMarkPass={canMarkPassUi()}
+                              canRevokePass={canRevokePassUi()}
+                              canMove={canMoveUi()}
+                              typographyVariant="base-light"
+                            />
+                          </div>
+                        </section>
+                      </div>
                     )
                   }
                   return
