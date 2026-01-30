@@ -12,19 +12,51 @@ const EntryForm = ({
   today,
   todayKey,
   isEditing,
+  editingEntry,
   allResponsibles = [],
   canEditEntry = true,
+  canDeleteEntry = false,
+  canMarkPass = false,
+  canRevokePass = false,
   labelTextClassName,
   interfaceType = 'user',
   isFormActive = true,
+  onOrderPass,
+  onRevokePass,
+  onDeleteEntry,
 }) => {
   const { suggestions, isLoading, showDropdown, setShowDropdown } = useResponsibleAutocomplete(form.responsible)
   const [showAllResponsiblesDropdown, setShowAllResponsiblesDropdown] = useState(false)
   const autocompleteRef = useRef(null)
   const responsibleInputRef = useRef(null)
   const isUserNew = interfaceType === 'user_new'
+  const editingDateKey = form.editingDateKey
+  const entry = editingEntry
+  const isEditingActive = Boolean(isEditing && entry && editingDateKey)
+  const isCancelled = Boolean(entry?.is_cancelled)
+  const isCompleted = Boolean(entry?.is_completed)
   const isFormLocked = isUserNew && !isFormActive
-  const isFieldDisabled = isFormLocked || (isEditing && !canEditEntry)
+  const isEntryLocked = isEditingActive && (isCancelled || isCompleted)
+  const isFieldDisabled = isFormLocked || isEntryLocked || (isEditing && !canEditEntry)
+  const passStatus = entry?.pass_status || null
+  const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
+  const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
+  const passState =
+    passStatus === 'ordered'
+      ? 'ordered'
+      : passStatus === 'failed'
+      ? 'failed'
+      : 'none'
+  const passTitle =
+    passStatus === 'ordered'
+      ? 'Пропуск заказан'
+      : passStatus === 'failed'
+      ? 'Ошибка заказа пропуска'
+      : 'Пропуск не заказан'
+  const passDisabled = !isEditingActive || isCancelled || isCompleted || !canPassAction
+  const passActionTitle = passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск'
+
+  const deleteDisabled = !isEditingActive || isCancelled || isCompleted || !canDeleteEntry
 
   // Закрываем дропдаун при клике вне его
   useEffect(() => {
@@ -156,6 +188,16 @@ const EntryForm = ({
         )}
       </div>
     </label>
+
+    <div className="form__submit-row">
+      <button
+        className="button button--primary text form__submit"
+        type="submit"
+        disabled={isSubmitDisabled || isFormLocked || isEntryLocked}
+      >
+        {isEditing ? 'Сохранить' : 'Создать'}
+      </button>
+    </div>
 
     {!isUserNew && (
     <label className="form__field">
@@ -292,9 +334,35 @@ const EntryForm = ({
     </label>
     )}
 
-    <button className="button button--primary text" type="submit" disabled={isSubmitDisabled || isFormLocked}>
-      {isEditing ? 'Сохранить' : 'Создать'}
-    </button>
+    <div className="form__bottom-actions">
+      <button
+        type="button"
+        className="button text"
+        title={`${passTitle}. ${passActionTitle}`}
+        aria-label={`${passTitle}. ${passActionTitle}`}
+        disabled={passDisabled}
+        onClick={() => {
+          if (passDisabled) return
+          if (passAction === 'order') onOrderPass?.(entry.id, editingDateKey)
+          if (passAction === 'revoke') onRevokePass?.(entry.id, editingDateKey)
+        }}
+      >
+        {passActionTitle}
+      </button>
+      <button
+        type="button"
+        className="button button--danger text"
+        title="Удалить запись"
+        aria-label="Удалить запись"
+        disabled={deleteDisabled}
+        onClick={() => {
+          if (deleteDisabled) return
+          onDeleteEntry?.(entry.id, editingDateKey)
+        }}
+      >
+        Удалить
+      </button>
+    </div>
   </form>
   )
 }

@@ -890,6 +890,11 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     }
   }
 
+  const getEntryById = useCallback((entryId) => {
+    if (!entryId) return null
+    return entriesByIdRef.current.get(entryId) || null
+  }, [])
+
   return {
     todayKey,
     previousWorkday,
@@ -920,6 +925,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     handleOrderPass,
     handleRevokePass,
     handleDeleteEntry,
+    getEntryById,
   }
 }
 

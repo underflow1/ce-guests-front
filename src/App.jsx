@@ -74,7 +74,9 @@ const App = () => {
     handleOrderPass,
     handleRevokePass,
     handleDeleteEntry,
+    getEntryById,
   } = useEntries({ today, nameInputRef, interfaceType, isAuthenticated })
+  const editingEntry = form.editingEntryId ? getEntryById(form.editingEntryId) : null
 
   const isLoading = authLoading || entriesLoading || (isAuthenticated && !isWebSocketReady)
   const error = entriesError
@@ -492,11 +494,18 @@ const App = () => {
                 today={today}
                 todayKey={todayKey}
                 isEditing={Boolean(form.editingEntryId)}
+                editingEntry={editingEntry}
                 allResponsibles={allResponsibles}
                 canEditEntry={canEditEntryUi()}
+                canMarkPass={canMarkPassUi()}
+                canRevokePass={canRevokePassUi()}
+                canDeleteEntry={canDeleteUi()}
                 labelTextClassName="text text--muted"
                 interfaceType={interfaceType}
                 isFormActive={isFormActive}
+                onOrderPass={handleOrderPass}
+                onRevokePass={handleRevokePass}
+                onDeleteEntry={handleDeleteEntry}
               />
             </section>
           </div>
@@ -722,8 +731,15 @@ const App = () => {
               today={today}
               todayKey={todayKey}
               isEditing={Boolean(form.editingEntryId)}
+              editingEntry={editingEntry}
               allResponsibles={allResponsibles}
               canEditEntry={canEditEntryUi()}
+              canMarkPass={canMarkPassUi()}
+              canRevokePass={canRevokePassUi()}
+              canDeleteEntry={canDeleteUi()}
+              onOrderPass={handleOrderPass}
+              onRevokePass={handleRevokePass}
+              onDeleteEntry={handleDeleteEntry}
             />
           </section>
         </div>

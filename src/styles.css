@@ -420,7 +420,7 @@ body.operator-mobile * {
 }
 
 .table__status-inactive {
-  color: #dc3545;
+  color: #ff1f1f;
 }
 
 .table__actions {
@@ -436,7 +436,7 @@ body.operator-mobile * {
 }
 
 .button--danger {
-  color: #dc3545;
+  color: #ff1f1f;
 }
 
 .button--success {
@@ -860,6 +860,8 @@ body.interface-user-new .panel__content {
   cursor: grab;
   gap: var(--space-2);
   flex-shrink: 0;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .list__item:last-child {
@@ -872,7 +874,6 @@ body.interface-user-new .panel__content {
 }
 
 .list__item--completed {
-  opacity: 0.5;
   cursor: default;
 }
 
@@ -924,7 +925,12 @@ body.interface-user-new .panel__content {
   padding: 0;
   margin: 0;
   background: transparent;
-  color: var(--color-text-muted);
+  color: #cccccc;
+}
+
+.list__badge--static {
+  pointer-events: none;
+  cursor: default;
 }
 
 .list__badge i {
@@ -937,7 +943,7 @@ body.interface-user-new .panel__content {
 
 .list__badge:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .list__badge--state-ordered,
@@ -946,22 +952,27 @@ body.interface-user-new .panel__content {
 }
 
 .list__badge--state-failed {
-  color: #dc3545;
+  color: #ff1f1f;
 }
 
 .list__badge--state-off,
 .list__badge--state-none {
-  color: var(--color-text-muted);
+  color: #cccccc;
 }
 
 .list__badge--cancel.list__badge--state-on {
-  color: #b26a00;
+  color: #ff1f1f;
 }
 
 
-.list__item--cancelled .list__name {
+.list__item--cancelled .list__text {
   text-decoration: line-through;
   color: var(--color-text-muted);
+}
+
+.list__item--completed .list__content,
+.list__item--cancelled .list__content {
+  opacity: 0.5;
 }
 
 .list__responsible {
@@ -974,6 +985,31 @@ body.interface-user-new .panel__content {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.form__submit-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form__bottom-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.form__bottom-actions .button {
+  justify-content: center;
+  text-align: center;
+}
+
+.form__bottom-actions .button:first-child {
+  flex: 0 0 auto;
+}
+
+.form__bottom-actions .button:last-child {
+  flex: 1 1 auto;
 }
 
 .list__empty {

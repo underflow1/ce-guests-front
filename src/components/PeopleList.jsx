@@ -64,59 +64,39 @@ const PeopleList = ({
 
   const renderPassBadge = (person) => {
     const status = getPassStatus(person)
-    const action = status === 'ordered' ? 'revoke' : 'order'
-    const isAllowed = action === 'order' ? canMarkPass : canRevokePass
     const state =
       status === 'ordered'
         ? 'ordered'
         : status === 'failed'
         ? 'failed'
         : 'none'
-    const statusTitle =
+    const title =
       status === 'ordered'
         ? 'Пропуск заказан'
         : status === 'failed'
         ? 'Ошибка заказа пропуска'
         : 'Пропуск не заказан'
-    const actionTitle = action === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск'
-    const title = isAllowed
-      ? `${statusTitle}. ${actionTitle}`
-      : `${statusTitle}. Нет прав`
 
     const className = [
       'list__badge',
       'list__badge--pass',
       `list__badge--state-${state}`,
-      isAllowed ? 'list__badge--clickable' : '',
+      'list__badge--static',
     ]
       .filter(Boolean)
       .join(' ')
 
-    const handleClick = (e) => {
-      e.stopPropagation()
-      if (!isAllowed) return
-      if (action === 'order') onOrderPass?.(person.id, dateKey)
-      if (action === 'revoke') onRevokePass?.(person.id, dateKey)
-    }
-
     return (
-      <button
-        type="button"
-        className={className}
-        title={title}
-        onClick={handleClick}
-        onDoubleClick={(e) => e.stopPropagation()}
-        disabled={!isAllowed}
-        aria-label={title}
-      >
+      <span className={className} title={title} aria-label={title}>
         <i className="fa-solid fa-id-card-clip" aria-hidden="true" />
-      </button>
+      </span>
     )
   }
 
   const renderCancelBadge = (person) => {
     const isCancelled = Boolean(person.is_cancelled)
-    const isAllowed = isCancelled ? canUnmarkCancelled : canMarkCancelled
+    const isCompleted = Boolean(person.is_completed)
+    const isAllowed = !isCompleted && (isCancelled ? canUnmarkCancelled : canMarkCancelled)
     const title = isCancelled ? 'Снять отмену визита' : 'Отменить визит'
     const className = [
       'list__badge',
@@ -153,7 +133,8 @@ const PeopleList = ({
 
   const renderAcceptedBadge = (person) => {
     const isCompleted = Boolean(person.is_completed)
-    const isAllowed = isCompleted ? canUnmarkCompleted : canMarkCompleted
+    const isCancelled = Boolean(person.is_cancelled)
+    const isAllowed = !isCancelled && (isCompleted ? canUnmarkCompleted : canMarkCompleted)
     const title = isCompleted ? 'Гость принят' : 'Гость не принят'
     const className = [
       'list__badge',
@@ -219,9 +200,9 @@ const PeopleList = ({
                     className={`list__item ${person.is_completed ? 'list__item--completed' : ''} ${
                       person.is_cancelled ? 'list__item--cancelled' : ''
                     }`}
-                    draggable={!person.is_completed && canMove}
+                    draggable={!person.is_completed && !person.is_cancelled && canMove}
                     onDragStart={(event) => {
-                      if (!canMove || person.is_completed) {
+                      if (!canMove || person.is_completed || person.is_cancelled) {
                         event.preventDefault()
                         return
                       }
