@@ -509,8 +509,8 @@ const App = () => {
                   if (item.weekday === 'Saturday' && weekendRendered) {
                     bottomRowItems.push(
                       <section className="panel panel--compact" key={`weekend-${index}`}>
-                        <header className="panel__header text">
-                          <div className="text text--up text--bold">Суббота / Воскресенье</div>
+                      <header className="panel__header text">
+                          <div className="text">Суббота / Воскресенье</div>
                         </header>
                         <div className="panel__content text">
                           <WeekendBlock

@@ -55,6 +55,11 @@ const PeopleList = ({
     : isBaseLightTypography
     ? 'text text--thin text--subtle'
     : 'text text--italic text--subtle'
+  const nameClassName = isBaseTypography
+    ? 'list__name text'
+    : isBaseLightTypography
+    ? 'list__name text text--thin'
+    : 'list__name text'
 
   const getPassStatus = (person) => person?.pass_status || null
 
@@ -134,7 +139,7 @@ const PeopleList = ({
                       onDoubleClick?.(person, dateKey)
                     }}
                   >
-                    <span className="list__name text">
+                    <span className={nameClassName}>
                       {renderPassBadge(person)}
                       {person.name}
                       {!compact && person.responsible && (
