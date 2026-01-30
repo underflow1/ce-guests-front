@@ -20,6 +20,7 @@ const PeopleList = ({
   people,
   compact = false,
   dateKey,
+  typographyVariant,
   onDragStart,
   onDrop,
   onDoubleClick,
@@ -40,6 +41,20 @@ const PeopleList = ({
 }) => {
   const grouped = useMemo(() => groupPeopleByHour(people), [people])
   const [dragOverHour, setDragOverHour] = useState(null)
+
+  const isBaseTypography = typographyVariant === 'base'
+  const isBaseLightTypography = typographyVariant === 'base-light'
+  const timeLabelClassName = isBaseTypography
+    ? 'text text--muted'
+    : isBaseLightTypography
+    ? 'text text--thin text--muted'
+    : 'text text--down text--muted'
+  const timeValueClassName = timeLabelClassName
+  const responsibleClassName = isBaseTypography
+    ? 'text text--subtle'
+    : isBaseLightTypography
+    ? 'text text--thin text--subtle'
+    : 'text text--italic text--subtle'
 
   const getPassStatus = (person) => person?.pass_status || null
 
@@ -96,7 +111,7 @@ const PeopleList = ({
           }}
           onDoubleClick={() => onEmptyRowDoubleClick?.(dateKey, hour)}
         >
-          <div className="time-grid__label text text--down text--muted">{hour}:00</div>
+          <div className={`time-grid__label ${timeLabelClassName}`}>{hour}:00</div>
           <div className="time-grid__content">
             {grouped[hour]?.length ? (
               <ul className={`list ${compact ? 'list--compact' : ''}`}>
@@ -123,7 +138,7 @@ const PeopleList = ({
                       {renderPassBadge(person)}
                       {person.name}
                       {!compact && person.responsible && (
-                        <span className="list__responsible text text--italic text--subtle">
+                        <span className={`list__responsible ${responsibleClassName}`}>
                           {' '}
                           / {person.responsible}
                         </span>
@@ -192,7 +207,7 @@ const PeopleList = ({
                         }}
                         className="list__checkbox"
                       />
-                      <span className="list__time text text--down text--muted">
+                      <span className={`list__time ${timeValueClassName}`}>
                         {person.datetime ? extractTimeFromDateTime(person.datetime) : (person.time || '')}
                       </span>
                     </span>

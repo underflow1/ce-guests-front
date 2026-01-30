@@ -14,6 +14,7 @@ const EntryForm = ({
   isEditing,
   allResponsibles = [],
   canEditEntry = true,
+  labelTextClassName,
 }) => {
   const { suggestions, isLoading, showDropdown, setShowDropdown } = useResponsibleAutocomplete(form.responsible)
   const [showAllResponsiblesDropdown, setShowAllResponsiblesDropdown] = useState(false)
@@ -66,7 +67,7 @@ const EntryForm = ({
   return (
   <form className="form panel__content text" onSubmit={onSubmit}>
     <label className="form__field">
-      <span className="form__label text text--down text--muted">ФИО</span>
+      <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>ФИО</span>
       <div className="form__control">
         <input
           ref={nameInputRef}
@@ -83,7 +84,7 @@ const EntryForm = ({
     </label>
 
     <label className="form__field">
-      <span className="form__label text text--down text--muted">Ответственный</span>
+      <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Ответственный</span>
       <div className="form__control" ref={autocompleteRef} style={{ position: 'relative' }}>
         <input
           ref={responsibleInputRef}
@@ -143,7 +144,7 @@ const EntryForm = ({
     </label>
 
     <label className="form__field">
-      <span className="form__label text text--down text--muted">Время</span>
+      <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Время</span>
       <div className="form__control">
         <select
           className="select"
@@ -168,7 +169,7 @@ const EntryForm = ({
     </label>
 
     <div className="form__field">
-      <span className="form__label text text--down text--muted">Куда добавить</span>
+      <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Куда добавить</span>
       <div className="form__control">
         <div className="form__options">
           <label className="form__option">
@@ -225,7 +226,7 @@ const EntryForm = ({
     </div>
 
     <label className="form__field">
-      <span className="form__label text text--down text--muted">Дата</span>
+      <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Дата</span>
       <div
         className="form__control"
         onClick={(event) => {

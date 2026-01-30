@@ -25,6 +25,7 @@ const WeekendBlock = ({
   canMarkPass = false,
   canRevokePass = false,
   canMove = false,
+  peopleTypographyVariant,
 }) => (
   <div className="weekend text">
     <div className="weekend__section">
@@ -50,6 +51,7 @@ const WeekendBlock = ({
         canMarkPass={canMarkPass}
         canRevokePass={canRevokePass}
         canMove={canMove}
+        typographyVariant={peopleTypographyVariant}
       />
     </div>
     <div className="weekend__section">
@@ -75,6 +77,7 @@ const WeekendBlock = ({
         canMarkPass={canMarkPass}
         canRevokePass={canRevokePass}
         canMove={canMove}
+        typographyVariant={peopleTypographyVariant}
       />
     </div>
   </div>

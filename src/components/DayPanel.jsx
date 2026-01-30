@@ -6,6 +6,7 @@ const DayPanel = ({
   titleAs: TitleTag = 'h2',
   titleTextClassName,
   dateTextClassName,
+  peopleTypographyVariant,
   people,
   dateKey,
   compact = false,
@@ -48,6 +49,7 @@ const DayPanel = ({
         people={people}
         dateKey={dateKey}
         compact={compact}
+        typographyVariant={peopleTypographyVariant}
         onDragStart={onDragStart}
         onDrop={onDrop}
         onDoubleClick={onDoubleClick}

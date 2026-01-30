@@ -381,7 +381,8 @@ const App = () => {
                 title="Предыдущий рабочий день"
                 titleAs="div"
                 titleTextClassName="text text--bold"
-                dateTextClassName="text text--thin text--muted"
+                dateTextClassName="text text--muted"
+                peopleTypographyVariant="base"
                 dateLabel={(() => {
                   const item = calendarStructure.find(item => item.date === previousWorkdayKey)
                   return item?.weekday
@@ -414,7 +415,8 @@ const App = () => {
               title="Сегодня"
               titleAs="div"
               titleTextClassName="text text--bold"
-              dateTextClassName="text text--thin text--muted"
+              dateTextClassName="text text--muted"
+              peopleTypographyVariant="base"
               dateLabel={formatWeekdayWithDate(today)}
               people={todayPeople}
               dateKey={todayKey}
@@ -442,7 +444,8 @@ const App = () => {
                 title="Следующий рабочий день"
                 titleAs="div"
                 titleTextClassName="text text--bold"
-                dateTextClassName="text text--thin text--muted"
+                dateTextClassName="text text--muted"
+                peopleTypographyVariant="base"
                 dateLabel={(() => {
                   const item = calendarStructure.find(item => item.date === nextWorkdayKey)
                   return item?.weekday
@@ -473,7 +476,7 @@ const App = () => {
 
             <section className="panel">
               <header className="panel__header text">
-                <div className="text text--up text--bold">
+                <div className="text text--bold">
                   {form.editingEntryId ? 'Редактирование записи' : 'Новая запись'}
                 </div>
               </header>
@@ -489,6 +492,7 @@ const App = () => {
                 isEditing={Boolean(form.editingEntryId)}
                 allResponsibles={allResponsibles}
                 canEditEntry={canEditEntryUi()}
+                labelTextClassName="text text--muted"
               />
             </section>
           </div>
@@ -547,7 +551,7 @@ const App = () => {
                     title={localizeWeekday(item.weekday)}
                     dateLabel={formatShortDate(parseDateFromKey(item.date))}
                     titleAs="div"
-                    titleTextClassName="text text--bold"
+                    titleTextClassName="text"
                     dateTextClassName="text text--thin text--muted"
                     people={bottomEntries[item.date] ?? []}
                     dateKey={item.date}
@@ -569,6 +573,7 @@ const App = () => {
                     canMarkPass={canMarkPassUi()}
                     canRevokePass={canRevokePassUi()}
                     canMove={canMoveUi()}
+                    peopleTypographyVariant="base-light"
                     isAdmin={user?.is_admin || false}
                   />
                 )

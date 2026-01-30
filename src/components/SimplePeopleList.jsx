@@ -22,10 +22,17 @@ const SimplePeopleList = ({
   canMarkPass = false,
   canRevokePass = false,
   canMove = false,
+  typographyVariant,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false)
 
   const getPassStatus = (person) => person?.pass_status || null
+
+  const isBase = typographyVariant === 'base'
+  const isBaseLight = typographyVariant === 'base-light'
+  const nameClass = isBase ? 'list__name text' : isBaseLight ? 'list__name text text--thin' : 'list__name text'
+  const timeClass = isBase ? 'list__time text text--muted' : isBaseLight ? 'list__time text text--thin text--muted' : 'list__time text text--down text--muted'
+  const responsibleClass = isBase ? 'list__responsible text text--subtle' : isBaseLight ? 'list__responsible text text--thin text--subtle' : 'list__responsible text text--italic text--subtle'
 
   const renderPassBadge = (person) => {
     const status = getPassStatus(person)
@@ -60,8 +67,8 @@ const SimplePeopleList = ({
   }
 
   return (
-    <div
-      className={`simple-list text ${isDragOver ? 'simple-list--dragover' : ''}`}
+      <div
+      className={`simple-list ${isDragOver ? 'simple-list--dragover' : ''}`}
       onDragOver={(event) => {
         event.preventDefault()
         setIsDragOver(true)
@@ -93,7 +100,7 @@ const SimplePeopleList = ({
                 onDoubleClick?.(person, dateKey)
               }}
             >
-              <span className="list__name text">
+              <span className={nameClass}>
                 {renderPassBadge(person)}
                 {person.name}
               </span>
@@ -160,7 +167,7 @@ const SimplePeopleList = ({
                   }}
                   className="list__checkbox"
                 />
-                <span className="list__time text text--down text--muted">
+                <span className={timeClass}>
                   {person.datetime ? extractTimeFromDateTime(person.datetime) : (person.time || '')}
                 </span>
               </span>
