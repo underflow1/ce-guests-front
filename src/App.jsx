@@ -6,6 +6,7 @@ import LoginForm from './components/LoginForm'
 import UserManagement from './components/UserManagement'
 import RoleManagement from './components/RoleManagement'
 import MaintenancePanel from './components/MaintenancePanel'
+import SettingsPanel from './components/SettingsPanel'
 import OperatorMobileView from './components/OperatorMobileView'
 import { useToast } from './components/ToastProvider'
 import useEntries from './hooks/useEntries'
@@ -33,6 +34,7 @@ const App = () => {
   const [showUserManagement, setShowUserManagement] = useState(false)
   const [showRoleManagement, setShowRoleManagement] = useState(false)
   const [showMaintenance, setShowMaintenance] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const isOperatorMobile = interfaceType === 'operator'
   const dropdownRef = useRef(null)
   const lastErrorRef = useRef(null)
@@ -218,6 +220,7 @@ const App = () => {
                     setShowUserManagement(true)
                     setShowRoleManagement(false)
                     setShowMaintenance(false)
+                    setShowSettings(false)
                     setIsDropdownOpen(false)
                   }}
                 >
@@ -229,6 +232,7 @@ const App = () => {
                     setShowRoleManagement(true)
                     setShowUserManagement(false)
                     setShowMaintenance(false)
+                    setShowSettings(false)
                     setIsDropdownOpen(false)
                   }}
                 >
@@ -240,10 +244,23 @@ const App = () => {
                     setShowMaintenance(true)
                     setShowUserManagement(false)
                     setShowRoleManagement(false)
+                    setShowSettings(false)
                     setIsDropdownOpen(false)
                   }}
                 >
                   Обслуживание
+                </button>
+                <button
+                  className="app__user-menu-item"
+                  onClick={() => {
+                    setShowSettings(true)
+                    setShowUserManagement(false)
+                    setShowRoleManagement(false)
+                    setShowMaintenance(false)
+                    setIsDropdownOpen(false)
+                  }}
+                >
+                  Настройки
                 </button>
               </>
             )}
@@ -261,7 +278,9 @@ const App = () => {
         </div>
       </div>
 
-      {showMaintenance ? (
+      {showSettings ? (
+        <SettingsPanel onBack={() => setShowSettings(false)} />
+      ) : showMaintenance ? (
         <MaintenancePanel
           today={today}
           onBack={() => setShowMaintenance(false)}
