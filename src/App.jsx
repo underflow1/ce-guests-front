@@ -58,6 +58,7 @@ const App = () => {
     allResponsibles,
     form,
     setForm,
+    isFormActive,
     isSubmitDisabled,
     loading: entriesLoading,
     error: entriesError,
@@ -475,7 +476,7 @@ const App = () => {
               />
             )}
 
-            <section className="panel">
+            <section className={`panel${interfaceType === 'user_new' && !isFormActive ? ' panel--inactive' : ''}`}>
               <header className="panel__header text">
                 <div className="text text--bold">
                   {form.editingEntryId ? 'Редактирование записи' : 'Новая запись'}
@@ -494,6 +495,8 @@ const App = () => {
                 allResponsibles={allResponsibles}
                 canEditEntry={canEditEntryUi()}
                 labelTextClassName="text text--muted"
+                interfaceType={interfaceType}
+                isFormActive={isFormActive}
               />
             </section>
           </div>

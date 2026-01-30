@@ -15,11 +15,16 @@ const EntryForm = ({
   allResponsibles = [],
   canEditEntry = true,
   labelTextClassName,
+  interfaceType = 'user',
+  isFormActive = true,
 }) => {
   const { suggestions, isLoading, showDropdown, setShowDropdown } = useResponsibleAutocomplete(form.responsible)
   const [showAllResponsiblesDropdown, setShowAllResponsiblesDropdown] = useState(false)
   const autocompleteRef = useRef(null)
   const responsibleInputRef = useRef(null)
+  const isUserNew = interfaceType === 'user_new'
+  const isFormLocked = isUserNew && !isFormActive
+  const isFieldDisabled = isFormLocked || (isEditing && !canEditEntry)
 
   // Закрываем дропдаун при клике вне его
   useEffect(() => {
@@ -65,7 +70,16 @@ const EntryForm = ({
   }
 
   return (
-  <form className="form panel__content text" onSubmit={onSubmit}>
+  <form
+    className={[
+      'form',
+      'panel__content',
+      'text',
+      isUserNew ? 'form--stacked' : '',
+      isFormLocked ? 'form--inactive' : '',
+    ].join(' ')}
+    onSubmit={onSubmit}
+  >
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>ФИО</span>
       <div className="form__control">
@@ -78,7 +92,7 @@ const EntryForm = ({
             setForm((prev) => ({ ...prev, name: event.target.value }))
           }
           placeholder="Например, Иван Петров"
-          disabled={isEditing && !canEditEntry}
+          disabled={isFieldDisabled}
         />
       </div>
     </label>
@@ -106,7 +120,7 @@ const EntryForm = ({
             }
           }}
           placeholder="Например, Анна Соколова"
-          disabled={isEditing && !canEditEntry}
+          disabled={isFieldDisabled}
         />
         {showAllResponsiblesDropdown && allResponsibles.length > 0 && (
           <div className="autocomplete__dropdown">
@@ -143,6 +157,7 @@ const EntryForm = ({
       </div>
     </label>
 
+    {!isUserNew && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Время</span>
       <div className="form__control">
@@ -152,6 +167,7 @@ const EntryForm = ({
           onChange={(event) =>
             setForm((prev) => ({ ...prev, time: event.target.value }))
           }
+          disabled={isFieldDisabled}
         >
           {Array.from({ length: 10 }, (_, idx) => {
             const hour = String(9 + idx).padStart(2, '0')
@@ -167,7 +183,9 @@ const EntryForm = ({
         </select>
       </div>
     </label>
+    )}
 
+    {!isUserNew && (
     <div className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Куда добавить</span>
       <div className="form__control">
@@ -184,6 +202,7 @@ const EntryForm = ({
                   target: event.target.value,
                 }))
               }
+              disabled={isFieldDisabled}
             />
             <span className="text">Сегодня</span>
           </label>
@@ -199,6 +218,7 @@ const EntryForm = ({
                   target: event.target.value,
                 }))
               }
+              disabled={isFieldDisabled}
             />
             <span className="text">Следующий рабочий день</span>
           </label>
@@ -218,13 +238,16 @@ const EntryForm = ({
                       : prev.otherDate,
                 }))
               }
+              disabled={isFieldDisabled}
             />
             <span className="text">Другой день</span>
           </label>
         </div>
       </div>
     </div>
+    )}
 
+    {!isUserNew && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Дата</span>
       <div
@@ -251,7 +274,7 @@ const EntryForm = ({
           type="date"
           value={form.otherDate}
           min={todayKey}
-          disabled={form.target !== 'other'}
+          disabled={isFieldDisabled || form.target !== 'other'}
           onClick={(event) => {
             if (form.target === 'other' && dateInputRef.current?.showPicker) {
               event.preventDefault()
@@ -267,8 +290,9 @@ const EntryForm = ({
         />
       </div>
     </label>
+    )}
 
-    <button className="button button--primary text" type="submit" disabled={isSubmitDisabled}>
+    <button className="button button--primary text" type="submit" disabled={isSubmitDisabled || isFormLocked}>
       {isEditing ? 'Сохранить' : 'Создать'}
     </button>
   </form>

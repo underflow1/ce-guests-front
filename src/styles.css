@@ -532,6 +532,7 @@ body.interface-user-new {
     (1 / 1.5) ≈ 0.6667
   */
   --user-new-space: calc(var(--space-2) * 0.6667);
+  --user-new-bottom-col: calc((100% - (5 * var(--user-new-space))) / 6);
 }
 
 body.interface-user-new .app {
@@ -556,6 +557,7 @@ body.interface-user-new .app__layout {
 body.interface-user-new .app__top-row {
   /* Единый ритм сетки */
   gap: var(--user-new-space);
+  grid-template-columns: repeat(3, minmax(0, 1fr)) var(--user-new-bottom-col);
 }
 
 body.interface-user-new .app__bottom-row {
@@ -593,6 +595,10 @@ body.interface-user-new .panel {
   border-color: var(--color-border-strong);
   padding: var(--user-new-space);
   gap: var(--user-new-space);
+}
+
+body.interface-user-new .panel--inactive {
+  opacity: 0.7;
 }
 
 .panel--compact {
@@ -1136,6 +1142,16 @@ body.interface-user-new .panel__content {
   grid-template-columns: 120px 1fr;
   align-items: center;
   gap: var(--space-2);
+}
+
+.form--stacked .form__field {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+
+.form--stacked .form__label {
+  margin-bottom: var(--space-1);
 }
 
 .form__label {
