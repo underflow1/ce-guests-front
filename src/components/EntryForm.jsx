@@ -64,9 +64,9 @@ const EntryForm = ({
   }
 
   return (
-  <form className="form panel__content" onSubmit={onSubmit}>
+  <form className="form panel__content text" onSubmit={onSubmit}>
     <label className="form__field">
-      <span className="form__label">ФИО</span>
+      <span className="form__label text text--down text--muted">ФИО</span>
       <div className="form__control">
         <input
           ref={nameInputRef}
@@ -83,7 +83,7 @@ const EntryForm = ({
     </label>
 
     <label className="form__field">
-      <span className="form__label">Ответственный</span>
+      <span className="form__label text text--down text--muted">Ответственный</span>
       <div className="form__control" ref={autocompleteRef} style={{ position: 'relative' }}>
         <input
           ref={responsibleInputRef}
@@ -143,7 +143,7 @@ const EntryForm = ({
     </label>
 
     <label className="form__field">
-      <span className="form__label">Время</span>
+      <span className="form__label text text--down text--muted">Время</span>
       <div className="form__control">
         <select
           className="select"
@@ -168,7 +168,7 @@ const EntryForm = ({
     </label>
 
     <div className="form__field">
-      <span className="form__label">Куда добавить</span>
+      <span className="form__label text text--down text--muted">Куда добавить</span>
       <div className="form__control">
         <div className="form__options">
           <label className="form__option">
@@ -184,7 +184,7 @@ const EntryForm = ({
                 }))
               }
             />
-            <span>Сегодня</span>
+            <span className="text">Сегодня</span>
           </label>
           <label className="form__option">
             <input
@@ -199,7 +199,7 @@ const EntryForm = ({
                 }))
               }
             />
-            <span>Следующий рабочий день</span>
+            <span className="text">Следующий рабочий день</span>
           </label>
           <label className="form__option">
             <input
@@ -218,14 +218,14 @@ const EntryForm = ({
                 }))
               }
             />
-            <span>Другой день</span>
+            <span className="text">Другой день</span>
           </label>
         </div>
       </div>
     </div>
 
     <label className="form__field">
-      <span className="form__label">Дата</span>
+      <span className="form__label text text--down text--muted">Дата</span>
       <div
         className="form__control"
         onClick={(event) => {
@@ -267,7 +267,7 @@ const EntryForm = ({
       </div>
     </label>
 
-    <button className="button button--primary" type="submit" disabled={isSubmitDisabled}>
+    <button className="button button--primary text" type="submit" disabled={isSubmitDisabled}>
       {isEditing ? 'Сохранить' : 'Создать'}
     </button>
   </form>

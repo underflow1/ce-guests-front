@@ -4,6 +4,8 @@ const DayPanel = ({
   title,
   dateLabel,
   titleAs: TitleTag = 'h2',
+  titleTextClassName,
+  dateTextClassName,
   people,
   dateKey,
   compact = false,
@@ -27,10 +29,21 @@ const DayPanel = ({
 }) => (
   <section className={`panel ${compact ? 'panel--compact' : ''}`}>
     <header className="panel__header">
-      <TitleTag className="panel__title">{title}</TitleTag>
-      {dateLabel && <div className="panel__date">{dateLabel}</div>}
+      <TitleTag
+        className={[
+          'panel__title',
+          titleTextClassName || 'text text--up text--bold',
+        ].join(' ')}
+      >
+        {title}
+      </TitleTag>
+      {dateLabel && (
+        <div className={['panel__date', dateTextClassName || 'text text--down text--muted'].join(' ')}>
+          {dateLabel}
+        </div>
+      )}
     </header>
-    <div className="panel__content">
+    <div className="panel__content text">
       <PeopleList
         people={people}
         dateKey={dateKey}

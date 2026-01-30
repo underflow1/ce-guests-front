@@ -358,6 +358,7 @@ const RoleManagement = () => {
                         onChange={(e) => setForm((p) => ({ ...p, interface_type: e.target.value }))}
                       >
                         <option value="user">Обычный</option>
+                        <option value="user_new">Обычный новый</option>
                         <option value="operator">Оперативный дежурный</option>
                       </select>
                     </label>

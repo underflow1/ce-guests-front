@@ -76,7 +76,7 @@ const PeopleList = ({
   }
 
   return (
-    <div className={`time-grid ${compact ? 'time-grid--compact' : ''}`}>
+    <div className={`time-grid text ${compact ? 'time-grid--compact' : ''}`}>
       {HOURS.map((hour) => (
         <div
           className={`time-grid__row ${dragOverHour === hour ? 'time-grid__row--dragover' : ''}`}
@@ -96,7 +96,7 @@ const PeopleList = ({
           }}
           onDoubleClick={() => onEmptyRowDoubleClick?.(dateKey, hour)}
         >
-          <div className="time-grid__label">{hour}:00</div>
+          <div className="time-grid__label text text--down text--muted">{hour}:00</div>
           <div className="time-grid__content">
             {grouped[hour]?.length ? (
               <ul className={`list ${compact ? 'list--compact' : ''}`}>
@@ -119,11 +119,11 @@ const PeopleList = ({
                       onDoubleClick?.(person, dateKey)
                     }}
                   >
-                    <span className="list__name">
+                    <span className="list__name text">
                       {renderPassBadge(person)}
                       {person.name}
                       {!compact && person.responsible && (
-                        <span className="list__responsible">
+                        <span className="list__responsible text text--italic text--subtle">
                           {' '}
                           / {person.responsible}
                         </span>
@@ -192,7 +192,7 @@ const PeopleList = ({
                         }}
                         className="list__checkbox"
                       />
-                      <span className="list__time">
+                      <span className="list__time text text--down text--muted">
                         {person.datetime ? extractTimeFromDateTime(person.datetime) : (person.time || '')}
                       </span>
                     </span>
@@ -205,7 +205,7 @@ const PeopleList = ({
           </div>
         </div>
       ))}
-      {!people.length && <div className="list__empty">Пока пусто</div>}
+      {!people.length && <div className="list__empty text text--muted">Пока пусто</div>}
     </div>
   )
 }

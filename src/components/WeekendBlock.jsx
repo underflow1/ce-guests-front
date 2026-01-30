@@ -26,9 +26,9 @@ const WeekendBlock = ({
   canRevokePass = false,
   canMove = false,
 }) => (
-  <div className="weekend">
+  <div className="weekend text">
     <div className="weekend__section">
-      <div className="weekend__title">{formatWeekdayWithDate(saturday)}</div>
+      <div className="weekend__title text text--down text--muted">{formatWeekdayWithDate(saturday)}</div>
       <SimplePeopleList
         people={saturdayPeople}
         compact
@@ -53,7 +53,7 @@ const WeekendBlock = ({
       />
     </div>
     <div className="weekend__section">
-      <div className="weekend__title">{formatWeekdayWithDate(sunday)}</div>
+      <div className="weekend__title text text--down text--muted">{formatWeekdayWithDate(sunday)}</div>
       <SimplePeopleList
         people={sundayPeople}
         compact

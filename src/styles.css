@@ -49,7 +49,8 @@ body {
 }
 
 /* Default (non-operator) interface typography baseline */
-body.interface-default {
+body.interface-default,
+body.interface-user-new {
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);
 }
@@ -62,42 +63,51 @@ select {
 }
 
 /* Typography utilities (for future incremental adoption) */
-body.interface-default .text {
+body.interface-default .text,
+body.interface-user-new .text {
   font-family: var(--font-base);
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);
   font-weight: var(--text-weight-base);
 }
 
-body.interface-default .text--up {
+body.interface-default .text--up,
+body.interface-user-new .text--up {
   font-size: var(--text-size-up);
 }
 
-body.interface-default .text--down {
+body.interface-default .text--down,
+body.interface-user-new .text--down {
   font-size: var(--text-size-down);
 }
 
-body.interface-default .text--bold {
+body.interface-default .text--bold,
+body.interface-user-new .text--bold {
   font-weight: var(--text-weight-bold);
 }
 
-body.interface-default .text--thin {
+body.interface-default .text--thin,
+body.interface-user-new .text--thin {
   font-weight: var(--text-weight-thin);
 }
 
-body.interface-default .text--italic {
+body.interface-default .text--italic,
+body.interface-user-new .text--italic {
   font-style: italic;
 }
 
-body.interface-default .text--muted {
+body.interface-default .text--muted,
+body.interface-user-new .text--muted {
   color: var(--color-text-muted);
 }
 
-body.interface-default .text--subtle {
+body.interface-default .text--subtle,
+body.interface-user-new .text--subtle {
   color: var(--color-text-subtle);
 }
 
-body.interface-default .text--strike {
+body.interface-default .text--strike,
+body.interface-user-new .text--strike {
   text-decoration: line-through;
 }
 
@@ -286,7 +296,8 @@ body.operator-mobile .toast__title {
   color: var(--color-text-muted);
 }
 
-body.interface-default .toast__message {
+body.interface-default .toast__message,
+body.interface-user-new .toast__message {
   font-size: var(--text-size-base);
 }
 
@@ -513,6 +524,45 @@ body.interface-default .login__submit {
   min-height: 0;
 }
 
+/* "Обычный новый" (user_new): бумажный/квадратный вариант интерфейса */
+body.interface-user-new {
+  /*
+    Единый базовый отступ для интерфейса user_new.
+    База = горизонтальный gap между блоками, уменьшенный в 1.5 раза.
+    (1 / 1.5) ≈ 0.6667
+  */
+  --user-new-space: calc(var(--space-2) * 0.6667);
+}
+
+body.interface-user-new .app {
+  /* Единая внешняя рамка отступов */
+  padding: var(--user-new-space);
+  /* Больше воздуха под верхней строкой (header-bar) */
+  padding-top: calc((var(--user-new-space) * 2) + 21px);
+}
+
+body.interface-user-new .app__header-bar {
+  /* Держим один ритм с внешним padding */
+  top: var(--user-new-space);
+  left: var(--user-new-space);
+  right: var(--user-new-space);
+}
+
+body.interface-user-new .app__layout {
+  /* Чётче разделяем верх/низ */
+  gap: var(--user-new-space);
+}
+
+body.interface-user-new .app__top-row {
+  /* Единый ритм сетки */
+  gap: var(--user-new-space);
+}
+
+body.interface-user-new .app__bottom-row {
+  /* Единый ритм сетки */
+  gap: var(--user-new-space);
+}
+
 .panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -521,6 +571,14 @@ body.interface-default .login__submit {
   flex-direction: column;
   gap: var(--space-2);
   min-height: 0;
+}
+
+body.interface-user-new .panel {
+  /* "Бумажно": квадратные блоки + чуть сильнее границы */
+  border-radius: 0;
+  border-color: var(--color-border-strong);
+  padding: var(--user-new-space);
+  gap: var(--user-new-space);
 }
 
 .panel--compact {
@@ -532,6 +590,12 @@ body.interface-default .login__submit {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: var(--space-2);
+}
+
+body.interface-user-new .panel__header {
+  /* Отделяем заголовок от контента тонкой линией */
+  padding-bottom: var(--user-new-space);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .panel__title {
@@ -570,6 +634,11 @@ body.interface-default .login__submit {
   min-height: 0;
   margin-top: var(--space-4);
   overscroll-behavior-x: none;
+}
+
+body.interface-user-new .panel__content {
+  /* Чуть плотнее контент в "бумажном" варианте */
+  margin-top: var(--user-new-space);
 }
 
 .app--operator {
@@ -1103,7 +1172,9 @@ body.interface-default .login__submit {
 }
 
 body.interface-default .input--compact,
-body.interface-default .select--compact {
+body.interface-default .select--compact,
+body.interface-user-new .input--compact,
+body.interface-user-new .select--compact {
   font-size: var(--text-size-down);
   padding: 2px 4px;
 }
@@ -1130,7 +1201,8 @@ body.interface-default .select--compact {
   line-height: 1.4;
 }
 
-body.interface-default .button {
+body.interface-default .button,
+body.interface-user-new .button {
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);
 }

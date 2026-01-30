@@ -61,7 +61,7 @@ const SimplePeopleList = ({
 
   return (
     <div
-      className={`simple-list ${isDragOver ? 'simple-list--dragover' : ''}`}
+      className={`simple-list text ${isDragOver ? 'simple-list--dragover' : ''}`}
       onDragOver={(event) => {
         event.preventDefault()
         setIsDragOver(true)
@@ -93,7 +93,7 @@ const SimplePeopleList = ({
                 onDoubleClick?.(person, dateKey)
               }}
             >
-              <span className="list__name">
+              <span className="list__name text">
                 {renderPassBadge(person)}
                 {person.name}
               </span>
@@ -160,7 +160,7 @@ const SimplePeopleList = ({
                   }}
                   className="list__checkbox"
                 />
-                <span className="list__time">
+                <span className="list__time text text--down text--muted">
                   {person.datetime ? extractTimeFromDateTime(person.datetime) : (person.time || '')}
                 </span>
               </span>
@@ -168,7 +168,7 @@ const SimplePeopleList = ({
           ))}
         </ul>
       ) : (
-        <div className="list__empty">Пока пусто</div>
+        <div className="list__empty text text--muted">Пока пусто</div>
       )}
       <div
         className="simple-list__empty-row"
