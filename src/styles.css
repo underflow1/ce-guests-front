@@ -1,5 +1,12 @@
 :root {
-  --font-base: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-base: "Ubuntu", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --text-size-base: 13px;
+  --text-size-up: 15px;
+  --text-size-down: 12px;
+  --text-line-height-base: 1.2;
+  --text-weight-base: 400;
+  --text-weight-bold: 600;
+  --text-weight-thin: 300;
   --color-bg: #f5f5f5;
   --color-surface: #ffffff;
   --color-surface-muted: #f5f5f5;
@@ -41,11 +48,67 @@ body {
   overscroll-behavior-x: none;
 }
 
+/* Default (non-operator) interface typography baseline */
+body.interface-default,
+body.interface-user-new {
+  font-size: var(--text-size-base);
+  line-height: var(--text-line-height-base);
+}
+
 input,
 button,
 select {
   font: inherit;
   color: inherit;
+}
+
+/* Typography utilities (for future incremental adoption) */
+body.interface-default .text,
+body.interface-user-new .text {
+  font-family: var(--font-base);
+  font-size: var(--text-size-base);
+  line-height: var(--text-line-height-base);
+  font-weight: var(--text-weight-base);
+}
+
+body.interface-default .text--up,
+body.interface-user-new .text--up {
+  font-size: var(--text-size-up);
+}
+
+body.interface-default .text--down,
+body.interface-user-new .text--down {
+  font-size: var(--text-size-down);
+}
+
+body.interface-default .text--bold,
+body.interface-user-new .text--bold {
+  font-weight: var(--text-weight-bold);
+}
+
+body.interface-default .text--thin,
+body.interface-user-new .text--thin {
+  font-weight: var(--text-weight-thin);
+}
+
+body.interface-default .text--italic,
+body.interface-user-new .text--italic {
+  font-style: italic;
+}
+
+body.interface-default .text--muted,
+body.interface-user-new .text--muted {
+  color: var(--color-text-muted);
+}
+
+body.interface-default .text--subtle,
+body.interface-user-new .text--subtle {
+  color: var(--color-text-subtle);
+}
+
+body.interface-default .text--strike,
+body.interface-user-new .text--strike {
+  text-decoration: line-through;
 }
 
 button {
@@ -78,8 +141,8 @@ button {
 }
 
 .app__header-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--text-size-up);
+  font-weight: var(--text-weight-bold);
   color: var(--color-text);
 }
 
@@ -89,8 +152,7 @@ button {
 
 .app__user-name {
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--text-weight-bold);
   color: var(--color-text);
   user-select: none;
   transition: opacity 0.2s ease;
@@ -121,7 +183,6 @@ button {
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 13px;
   color: var(--color-text);
   transition: background 0.2s ease;
 }
@@ -135,7 +196,6 @@ button {
   background: #fee;
   color: #c00;
   text-align: center;
-  font-size: 13px;
   flex-shrink: 0;
 }
 
@@ -145,7 +205,6 @@ button {
   color: #c00;
   border-radius: var(--radius-sm);
   margin-bottom: var(--space-4);
-  font-size: 13px;
 }
 
 .toast-host {
@@ -219,9 +278,13 @@ body.operator-mobile .toast__icon {
 }
 
 .toast__title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-size-base);
+  font-weight: var(--text-weight-bold);
   color: var(--color-text);
+}
+
+body.interface-operator .toast__title {
+  font-size: 13px;
 }
 
 body.operator-mobile .toast__title {
@@ -233,6 +296,11 @@ body.operator-mobile .toast__title {
   color: var(--color-text-muted);
 }
 
+body.interface-default .toast__message,
+body.interface-user-new .toast__message {
+  font-size: var(--text-size-base);
+}
+
 body.operator-mobile .toast__message {
   font-size: 14px;
 }
@@ -242,9 +310,13 @@ body.operator-mobile .toast__message {
   border: none;
   color: var(--color-text-subtle);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--text-size-up);
   line-height: 1;
   padding: 0;
+}
+
+body.interface-operator .toast__close {
+  font-size: 14px;
 }
 
 body.operator-mobile .toast__close {
@@ -358,7 +430,7 @@ body.operator-mobile * {
 }
 
 .button--small {
-  font-size: 11px;
+  font-size: var(--text-size-down);
   padding: 3px 8px;
   line-height: 1.3;
 }
@@ -381,8 +453,8 @@ body.operator-mobile * {
 .form-section__title {
   margin-top: 0;
   margin-bottom: var(--space-3);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--text-size-up);
+  font-weight: var(--text-weight-bold);
 }
 
 .app__layout {
@@ -397,6 +469,43 @@ body.operator-mobile * {
 
 .app__layout--operator-mobile {
   padding-top: 0;
+}
+
+/* Login screen (default interface) */
+body.interface-default .login {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--color-bg);
+}
+
+body.interface-default .login__panel {
+  width: 420px;
+}
+
+body.interface-default .login__header {
+  margin-bottom: var(--space-4);
+  text-align: center;
+}
+
+body.interface-default .login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+body.interface-default .login__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+body.interface-default .login__submit {
+  width: 100%;
+  justify-content: center;
+  align-self: stretch;
 }
 
 .app__top-row {
@@ -415,6 +524,45 @@ body.operator-mobile * {
   min-height: 0;
 }
 
+/* "Обычный новый" (user_new): бумажный/квадратный вариант интерфейса */
+body.interface-user-new {
+  /*
+    Единый базовый отступ для интерфейса user_new.
+    База = горизонтальный gap между блоками, уменьшенный в 1.5 раза.
+    (1 / 1.5) ≈ 0.6667
+  */
+  --user-new-space: calc(var(--space-2) * 0.6667);
+}
+
+body.interface-user-new .app {
+  /* Единая внешняя рамка отступов */
+  padding: var(--user-new-space);
+  /* Больше воздуха под верхней строкой (header-bar) */
+  padding-top: calc((var(--user-new-space) * 2) + 21px);
+}
+
+body.interface-user-new .app__header-bar {
+  /* Держим один ритм с внешним padding */
+  top: var(--user-new-space);
+  left: var(--user-new-space);
+  right: var(--user-new-space);
+}
+
+body.interface-user-new .app__layout {
+  /* Чётче разделяем верх/низ */
+  gap: var(--user-new-space);
+}
+
+body.interface-user-new .app__top-row {
+  /* Единый ритм сетки */
+  gap: var(--user-new-space);
+}
+
+body.interface-user-new .app__bottom-row {
+  /* Единый ритм сетки */
+  gap: var(--user-new-space);
+}
+
 .panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -423,6 +571,14 @@ body.operator-mobile * {
   flex-direction: column;
   gap: var(--space-2);
   min-height: 0;
+}
+
+body.interface-user-new .panel {
+  /* "Бумажно": квадратные блоки + чуть сильнее границы */
+  border-radius: 0;
+  border-color: var(--color-border-strong);
+  padding: var(--user-new-space);
+  gap: var(--user-new-space);
 }
 
 .panel--compact {
@@ -436,10 +592,16 @@ body.operator-mobile * {
   gap: var(--space-2);
 }
 
+body.interface-user-new .panel__header {
+  /* Отделяем заголовок от контента тонкой линией */
+  padding-bottom: var(--user-new-space);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
 .panel__title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--text-size-up);
+  font-weight: var(--text-weight-bold);
   line-height: 1.2;
   grid-column: 1;
 }
@@ -454,8 +616,8 @@ body.operator-mobile * {
 
 .panel__title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--text-size-up);
+  font-weight: var(--text-weight-bold);
   line-height: 1.2;
 }
 
@@ -472,6 +634,11 @@ body.operator-mobile * {
   min-height: 0;
   margin-top: var(--space-4);
   overscroll-behavior-x: none;
+}
+
+body.interface-user-new .panel__content {
+  /* Чуть плотнее контент в "бумажном" варианте */
+  margin-top: var(--user-new-space);
 }
 
 .app--operator {
@@ -678,9 +845,6 @@ body.operator-mobile * {
     gap: var(--space-2);
   }
 
-  .operator-mobile__item {
-  }
-
   .app.app--operator-mobile {
     padding: var(--space-2);
     padding-top: var(--space-1);
@@ -739,16 +903,87 @@ body.operator-mobile * {
   gap: var(--space-1);
 }
 
+.pass-badge {
+  width: 1em;
+  height: 1em;
+  min-width: 1em;
+  min-height: 1em;
+  border-radius: 999px;
+  display: inline-block;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  box-sizing: border-box;
+  appearance: none;
+}
+
+.pass-badge--ordered {
+  background: #28a745;
+  border-color: #28a745;
+}
+
+.pass-badge--failed {
+  background: #dc3545;
+  border-color: #dc3545;
+}
+
+.pass-badge--revoked {
+  background: #6c757d;
+  border-color: #6c757d;
+}
+
+.pass-badge--none {
+  background: transparent;
+  border-color: var(--color-border);
+}
+
+.pass-badge--clickable {
+  cursor: pointer;
+}
+
+.pass-badge:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.list__item--cancelled .list__name {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
 .list__responsible {
   font-style: italic;
   color: var(--color-text-subtle);
-  font-weight: normal;
+  font-weight: var(--text-weight-base);
 }
 
 .list__controls {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.list__flag-btn {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-size-down);
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.list__flag-btn--active {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.list__flag-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .list__checkbox {
@@ -918,7 +1153,6 @@ body.operator-mobile * {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 13px;
   cursor: pointer;
 }
 
@@ -935,6 +1169,14 @@ body.operator-mobile * {
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
+}
+
+body.interface-default .input--compact,
+body.interface-default .select--compact,
+body.interface-user-new .input--compact,
+body.interface-user-new .select--compact {
+  font-size: var(--text-size-down);
+  padding: 2px 4px;
 }
 
 .input[type="date"] {
@@ -957,6 +1199,12 @@ body.operator-mobile * {
   font-size: 12px;
   border-radius: var(--radius-sm);
   line-height: 1.4;
+}
+
+body.interface-default .button,
+body.interface-user-new .button {
+  font-size: var(--text-size-base);
+  line-height: var(--text-line-height-base);
 }
 
 .button:hover:not(:disabled) {
@@ -1018,8 +1266,7 @@ body.operator-mobile * {
 }
 
 .role-row__name {
-  font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--text-weight-bold);
   color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1027,7 +1274,7 @@ body.operator-mobile * {
 }
 
 .role-row__meta {
-  font-size: 11px;
+  font-size: var(--text-size-down);
   color: var(--color-text-muted);
   white-space: nowrap;
   flex-shrink: 0;
@@ -1055,7 +1302,7 @@ body.operator-mobile * {
 }
 
 .role-row__perm-pill {
-  font-size: 11px;
+  font-size: var(--text-size-down);
   padding: 2px 6px;
   border: 1px solid var(--color-border-subtle);
   border-radius: 999px;
@@ -1103,8 +1350,8 @@ body.operator-mobile * {
 }
 
 .modal__title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-size-up);
+  font-weight: var(--text-weight-bold);
 }
 
 .modal__body {
@@ -1142,7 +1389,7 @@ body.operator-mobile * {
 }
 
 .modal__label {
-  font-size: 11px;
+  font-size: var(--text-size-down);
   color: var(--color-text-muted);
 }
 
@@ -1230,7 +1477,7 @@ body.operator-mobile * {
 }
 
 .perm-item__code {
-  font-size: 11px;
+  font-size: var(--text-size-down);
   color: var(--color-text-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1301,7 +1548,6 @@ body.operator-mobile * {
 .autocomplete__item {
   padding: 8px 10px;
   cursor: pointer;
-  font-size: 13px;
   transition: background 0.2s ease;
   border-bottom: 1px solid var(--color-border-subtle);
 }

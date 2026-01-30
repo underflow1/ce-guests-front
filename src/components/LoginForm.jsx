@@ -45,82 +45,37 @@ const LoginForm = ({ onLogin }) => {
   }, [displayError, pushToast])
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh',
-      background: '#f5f5f5'
-    }}>
-      <div style={{
-        background: 'white',
-        padding: '2rem',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h2 style={{ marginTop: 0, marginBottom: '1.5rem', textAlign: 'center' }}>
-          Вход в систему
-        </h2>
-        
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Имя пользователя
-            </label>
+    <div className="login">
+      <div className="panel login__panel">
+        <div className="login__header">
+          <div className="text text--up text--bold">Вход в систему</div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="login__form">
+          <label className="login__field">
+            <span className="text text--muted">Имя пользователя</span>
             <input
               type="text"
+              className="input text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '1rem',
-                boxSizing: 'border-box'
-              }}
               autoFocus
             />
-          </div>
+          </label>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-              Пароль
-            </label>
+          <label className="login__field">
+            <span className="text text--muted">Пароль</span>
             <input
               type="password"
+              className="input text"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '1rem',
-                boxSizing: 'border-box'
-              }}
             />
-          </div>
+          </label>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: loading ? '#ccc' : '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '1rem',
-              fontWeight: '500',
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
+          <button type="submit" disabled={loading} className="button button--primary login__submit text">
             {loading ? 'Вход...' : 'Войти'}
           </button>
         </form>

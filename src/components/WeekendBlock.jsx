@@ -13,15 +13,22 @@ const WeekendBlock = ({
   onDoubleClick,
   onEmptyRowDoubleClick,
   onToggleCompleted,
+  onToggleCancelled,
+  onOrderPass,
+  onRevokePass,
   onDeleteEntry,
   canDelete = false,
   canMarkCompleted = false,
   canUnmarkCompleted = false,
+  canMarkCancelled = false,
+  canUnmarkCancelled = false,
+  canMarkPass = false,
+  canRevokePass = false,
   canMove = false,
 }) => (
-  <div className="weekend">
+  <div className="weekend text">
     <div className="weekend__section">
-      <div className="weekend__title">{formatWeekdayWithDate(saturday)}</div>
+      <div className="weekend__title text text--down text--muted">{formatWeekdayWithDate(saturday)}</div>
       <SimplePeopleList
         people={saturdayPeople}
         compact
@@ -31,15 +38,22 @@ const WeekendBlock = ({
         onDoubleClick={(entry) => onDoubleClick?.(entry, saturdayKey)}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
         onToggleCompleted={onToggleCompleted}
+        onToggleCancelled={onToggleCancelled}
+        onOrderPass={onOrderPass}
+        onRevokePass={onRevokePass}
         onDeleteEntry={onDeleteEntry}
         canDelete={canDelete}
         canMarkCompleted={canMarkCompleted}
         canUnmarkCompleted={canUnmarkCompleted}
+        canMarkCancelled={canMarkCancelled}
+        canUnmarkCancelled={canUnmarkCancelled}
+        canMarkPass={canMarkPass}
+        canRevokePass={canRevokePass}
         canMove={canMove}
       />
     </div>
     <div className="weekend__section">
-      <div className="weekend__title">{formatWeekdayWithDate(sunday)}</div>
+      <div className="weekend__title text text--down text--muted">{formatWeekdayWithDate(sunday)}</div>
       <SimplePeopleList
         people={sundayPeople}
         compact
@@ -49,10 +63,17 @@ const WeekendBlock = ({
         onDoubleClick={(entry) => onDoubleClick?.(entry, sundayKey)}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
         onToggleCompleted={onToggleCompleted}
+        onToggleCancelled={onToggleCancelled}
+        onOrderPass={onOrderPass}
+        onRevokePass={onRevokePass}
         onDeleteEntry={onDeleteEntry}
         canDelete={canDelete}
         canMarkCompleted={canMarkCompleted}
         canUnmarkCompleted={canUnmarkCompleted}
+        canMarkCancelled={canMarkCancelled}
+        canUnmarkCancelled={canUnmarkCancelled}
+        canMarkPass={canMarkPass}
+        canRevokePass={canRevokePass}
         canMove={canMove}
       />
     </div>

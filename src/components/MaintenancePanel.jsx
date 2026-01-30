@@ -59,10 +59,10 @@ const MaintenancePanel = ({ today, onBack, onSuccess }) => {
 
         <div className="panel__content">
           <div>
-            <h3 style={{ marginBottom: 'var(--space-2)', fontSize: '14px', fontWeight: 600 }}>
+            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-2)' }}>
               Очистка базы данных от событий
             </h3>
-            <p style={{ marginBottom: 'var(--space-3)', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+            <p className="text text--muted" style={{ marginBottom: 'var(--space-3)' }}>
               Жесткое удаление всех событий из базы данных. Это действие необратимо и отменить его невозможно!
             </p>
             <button

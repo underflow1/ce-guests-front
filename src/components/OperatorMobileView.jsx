@@ -157,15 +157,19 @@ const OperatorMobileView = ({
             {sortedPeople.map((person) => {
               const time = getEntryTime(person)
               const isNew = newEntryIds.has(person.id)
+              const passStatus = person?.pass_status || null
               return (
                 <li
                   key={person.id}
                   className={`list__item operator-mobile__item ${
                     person.is_completed ? 'list__item--completed' : ''
-                  } ${isNew ? 'operator-mobile__item--new' : ''}`}
+                  } ${person.is_cancelled ? 'list__item--cancelled' : ''} ${
+                    isNew ? 'operator-mobile__item--new' : ''
+                  }`}
                   onPointerUp={() => handleRowTap(person)}
                 >
                   <span className="list__name">
+                    <span className={`pass-badge pass-badge--${passStatus || 'none'}`} aria-hidden="true" />
                     {person.name}
                   </span>
                   <span className="list__controls operator-mobile__controls">

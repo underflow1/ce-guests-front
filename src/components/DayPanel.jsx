@@ -4,6 +4,8 @@ const DayPanel = ({
   title,
   dateLabel,
   titleAs: TitleTag = 'h2',
+  titleTextClassName,
+  dateTextClassName,
   people,
   dateKey,
   compact = false,
@@ -12,18 +14,36 @@ const DayPanel = ({
   onDoubleClick,
   onEmptyRowDoubleClick,
   onToggleCompleted,
+  onToggleCancelled,
+  onOrderPass,
+  onRevokePass,
   onDeleteEntry,
   canDelete = false,
   canMarkCompleted = false,
   canUnmarkCompleted = false,
+  canMarkCancelled = false,
+  canUnmarkCancelled = false,
+  canMarkPass = false,
+  canRevokePass = false,
   canMove = false,
 }) => (
   <section className={`panel ${compact ? 'panel--compact' : ''}`}>
     <header className="panel__header">
-      <TitleTag className="panel__title">{title}</TitleTag>
-      {dateLabel && <div className="panel__date">{dateLabel}</div>}
+      <TitleTag
+        className={[
+          'panel__title',
+          titleTextClassName || 'text text--up text--bold',
+        ].join(' ')}
+      >
+        {title}
+      </TitleTag>
+      {dateLabel && (
+        <div className={['panel__date', dateTextClassName || 'text text--down text--muted'].join(' ')}>
+          {dateLabel}
+        </div>
+      )}
     </header>
-    <div className="panel__content">
+    <div className="panel__content text">
       <PeopleList
         people={people}
         dateKey={dateKey}
@@ -33,10 +53,17 @@ const DayPanel = ({
         onDoubleClick={onDoubleClick}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
         onToggleCompleted={onToggleCompleted}
+        onToggleCancelled={onToggleCancelled}
+        onOrderPass={onOrderPass}
+        onRevokePass={onRevokePass}
         onDeleteEntry={onDeleteEntry}
         canDelete={canDelete}
         canMarkCompleted={canMarkCompleted}
         canUnmarkCompleted={canUnmarkCompleted}
+        canMarkCancelled={canMarkCancelled}
+        canUnmarkCancelled={canUnmarkCancelled}
+        canMarkPass={canMarkPass}
+        canRevokePass={canRevokePass}
         canMove={canMove}
       />
     </div>
