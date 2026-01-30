@@ -423,6 +423,61 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
               message: buildToastMessage('Встреча возвращена', entry),
             })
           }
+        } else if (payload?.type === 'visit_cancelled') {
+          const entry = payload.change?.entry
+          if (!entry) return
+
+          if (shouldShowToast(entry)) {
+            pushToast({
+              type: 'info',
+              title: '',
+              message: buildToastMessage('Визит отменён', entry),
+            })
+          }
+        } else if (payload?.type === 'visit_uncancelled') {
+          const entry = payload.change?.entry
+          if (!entry) return
+
+          if (shouldShowToast(entry)) {
+            pushToast({
+              type: 'info',
+              title: '',
+              message: buildToastMessage('Отмена визита снята', entry),
+            })
+          }
+        } else if (payload?.type === 'pass_ordered') {
+          const entry = payload.change?.entry
+          if (!entry) return
+
+          if (shouldShowToast(entry)) {
+            pushToast({
+              type: 'info',
+              title: '',
+              message: buildToastMessage('Пропуск заказан', entry),
+            })
+          }
+        } else if (payload?.type === 'pass_order_failed') {
+          const entry = payload.change?.entry
+          if (!entry) return
+
+          if (shouldShowToast(entry)) {
+            pushToast({
+              type: 'error',
+              title: '',
+              message: buildToastMessage('Не удалось заказать пропуск', entry),
+            })
+          }
+        } else if (payload?.type === 'pass_revoked') {
+          const entry = payload.change?.entry
+          if (!entry) return
+
+          if (shouldShowToast(entry)) {
+            pushToast({
+              type: 'info',
+              title: '',
+              message: buildToastMessage('Пропуск отозван', entry),
+            })
+          }
         } else if (payload?.type === 'entry_moved') {
           const entry = payload.change?.entry
           if (!entry) return
@@ -614,6 +669,60 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     }
   }
 
+  const handleToggleCancelled = async (entryId, dateKey, isCancelled) => {
+    const list = getListForDateKey(dateKey)
+    const entry = list.find((item) => item.id === entryId)
+    if (!entry) return
+
+    try {
+      const updatedEntry = await apiPatch(`/entries/${entryId}/cancelled`, {
+        is_cancelled: Boolean(isCancelled),
+      })
+
+      const updatedList = list.map((item) =>
+        item.id === entryId ? updatedEntry : item
+      )
+      updateListForDateKey(dateKey, updatedList)
+    } catch (err) {
+      console.error('Ошибка при обновлении статуса отмены визита:', err)
+      setError(err.message)
+    }
+  }
+
+  const handleOrderPass = async (entryId, dateKey) => {
+    const list = getListForDateKey(dateKey)
+    const entry = list.find((item) => item.id === entryId)
+    if (!entry) return
+
+    try {
+      const updatedEntry = await apiPut(`/entries/${entryId}/pass`, {})
+      const updatedList = list.map((item) =>
+        item.id === entryId ? updatedEntry : item
+      )
+      updateListForDateKey(dateKey, updatedList)
+    } catch (err) {
+      console.error('Ошибка при заказе пропуска:', err)
+      setError(err.message)
+    }
+  }
+
+  const handleRevokePass = async (entryId, dateKey) => {
+    const list = getListForDateKey(dateKey)
+    const entry = list.find((item) => item.id === entryId)
+    if (!entry) return
+
+    try {
+      const updatedEntry = await apiDelete(`/entries/${entryId}/pass`)
+      const updatedList = list.map((item) =>
+        item.id === entryId ? updatedEntry : item
+      )
+      updateListForDateKey(dateKey, updatedList)
+    } catch (err) {
+      console.error('Ошибка при отзыве пропуска:', err)
+      setError(err.message)
+    }
+  }
+
   const handleDeleteEntry = async (entryId, dateKey) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
@@ -793,6 +902,9 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     handleWeekendEmptyRowDoubleClick,
     handleSubmit,
     handleToggleCompleted,
+    handleToggleCancelled,
+    handleOrderPass,
+    handleRevokePass,
     handleDeleteEntry,
   }
 }

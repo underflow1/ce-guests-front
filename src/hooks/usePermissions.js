@@ -20,6 +20,10 @@ const usePermissions = (user) => {
         'can_move_ui',
         'can_mark_completed_ui',
         'can_unmark_completed_ui',
+        'can_mark_cancelled_ui',
+        'can_unmark_cancelled_ui',
+        'can_mark_pass_ui',
+        'can_revoke_pass_ui',
         'can_edit_entry_ui',
         'can_delete_ui',
       ])
@@ -39,6 +43,10 @@ const usePermissions = (user) => {
   const canMoveUi = () => hasPermission('can_move_ui')
   const canMarkCompletedUi = () => hasPermission('can_mark_completed_ui')
   const canUnmarkCompletedUi = () => hasPermission('can_unmark_completed_ui')
+  const canMarkCancelledUi = () => hasPermission('can_mark_cancelled_ui')
+  const canUnmarkCancelledUi = () => hasPermission('can_unmark_cancelled_ui')
+  const canMarkPassUi = () => hasPermission('can_mark_pass_ui')
+  const canRevokePassUi = () => hasPermission('can_revoke_pass_ui')
   const canEditEntryUi = () => hasPermission('can_edit_entry_ui')
   const canDeleteUi = () => hasPermission('can_delete_ui')
 
@@ -64,6 +72,10 @@ const usePermissions = (user) => {
     canMoveUi,
     canMarkCompletedUi,
     canUnmarkCompletedUi,
+    canMarkCancelledUi,
+    canUnmarkCancelledUi,
+    canMarkPassUi,
+    canRevokePassUi,
     canEditEntryUi,
     canDeleteUi,
     interfaceType,

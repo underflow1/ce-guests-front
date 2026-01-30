@@ -739,6 +739,55 @@ body.operator-mobile * {
   gap: var(--space-1);
 }
 
+.pass-badge {
+  width: 1em;
+  height: 1em;
+  min-width: 1em;
+  min-height: 1em;
+  border-radius: 999px;
+  display: inline-block;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  box-sizing: border-box;
+  appearance: none;
+}
+
+.pass-badge--ordered {
+  background: #28a745;
+  border-color: #28a745;
+}
+
+.pass-badge--failed {
+  background: #dc3545;
+  border-color: #dc3545;
+}
+
+.pass-badge--revoked {
+  background: #6c757d;
+  border-color: #6c757d;
+}
+
+.pass-badge--none {
+  background: transparent;
+  border-color: var(--color-border);
+}
+
+.pass-badge--clickable {
+  cursor: pointer;
+}
+
+.pass-badge:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.list__item--cancelled .list__name {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
 .list__responsible {
   font-style: italic;
   color: var(--color-text-subtle);
@@ -749,6 +798,28 @@ body.operator-mobile * {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.list__flag-btn {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 11px;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.list__flag-btn--active {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.list__flag-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .list__checkbox {

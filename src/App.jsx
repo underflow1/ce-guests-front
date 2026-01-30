@@ -20,6 +20,10 @@ const App = () => {
     canDeleteUi,
     canMarkCompletedUi,
     canUnmarkCompletedUi,
+    canMarkCancelledUi,
+    canUnmarkCancelledUi,
+    canMarkPassUi,
+    canRevokePassUi,
     canMoveUi,
     canEditEntryUi,
     interfaceType,
@@ -64,6 +68,9 @@ const App = () => {
     handleWeekendEmptyRowDoubleClick,
     handleSubmit,
     handleToggleCompleted,
+    handleToggleCancelled,
+    handleOrderPass,
+    handleRevokePass,
     handleDeleteEntry,
   } = useEntries({ today, nameInputRef, interfaceType, isAuthenticated })
 
@@ -337,10 +344,17 @@ const App = () => {
                 onDoubleClick={handleDoubleClick}
                 onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
                 onToggleCompleted={handleToggleCompleted}
+                onToggleCancelled={handleToggleCancelled}
+                onOrderPass={handleOrderPass}
+                onRevokePass={handleRevokePass}
                 onDeleteEntry={handleDeleteEntry}
                 canDelete={canDeleteUi()}
                 canMarkCompleted={canMarkCompletedUi()}
                 canUnmarkCompleted={canUnmarkCompletedUi()}
+                canMarkCancelled={canMarkCancelledUi()}
+                canUnmarkCancelled={canUnmarkCancelledUi()}
+                canMarkPass={canMarkPassUi()}
+                canRevokePass={canRevokePassUi()}
                 canMove={canMoveUi()}
               />
             </div>
@@ -365,10 +379,17 @@ const App = () => {
               onDoubleClick={handleDoubleClick}
               onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
               onToggleCompleted={handleToggleCompleted}
+              onToggleCancelled={handleToggleCancelled}
+              onOrderPass={handleOrderPass}
+              onRevokePass={handleRevokePass}
               onDeleteEntry={handleDeleteEntry}
               canDelete={canDeleteUi()}
               canMarkCompleted={canMarkCompletedUi()}
               canUnmarkCompleted={canUnmarkCompletedUi()}
+              canMarkCancelled={canMarkCancelledUi()}
+              canUnmarkCancelled={canUnmarkCancelledUi()}
+              canMarkPass={canMarkPassUi()}
+              canRevokePass={canRevokePassUi()}
               canMove={canMoveUi()}
             />
           )}
@@ -383,10 +404,17 @@ const App = () => {
             onDoubleClick={handleDoubleClick}
             onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
             onToggleCompleted={handleToggleCompleted}
+            onToggleCancelled={handleToggleCancelled}
+            onOrderPass={handleOrderPass}
+            onRevokePass={handleRevokePass}
             onDeleteEntry={handleDeleteEntry}
             canDelete={canDeleteUi()}
             canMarkCompleted={canMarkCompletedUi()}
             canUnmarkCompleted={canUnmarkCompletedUi()}
+            canMarkCancelled={canMarkCancelledUi()}
+            canUnmarkCancelled={canUnmarkCancelledUi()}
+            canMarkPass={canMarkPassUi()}
+            canRevokePass={canRevokePassUi()}
             canMove={canMoveUi()}
           />
 
@@ -406,10 +434,17 @@ const App = () => {
               onDoubleClick={handleDoubleClick}
               onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
               onToggleCompleted={handleToggleCompleted}
+              onToggleCancelled={handleToggleCancelled}
+              onOrderPass={handleOrderPass}
+              onRevokePass={handleRevokePass}
               onDeleteEntry={handleDeleteEntry}
               canDelete={canDeleteUi()}
               canMarkCompleted={canMarkCompletedUi()}
               canUnmarkCompleted={canUnmarkCompletedUi()}
+              canMarkCancelled={canMarkCancelledUi()}
+              canUnmarkCancelled={canUnmarkCancelledUi()}
+              canMarkPass={canMarkPassUi()}
+              canRevokePass={canRevokePassUi()}
               canMove={canMoveUi()}
             />
           )}
@@ -468,10 +503,17 @@ const App = () => {
                           onDoubleClick={handleDoubleClick}
                           onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
                           onToggleCompleted={handleToggleCompleted}
+                          onToggleCancelled={handleToggleCancelled}
+                          onOrderPass={handleOrderPass}
+                          onRevokePass={handleRevokePass}
                           onDeleteEntry={handleDeleteEntry}
                           canDelete={canDeleteUi()}
                           canMarkCompleted={canMarkCompletedUi()}
                           canUnmarkCompleted={canUnmarkCompletedUi()}
+                          canMarkCancelled={canMarkCancelledUi()}
+                          canUnmarkCancelled={canUnmarkCancelledUi()}
+                          canMarkPass={canMarkPassUi()}
+                          canRevokePass={canRevokePassUi()}
                           canMove={canMoveUi()}
                         />
                       </div>
@@ -496,10 +538,17 @@ const App = () => {
                   onDoubleClick={handleDoubleClick}
                   onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
                   onToggleCompleted={handleToggleCompleted}
+                  onToggleCancelled={handleToggleCancelled}
+                  onOrderPass={handleOrderPass}
+                  onRevokePass={handleRevokePass}
                   onDeleteEntry={handleDeleteEntry}
                   canDelete={canDeleteUi()}
                   canMarkCompleted={canMarkCompletedUi()}
                   canUnmarkCompleted={canUnmarkCompletedUi()}
+                  canMarkCancelled={canMarkCancelledUi()}
+                  canUnmarkCancelled={canUnmarkCancelledUi()}
+                  canMarkPass={canMarkPassUi()}
+                  canRevokePass={canRevokePassUi()}
                   canMove={canMoveUi()}
                   isAdmin={user?.is_admin || false}
                 />

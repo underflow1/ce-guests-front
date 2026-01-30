@@ -14,9 +14,14 @@ const SettingsPanel = ({ onBack }) => {
     { code: 'entry_updated', title: 'Обновление записи' },
     { code: 'entry_completed', title: 'Гость отмечен как пришедший' },
     { code: 'entry_uncompleted', title: 'Гость отмечен как не пришедший' },
+    { code: 'visit_cancelled', title: 'Визит отменен' },
+    { code: 'visit_uncancelled', title: 'Отмена визита снята' },
     { code: 'entry_moved', title: 'Перенос записи' },
     { code: 'entry_deleted', title: 'Удаление записи' },
     { code: 'entries_deleted_all', title: 'Удаление всех записей' },
+    { code: 'pass_ordered', title: 'Пропуск заказан' },
+    { code: 'pass_order_failed', title: 'Не удалось заказать пропуск' },
+    { code: 'pass_revoked', title: 'Пропуск отозван' },
   ]
   const [availableTypes, setAvailableTypes] = useState(fallbackNotificationTypes)
 
@@ -39,6 +44,12 @@ const SettingsPanel = ({ onBack }) => {
       },
       enabled_notification_types: fallbackNotificationTypes.map((t) => t.code),
     },
+    pass_integration: {
+      enabled: false,
+      base_url: '',
+      login: '',
+      password: '',
+    },
   })
 
   // Загрузить настройки при монтировании
@@ -48,6 +59,7 @@ const SettingsPanel = ({ onBack }) => {
         const settings = await getSettings()
         if (settings) {
           const notifications = settings.notifications || {}
+          const passIntegration = settings.pass_integration || {}
           const providers = notifications.providers || {}
           const maxProvider = providers.max_via_green_api || {}
           const telegramProvider = providers.telegram || {}
@@ -77,6 +89,12 @@ const SettingsPanel = ({ onBack }) => {
                 },
               },
               enabled_notification_types: enabledTypes,
+            },
+            pass_integration: {
+              enabled: !!passIntegration.enabled,
+              base_url: passIntegration.base_url || '',
+              login: passIntegration.login || '',
+              password: passIntegration.password || '',
             },
           })
         }
@@ -122,6 +140,13 @@ const SettingsPanel = ({ onBack }) => {
       if (!String(telegramProvider.chat_id || '').trim()) return false
     }
 
+    const passIntegration = form.pass_integration || {}
+    if (passIntegration.enabled) {
+      if (!String(passIntegration.base_url || '').trim()) return false
+      if (!String(passIntegration.login || '').trim()) return false
+      if (!String(passIntegration.password || '').trim()) return false
+    }
+
     return true
   }
 
@@ -136,6 +161,7 @@ const SettingsPanel = ({ onBack }) => {
       setError(null)
       const settingsData = {
         notifications: form.notifications,
+        pass_integration: form.pass_integration,
       }
       await updateSettings(settingsData)
       pushToast({
@@ -356,6 +382,109 @@ const SettingsPanel = ({ onBack }) => {
                   onChange={(e) => updateProviderConfig('telegram', 'chat_id', e.target.value)}
                   disabled={!form.notifications.providers.telegram.enabled}
                   placeholder="chat456"
+                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Секция интеграции пропусков */}
+          <div style={{ marginBottom: 'var(--space-6)' }}>
+            <h3 style={{ marginBottom: 'var(--space-3)', fontSize: '14px', fontWeight: 600 }}>
+              Заказ пропусков (интеграция)
+            </h3>
+
+            <div
+              style={{
+                padding: 'var(--space-4)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-surface-muted)',
+              }}
+            >
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: '13px' }}>
+                <input
+                  type="checkbox"
+                  checked={form.pass_integration.enabled}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        enabled: e.target.checked,
+                      },
+                    }))
+                  }
+                  style={{ cursor: 'pointer' }}
+                />
+                <span>Включить интеграцию</span>
+              </label>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                  API URL:
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={form.pass_integration.base_url}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        base_url: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="https://example.local/api"
+                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                />
+              </div>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                  Логин:
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={form.pass_integration.login}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        login: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="login"
+                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                />
+              </div>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                  Пароль:
+                </label>
+                <input
+                  type="password"
+                  className="input"
+                  value={form.pass_integration.password}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        password: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="password"
                   style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
                 />
               </div>
