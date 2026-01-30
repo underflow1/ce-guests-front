@@ -152,6 +152,17 @@ const App = () => {
     }
   }, [isOperatorMobile])
 
+  useEffect(() => {
+    const isOperator = interfaceType === 'operator'
+    document.body.classList.toggle('interface-operator', isOperator)
+    document.body.classList.toggle('interface-default', !isOperator)
+
+    return () => {
+      document.body.classList.remove('interface-operator')
+      document.body.classList.remove('interface-default')
+    }
+  }, [interfaceType])
+
   
 
   // Закрываем дропдаун при клике вне его

@@ -230,7 +230,7 @@ const SettingsPanel = ({ onBack }) => {
         ← Назад к записям
       </button>
 
-      <div className="panel" style={{ maxWidth: '66.666%', margin: '0 auto', fontSize: '13px' }}>
+      <div className="panel" style={{ maxWidth: '66.666%', margin: '0 auto' }}>
         <header className="panel__header">
           <h2 className="panel__title">Настройки</h2>
           <button
@@ -245,7 +245,7 @@ const SettingsPanel = ({ onBack }) => {
           </button>
         </header>
 
-        <div className="panel__content" style={{ maxHeight: '70vh', fontSize: '13px' }}>
+        <div className="panel__content" style={{ maxHeight: '70vh' }}>
           {error && (
             <div className="error-message" style={{ marginBottom: 'var(--space-4)' }}>
               {error}
@@ -254,7 +254,7 @@ const SettingsPanel = ({ onBack }) => {
 
           {/* Секция уведомлений */}
           <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h3 style={{ marginBottom: 'var(--space-3)', fontSize: '14px', fontWeight: 600 }}>
+            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
               Уведомления
             </h3>
 
@@ -267,7 +267,7 @@ const SettingsPanel = ({ onBack }) => {
                 marginBottom: 'var(--space-4)',
               }}
             >
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: '13px' }}>
+              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={form.notifications.providers.max_via_green_api.enabled}
@@ -278,62 +278,62 @@ const SettingsPanel = ({ onBack }) => {
               </label>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   Базовый URL:
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className="input text text--down"
                   value={form.notifications.providers.max_via_green_api.base_url}
                   onChange={(e) => updateProviderConfig('max_via_green_api', 'base_url', e.target.value)}
                   disabled={!form.notifications.providers.max_via_green_api.enabled}
                   placeholder="https://3100.api.green-api.com/v3"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   Instance ID:
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className="input text text--down"
                   value={form.notifications.providers.max_via_green_api.instance_id}
                   onChange={(e) => updateProviderConfig('max_via_green_api', 'instance_id', e.target.value)}
                   disabled={!form.notifications.providers.max_via_green_api.enabled}
                   placeholder="110000"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   API Token:
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className="input text text--down"
                   value={form.notifications.providers.max_via_green_api.api_token}
                   onChange={(e) => updateProviderConfig('max_via_green_api', 'api_token', e.target.value)}
                   disabled={!form.notifications.providers.max_via_green_api.enabled}
                   placeholder="token123"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   Chat ID:
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className="input text text--down"
                   value={form.notifications.providers.max_via_green_api.chat_id}
                   onChange={(e) => updateProviderConfig('max_via_green_api', 'chat_id', e.target.value)}
                   disabled={!form.notifications.providers.max_via_green_api.enabled}
                   placeholder="chat123"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
             </div>
@@ -346,7 +346,7 @@ const SettingsPanel = ({ onBack }) => {
                 backgroundColor: 'var(--color-surface-muted)',
               }}
             >
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: '13px' }}>
+              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={form.notifications.providers.telegram.enabled}
@@ -357,32 +357,32 @@ const SettingsPanel = ({ onBack }) => {
               </label>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   Bot Token:
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className="input text text--down"
                   value={form.notifications.providers.telegram.bot_token}
                   onChange={(e) => updateProviderConfig('telegram', 'bot_token', e.target.value)}
                   disabled={!form.notifications.providers.telegram.enabled}
                   placeholder="token123"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   Chat ID:
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className="input text text--down"
                   value={form.notifications.providers.telegram.chat_id}
                   onChange={(e) => updateProviderConfig('telegram', 'chat_id', e.target.value)}
                   disabled={!form.notifications.providers.telegram.enabled}
                   placeholder="chat456"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
             </div>
@@ -390,7 +390,7 @@ const SettingsPanel = ({ onBack }) => {
 
           {/* Секция интеграции пропусков */}
           <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h3 style={{ marginBottom: 'var(--space-3)', fontSize: '14px', fontWeight: 600 }}>
+            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
               Заказ пропусков (интеграция)
             </h3>
 
@@ -402,7 +402,7 @@ const SettingsPanel = ({ onBack }) => {
                 backgroundColor: 'var(--color-surface-muted)',
               }}
             >
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer', fontSize: '13px' }}>
+              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={form.pass_integration.enabled}
@@ -421,12 +421,12 @@ const SettingsPanel = ({ onBack }) => {
               </label>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   API URL:
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className="input text text--down"
                   value={form.pass_integration.base_url}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -439,17 +439,17 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="https://example.local/api"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   Логин:
                 </label>
                 <input
                   type="text"
-                  className="input"
+                  className="input text text--down"
                   value={form.pass_integration.login}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -462,17 +462,17 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="login"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
               <div style={{ marginTop: 'var(--space-3)' }}>
-                <label style={{ display: 'block', marginBottom: 'var(--space-2)', fontSize: '13px' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
                   Пароль:
                 </label>
                 <input
                   type="password"
-                  className="input"
+                  className="input text text--down"
                   value={form.pass_integration.password}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -485,7 +485,7 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="password"
-                  style={{ width: '100%', fontSize: '12px', padding: '4px 6px' }}
+                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
             </div>
@@ -493,7 +493,7 @@ const SettingsPanel = ({ onBack }) => {
 
           {/* Секция типов уведомлений */}
           <div>
-            <h3 style={{ marginBottom: 'var(--space-3)', fontSize: '14px', fontWeight: 600 }}>
+            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
               Типы уведомлений
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>

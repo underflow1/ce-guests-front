@@ -302,28 +302,28 @@ const UserManagement = () => {
                       <td>
                         <input
                           type="text"
-                          className="input"
+                          className="input input--compact"
                           value={editForm.username}
                           onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                          style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                          style={{ width: '100%' }}
                         />
                       </td>
                       <td>
                         <input
                           type="email"
-                          className="input"
+                          className="input input--compact"
                           value={editForm.email}
                           onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                          style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                          style={{ width: '100%' }}
                         />
                       </td>
                       <td>
                         <input
                           type="text"
-                          className="input"
+                          className="input input--compact"
                           value={editForm.full_name}
                           onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-                          style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                          style={{ width: '100%' }}
                         />
                       </td>
                       <td>
@@ -345,13 +345,13 @@ const UserManagement = () => {
                       </td>
                       <td>
                         {editForm.is_admin ? (
-                          <span style={{ color: 'var(--color-text-muted)' }}>-</span>
+                          <span className="text text--muted">-</span>
                         ) : (
                           <select
-                            className="input"
+                            className="select select--compact"
                             value={editForm.role_id}
                             onChange={(e) => setEditForm({ ...editForm, role_id: e.target.value })}
-                            style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                            style={{ width: '100%' }}
                             required={!editForm.is_admin}
                           >
                             <option value="" disabled hidden>
@@ -369,14 +369,17 @@ const UserManagement = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <input
                             type="password"
-                            className="input"
+                            className="input input--compact"
                             placeholder="Новый пароль"
                             value={editForm.password}
                             onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
                             disabled={!editForm.enablePassword}
-                            style={{ flex: '1', fontSize: '12px', padding: '2px 4px' }}
+                            style={{ flex: '1' }}
                           />
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '11px', whiteSpace: 'nowrap', cursor: 'pointer' }}>
+                          <label
+                            className="text text--down text--muted"
+                            style={{ display: 'flex', alignItems: 'center', gap: '2px', whiteSpace: 'nowrap', cursor: 'pointer' }}
+                          >
                             <input
                               type="checkbox"
                               checked={editForm.enablePassword}
@@ -420,10 +423,10 @@ const UserManagement = () => {
                       <td>
                         <input
                           type="password"
-                          className="input"
+                          className="input input--compact"
                           value="••••••••"
                           disabled
-                          style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                          style={{ width: '100%' }}
                         />
                       </td>
                       <td>
@@ -465,32 +468,32 @@ const UserManagement = () => {
                   <td>
                     <input
                       type="text"
-                      className="input"
+                      className="input input--compact"
                       placeholder="Логин *"
                       value={createForm.username}
                       onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })}
-                      style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                      style={{ width: '100%' }}
                       required
                     />
                   </td>
                   <td>
                     <input
                       type="email"
-                      className="input"
+                      className="input input--compact"
                       placeholder="Email"
                       value={createForm.email}
                       onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                      style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                      style={{ width: '100%' }}
                     />
                   </td>
                   <td>
                     <input
                       type="text"
-                      className="input"
+                      className="input input--compact"
                       placeholder="Фамилия Имя"
                       value={createForm.full_name}
                       onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })}
-                      style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                      style={{ width: '100%' }}
                     />
                   </td>
                   <td>
@@ -504,17 +507,17 @@ const UserManagement = () => {
                     />
                   </td>
                   <td>
-                    <span style={{ color: 'var(--color-text-muted)' }}>-</span>
+                    <span className="text text--muted">-</span>
                   </td>
                   <td>
                     {createForm.is_admin ? (
-                      <span style={{ color: 'var(--color-text-muted)' }}>-</span>
+                      <span className="text text--muted">-</span>
                     ) : (
                       <select
-                        className="input"
+                        className="select select--compact"
                         value={createForm.role_id}
                         onChange={(e) => setCreateForm({ ...createForm, role_id: e.target.value })}
-                        style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                        style={{ width: '100%' }}
                         required={!createForm.is_admin}
                       >
                         <option value="" disabled hidden>
@@ -531,11 +534,11 @@ const UserManagement = () => {
                   <td>
                     <input
                       type="password"
-                      className="input"
+                      className="input input--compact"
                       placeholder="Пароль *"
                       value={createForm.password}
                       onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                      style={{ width: '100%', fontSize: '12px', padding: '2px 4px' }}
+                      style={{ width: '100%' }}
                       required
                       minLength={6}
                     />

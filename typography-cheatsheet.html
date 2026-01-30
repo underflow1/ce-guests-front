@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Типографика — шпаргалка</title>
+    <!--
+      Пытаемся подключить реальные стили проекта.
+      Разные варианты нужны, потому что файл могут открывать как:
+      - file://.../typography-cheatsheet.html
+      - через dev server (Vite), где корень = / и работает /src/...
+    -->
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="src/styles.css" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Локальная “обвязка” шпаргалки (не часть приложения) */
+      body {
+        background: #f5f5f5;
+        padding: 16px;
+      }
+      .frame {
+        max-width: 980px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid var(--color-border-strong);
+        border-radius: 0;
+        padding: 10px;
+      }
+      .sheet {
+        /* Чуть плотнее межстрочность именно для шпаргалки */
+        --text-line-height-base: 1.1;
+        background: #fff;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+      }
+      .sheet__title {
+        margin: 0 0 8px 0;
+      }
+      .sheet__hint {
+        margin: 0 0 10px 0;
+      }
+      .sheet__status {
+        margin: 0 0 8px 0;
+        padding: 6px 8px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        background: var(--color-surface-muted);
+      }
+      .sheet__status--bad {
+        border-color: #dc3545;
+        background: #fff5f5;
+        color: #dc3545;
+      }
+      .meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .meta__pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        background: var(--color-surface-muted);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 190px 1fr;
+        gap: 4px 10px;
+        align-items: baseline;
+      }
+      .row {
+        padding: 4px 6px;
+        border: 1px dashed var(--color-border-subtle);
+        border-radius: 5px;
+        background: #fff;
+      }
+      .kbd {
+        display: inline-block;
+        padding: 2px 6px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        background: var(--color-surface-muted);
+      }
+      .divider {
+        margin: 10px 0;
+        border: none;
+        border-top: 1px solid var(--color-border-subtle);
+      }
+      .swatches {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .swatch {
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        padding: 3px 8px;
+        background: #fff;
+      }
+      .swatch--danger { color: #dc3545; }
+      .swatch--success { color: #28a745; }
+      .swatch--warning { color: #b26a00; }
+      .swatch--info { color: #607d8b; }
+
+      .cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .card {
+        border: 1px solid var(--color-border);
+        background: #fff;
+        padding: 10px;
+      }
+      .card--square {
+        border-radius: 0;
+      }
+      .card--rounded {
+        border-radius: 6px;
+      }
+
+      .ui-demo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 8px;
+        align-items: center;
+      }
+      .ui-demo__span2 { grid-column: 1 / -1; }
+      .ui-demo__actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      /* Print-friendly layout (A4) */
+      @media print {
+        @page { size: A4; margin: 10mm; }
+        body { padding: 0; background: #fff; }
+        .frame {
+          max-width: none;
+          border: 1px solid #000;
+          padding: 8px;
+        }
+        .sheet {
+          max-width: none;
+          border: none;
+          border-radius: 0;
+          padding: 0;
+          --text-line-height-base: 1.05;
+        }
+        .sheet__status { display: none; }
+        .divider { margin: 8px 0; }
+        .grid { grid-template-columns: 170px 1fr; gap: 3px 8px; }
+        .row { padding: 3px 5px; }
+        .cards { gap: 6px; }
+        .card { padding: 8px; }
+        .ui-demo { gap: 4px 6px; }
+      }
+    </style>
+  </head>
+  <!-- Важно: включаем базовую типографику обычного интерфейса -->
+  <body class="interface-default">
+    <div class="frame">
+    <div class="sheet">
+      <h1 class="sheet__title text text--up text--bold">Шпаргалка по типографике</h1>
+      <div id="status" class="sheet__status text text--muted">
+        Проверка загрузки стилей…
+      </div>
+      <p class="sheet__hint text text--muted">
+        Стили собираются из базы <span class="kbd text text--down">text</span> и модификаторов.
+        <br />
+        <b>Размеров всего 3</b>: base (13px), up (15px), down (12px). Операторский интерфейс тут не рассматриваем.
+      </p>
+
+      <p class="text" style="margin: 0 0 16px 0;">
+        <span class="text text--bold">Шрифт (стек):</span>
+        <span class="kbd text text--down" style="margin-left: 6px;">Ubuntu, Segoe UI, Tahoma, Geneva, Verdana, sans-serif</span>
+        <span class="text text--muted">
+          — берётся из <span class="kbd text text--down">--font-base</span> в <span class="kbd text text--down">:root</span>.
+        </span>
+      </p>
+
+      <hr class="divider" />
+
+      <h2 class="text text--up text--bold">Общий стиль интерфейса (гайд)</h2>
+      <div class="grid" style="margin-top: 6px;">
+        <div class="text text--bold">Характер</div>
+        <div class="row">
+          <span class="text">Строго, спокойно, без “игрушечности”.</span>
+          <span class="text text--muted">Минимум декоративных эффектов.</span>
+        </div>
+
+        <div class="text text--bold">Углы</div>
+        <div class="row">
+          <span class="text">Преимущественно прямые,</span>
+          <span class="text text--muted">но допустим лёгкий радиус (4–6px) для панелей/полей.</span>
+        </div>
+
+        <div class="text text--bold">Примеры</div>
+        <div class="row">
+          <div class="cards">
+            <div class="card card--square">
+              <div class="text text--bold">Квадратный блок</div>
+              <div class="text text--muted">radius: 0</div>
+              <div class="text" style="margin-top: 6px;">Текст внутри блока</div>
+            </div>
+            <div class="card card--rounded">
+              <div class="text text--bold">Скруглённый блок</div>
+              <div class="text text--muted">radius: 6px</div>
+              <div class="text" style="margin-top: 6px;">Текст внутри блока</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="text text--bold">Кнопки</div>
+        <div class="row">
+          <span class="text">Кнопки — простые, монохромные, 2 уровня:</span>
+          <span class="text text--muted">обычная (outline) и primary (заливка).</span>
+          <div class="ui-demo ui-demo__span2" style="margin-top: 6px;">
+            <div class="ui-demo__actions ui-demo__span2">
+              <button type="button" class="button text">Обычная</button>
+              <button type="button" class="button button--primary text">Primary</button>
+              <button type="button" class="button text" disabled>Disabled</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text text--bold">Поля ввода</div>
+        <div class="row">
+          <span class="text">Поля — лёгкая рамка, без “тени”,</span>
+          <span class="text text--muted">одинаковая высота/паддинги.</span>
+          <div class="ui-demo ui-demo__span2" style="margin-top: 6px;">
+            <input class="input text" type="text" value="Пример текста" />
+            <select class="select text">
+              <option>Опция 1</option>
+              <option>Опция 2</option>
+            </select>
+            <input class="input text ui-demo__span2" type="text" value="Disabled input" disabled />
+          </div>
+        </div>
+
+        <div class="text text--bold">Отступы</div>
+        <div class="row">
+          <span class="text">Плотно, но не тесно.</span>
+          <span class="text text--muted">Если сомневаемся — уменьшаем на шаг.</span>
+        </div>
+
+        <div class="text text--bold">Акценты</div>
+        <div class="row">
+          <span class="text">Акцент — через</span>
+          <span class="text text--bold">жирность</span>
+          <span class="text">и</span>
+          <span class="text text--up">Up</span>
+          <span class="text text--muted">, а не через новые размеры.</span>
+        </div>
+
+        <div class="text text--bold">Цвет</div>
+        <div class="row">
+          <span class="text">Primary / Muted / Subtle</span>
+          <span class="text text--muted">— для иерархии текста,</span>
+          <span class="text">а статусы — отдельными семантическими цветами.</span>
+        </div>
+
+        <div class="text text--bold">Монохром</div>
+        <div class="row">
+          <span class="text">Стараться делать интерфейс максимально монохромным,</span>
+          <span class="text text--muted">“бумажным”.</span>
+          <span class="text">Цвет — только по делу (статусы/ошибки).</span>
+        </div>
+      </div>
+
+      <h2 class="text text--up text--bold">7 базовых “стилей” (как комбинации)</h2>
+      <div class="grid" style="margin-top: 6px;">
+        <div class="text">Base</div>
+        <div class="row">
+          <span class="text sample" data-name="Base">Текст базовый (13px)</span>
+          <span class="text text--muted">— используется “по умолчанию”</span>
+        </div>
+
+        <div class="text text--bold">Base Strong</div>
+        <div class="row">
+          <span class="text text--bold sample" data-name="Base Strong">Базовый жирный</span>
+          <span class="text text--bold text--muted">— акцент без увеличения размера</span>
+        </div>
+
+        <div class="text text--thin">Base Light</div>
+        <div class="row">
+          <span class="text text--thin sample" data-name="Base Light">Базовый тонкий</span>
+          <span class="text text--thin text--muted">— когда нужно “легче”, но не бледнее</span>
+        </div>
+
+        <div class="text text--italic">Base Italic</div>
+        <div class="row">
+          <span class="text text--italic sample" data-name="Base Italic">Базовый курсив</span>
+          <span class="text text--italic text--muted">— например, ответственное лицо / примечания</span>
+        </div>
+
+        <div class="text text--up">Up</div>
+        <div class="row">
+          <span class="text text--up sample" data-name="Up">Увеличенный (15px)</span>
+          <span class="text text--up text--muted">— единственный шаг “крупнее”</span>
+        </div>
+
+        <div class="text text--up text--bold">Up Strong (Headline)</div>
+        <div class="row">
+          <span class="text text--up text--bold sample" data-name="Up Strong">Заголовок / важное место</span>
+          <span class="text text--up text--bold text--muted">— заголовки панелей, секции</span>
+        </div>
+
+        <div class="text text--down">Down</div>
+        <div class="row">
+          <span class="text text--down sample" data-name="Down">Уменьшенный (12px)</span>
+          <span class="text text--down text--muted">— метаданные, подписи, “пилюли”</span>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <h2 class="text text--up text--bold">Тональности текста (иерархия важности)</h2>
+      <p class="text text--muted" style="margin-top: 6px;">
+        Тональность — это не “статус”, а визуальная иерархия: основной текст → вторичный → третичный.
+      </p>
+      <div class="grid" style="margin-top: 6px;">
+        <div class="text">Primary</div>
+        <div class="row"><span class="text sample" data-name="Primary">Основной текст (по умолчанию)</span></div>
+
+        <div class="text text--muted">Muted</div>
+        <div class="row"><span class="text text--muted sample" data-name="Muted">Вторичный текст (подписи, даты, пояснения)</span></div>
+
+        <div class="text text--subtle">Subtle</div>
+        <div class="row"><span class="text text--subtle sample" data-name="Subtle">Третичный текст (ещё тише: коды, второстепенные детали)</span></div>
+      </div>
+
+      <hr class="divider" />
+
+      <h2 class="text text--up text--bold">Декорации (не тональность и не семантический цвет)</h2>
+      <p class="text text--muted" style="margin-top: 6px;">
+        Это “состояния” текста (например, выполнено/отменено). Их можно комбинировать с тональностью.
+      </p>
+      <div class="grid" style="margin-top: 6px;">
+        <div class="text text--strike">Strike</div>
+        <div class="row">
+          <span class="text text--muted text--strike sample" data-name="Strike">Зачёркнутый вторичный текст</span>
+          <span class="text text--muted">— пример для “отменено / неактуально”</span>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <h2 class="text text--up text--bold">Семантические цвета (это не “тональности”)</h2>
+      <p class="text text--muted" style="margin-top: 6px;">
+        Это цвета статусов/смыслов (ошибка/успех/предупреждение/инфо). Их не считаем частью типографики.
+      </p>
+      <div class="swatches" style="margin-top: 6px;">
+        <span class="swatch swatch--danger text">Danger</span>
+        <span class="swatch swatch--success text">Success</span>
+        <span class="swatch swatch--warning text">Warning</span>
+        <span class="swatch swatch--info text">Info</span>
+      </div>
+    </div>
+    </div>
+
+    <script>
+      (() => {
+        const statusEl = document.getElementById('status')
+        const probe = document.querySelector('.sample')
+        if (!statusEl || !probe) return
+
+        const computed = window.getComputedStyle(probe)
+        const size = computed.fontSize
+        const weight = computed.fontWeight
+        const style = computed.fontStyle
+        const family = computed.fontFamily
+
+        // Ожидаем, что базовый sample в обычном интерфейсе будет 12px.
+        const ok = size === '13px'
+
+        if (!ok) {
+          statusEl.classList.add('sheet__status--bad')
+          statusEl.textContent =
+            `Похоже, стили проекта не подключились (у “Base” сейчас ${size} вместо 13px). ` +
+            `Открой файл из папки ce-guests-front так, чтобы путь ./src/styles.css был доступен, ` +
+            `или открой через dev server (тогда сработает /src/styles.css).`
+          return
+        }
+
+        statusEl.innerHTML =
+          `<span class=\"meta\">` +
+            `<span class=\"text text--bold\">Стили подключены.</span>` +
+            `<span class=\"meta__pill text text--down\">font-size: ${size}</span>` +
+            `<span class=\"meta__pill text text--down\">font-weight: ${weight}</span>` +
+            `<span class=\"meta__pill text text--down\">font-style: ${style}</span>` +
+            `<span class=\"meta__pill text text--down\">font-family: ${family}</span>` +
+          `</span>`
+      })()
+    </script>
+  </body>
+</html>
