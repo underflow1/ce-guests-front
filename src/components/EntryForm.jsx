@@ -41,6 +41,8 @@ const EntryForm = ({
   const passStatus = entry?.pass_status || null
   const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
   const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
+  const isPastEntry = Boolean(isEditingActive && editingDateKey && editingDateKey < todayKey)
+  const isPassOrderingDisabled = passAction === 'order' && isPastEntry
   const passState =
     passStatus === 'ordered'
       ? 'ordered'
@@ -53,8 +55,12 @@ const EntryForm = ({
       : passStatus === 'failed'
       ? 'Ошибка заказа пропуска'
       : 'Пропуск не заказан'
-  const passDisabled = !isEditingActive || isCancelled || isCompleted || !canPassAction
+  const passPastDateTitle = 'Заказ пропуска недоступен для прошлых дат'
   const passActionTitle = passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск'
+  const passDisabled = !isEditingActive || isCancelled || isCompleted || !canPassAction || isPassOrderingDisabled
+  const passButtonTitle = isPassOrderingDisabled
+    ? `${passTitle}. ${passPastDateTitle}`
+    : `${passTitle}. ${passActionTitle}`
 
   const deleteDisabled = !isEditingActive || isCancelled || isCompleted || !canDeleteEntry
 
@@ -338,8 +344,8 @@ const EntryForm = ({
       <button
         type="button"
         className="button text"
-        title={`${passTitle}. ${passActionTitle}`}
-        aria-label={`${passTitle}. ${passActionTitle}`}
+        title={passButtonTitle}
+        aria-label={passButtonTitle}
         disabled={passDisabled}
         onClick={() => {
           if (passDisabled) return
