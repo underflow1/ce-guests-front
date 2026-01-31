@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { extractTimeFromDateTime } from '../utils/date'
 
 const HOURS = Array.from({ length: 10 }, (_, idx) =>
@@ -41,6 +41,17 @@ const PeopleList = ({
 }) => {
   const grouped = useMemo(() => groupPeopleByHour(people), [people])
   const [dragOverHour, setDragOverHour] = useState(null)
+  const clickStateRef = useRef(new Map())
+  const CLICK_TIMEOUT = 400
+
+  useEffect(() => {
+    return () => {
+      clickStateRef.current.forEach((state) => {
+        if (state?.timer) clearTimeout(state.timer)
+      })
+      clickStateRef.current.clear()
+    }
+  }, [])
 
   const isBaseTypography = typographyVariant === 'base'
   const isBaseLightTypography = typographyVariant === 'base-light'
@@ -93,57 +104,116 @@ const PeopleList = ({
     )
   }
 
-  const renderCancelBadge = (person) => {
-    const isCancelled = Boolean(person.is_cancelled)
-    const isCompleted = Boolean(person.is_completed)
-    const isAllowed = !isCompleted && (isCancelled ? canUnmarkCancelled : canMarkCancelled)
-    const title = isCancelled ? 'Снять отмену визита' : 'Отменить визит'
-    const className = [
-      'list__badge',
-      'list__badge--cancel',
-      `list__badge--state-${isCancelled ? 'on' : 'off'}`,
-      isAllowed ? 'list__badge--clickable' : '',
-    ]
-      .filter(Boolean)
-      .join(' ')
-
-    return (
-      <button
-        type="button"
-        className={className}
-        title={title}
-        disabled={!isAllowed}
-        onClick={(e) => e.stopPropagation()}
-        onDoubleClick={(e) => {
-          e.stopPropagation()
-          const nextValue = !isCancelled
-          if (nextValue && canMarkCancelled) {
-            onToggleCancelled?.(person.id, dateKey, true)
-          }
-          if (!nextValue && canUnmarkCancelled) {
-            onToggleCancelled?.(person.id, dateKey, false)
-          }
-        }}
-        aria-label={title}
-      >
-        <i className="fa-solid fa-person-running" aria-hidden="true" />
-      </button>
-    )
+  const resetClickState = (personId) => {
+    const state = clickStateRef.current.get(personId)
+    if (state?.timer) clearTimeout(state.timer)
+    clickStateRef.current.delete(personId)
   }
 
-  const renderAcceptedBadge = (person) => {
+  const renderStatusBadge = (person) => {
     const isCompleted = Boolean(person.is_completed)
     const isCancelled = Boolean(person.is_cancelled)
-    const isAllowed = !isCancelled && (isCompleted ? canUnmarkCompleted : canMarkCompleted)
-    const title = isCompleted ? 'Гость принят' : 'Гость не принят'
+    const canToggleCompleted = isCompleted ? canUnmarkCompleted : canMarkCompleted
+    const canToggleCancelled = isCancelled ? canUnmarkCancelled : canMarkCancelled
+    const isAllowed = isCancelled
+      ? canToggleCancelled
+      : isCompleted
+      ? canToggleCompleted
+      : canToggleCancelled || canToggleCompleted
+    const title = isCancelled
+      ? 'Снять отмену визита'
+      : isCompleted
+      ? 'Снять принятие'
+      : 'Визит не состоялся'
     const className = [
       'list__badge',
-      'list__badge--accepted',
-      `list__badge--state-${isCompleted ? 'on' : 'off'}`,
+      isCancelled ? 'list__badge--cancel' : '',
+      `list__badge--state-${isCancelled || isCompleted ? 'on' : 'off'}`,
       isAllowed ? 'list__badge--clickable' : '',
     ]
       .filter(Boolean)
       .join(' ')
+
+    const handleStatusClick = (event) => {
+      event.stopPropagation()
+
+      if (isCancelled && !canToggleCancelled) return
+      if (isCompleted && !canToggleCompleted) return
+      if (!isCancelled && !isCompleted && !canToggleCancelled && !canToggleCompleted) return
+
+      const personId = person.id
+      const state = clickStateRef.current.get(personId) || { count: 0, timer: null }
+      state.count += 1
+      if (state.timer) {
+        clearTimeout(state.timer)
+        state.timer = null
+      }
+
+      const applyCancelledToggle = () => {
+        const nextValue = !isCancelled
+        if (nextValue && canMarkCancelled) {
+          onToggleCancelled?.(person.id, dateKey, true)
+        }
+        if (!nextValue && canUnmarkCancelled) {
+          onToggleCancelled?.(person.id, dateKey, false)
+        }
+      }
+
+      const applyCompletedToggle = () => {
+        const nextValue = !isCompleted
+        if (nextValue && canMarkCompleted) {
+          onToggleCompleted?.(person.id, dateKey, true)
+        }
+        if (!nextValue && canUnmarkCompleted) {
+          onToggleCompleted?.(person.id, dateKey, false)
+        }
+      }
+
+      if (isCancelled) {
+        if (state.count >= 3) {
+          applyCancelledToggle()
+          resetClickState(personId)
+          return
+        }
+        state.timer = setTimeout(() => resetClickState(personId), CLICK_TIMEOUT)
+        clickStateRef.current.set(personId, state)
+        return
+      }
+
+      if (isCompleted) {
+        if (state.count >= 2) {
+          applyCompletedToggle()
+          resetClickState(personId)
+          return
+        }
+        state.timer = setTimeout(() => resetClickState(personId), CLICK_TIMEOUT)
+        clickStateRef.current.set(personId, state)
+        return
+      }
+
+      if (state.count >= 3) {
+        if (canToggleCancelled) {
+          applyCancelledToggle()
+          resetClickState(personId)
+          return
+        }
+        if (canToggleCompleted) {
+          applyCompletedToggle()
+          resetClickState(personId)
+          return
+        }
+      }
+
+      if (state.count >= 2 && canToggleCompleted) {
+        state.timer = setTimeout(() => {
+          applyCompletedToggle()
+          resetClickState(personId)
+        }, CLICK_TIMEOUT)
+      } else {
+        state.timer = setTimeout(() => resetClickState(personId), CLICK_TIMEOUT)
+      }
+      clickStateRef.current.set(personId, state)
+    }
 
     return (
       <button
@@ -151,20 +221,13 @@ const PeopleList = ({
         className={className}
         title={title}
         disabled={!isAllowed}
-        onClick={(e) => e.stopPropagation()}
-        onDoubleClick={(e) => {
-          e.stopPropagation()
-          const nextValue = !isCompleted
-          if (nextValue && canMarkCompleted) {
-            onToggleCompleted?.(person.id, dateKey, true)
-          }
-          if (!nextValue && canUnmarkCompleted) {
-            onToggleCompleted?.(person.id, dateKey, false)
-          }
-        }}
+        onClick={handleStatusClick}
         aria-label={title}
       >
-        <i className="fa-solid fa-user-check" aria-hidden="true" />
+        <i
+          className={`fa-solid ${isCancelled ? 'fa-person-running' : 'fa-user-check'}`}
+          aria-hidden="true"
+        />
       </button>
     )
   }
@@ -216,8 +279,7 @@ const PeopleList = ({
                     <span className={nameClassName}>
                       <span className="list__badges">
                         {renderPassBadge(person)}
-                        {renderCancelBadge(person)}
-                        {renderAcceptedBadge(person)}
+                        {renderStatusBadge(person)}
                       </span>
                       <span className="list__content">
                         <span className="list__text">{person.name}</span>
