@@ -28,7 +28,7 @@ const DayPanel = ({
   canRevokePass = false,
   canMove = false,
 }) => (
-  <section className={`panel ${compact ? 'panel--compact' : ''}`}>
+  <section className={`panel panel--day ${compact ? 'panel--compact' : ''}`}>
     <header className="panel__header">
       <TitleTag
         className={[

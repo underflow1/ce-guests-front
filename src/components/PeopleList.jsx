@@ -113,7 +113,8 @@ const PeopleList = ({
         className={className}
         title={title}
         disabled={!isAllowed}
-        onClick={(e) => {
+        onClick={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => {
           e.stopPropagation()
           const nextValue = !isCancelled
           if (nextValue && canMarkCancelled) {
@@ -123,7 +124,6 @@ const PeopleList = ({
             onToggleCancelled?.(person.id, dateKey, false)
           }
         }}
-        onDoubleClick={(e) => e.stopPropagation()}
         aria-label={title}
       >
         <i className="fa-solid fa-person-running" aria-hidden="true" />
@@ -151,7 +151,8 @@ const PeopleList = ({
         className={className}
         title={title}
         disabled={!isAllowed}
-        onClick={(e) => {
+        onClick={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => {
           e.stopPropagation()
           const nextValue = !isCompleted
           if (nextValue && canMarkCompleted) {
@@ -161,7 +162,6 @@ const PeopleList = ({
             onToggleCompleted?.(person.id, dateKey, false)
           }
         }}
-        onDoubleClick={(e) => e.stopPropagation()}
         aria-label={title}
       >
         <i className="fa-solid fa-user-check" aria-hidden="true" />
