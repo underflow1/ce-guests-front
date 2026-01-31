@@ -589,6 +589,12 @@ body.interface-user-new .weekend-stack > .panel {
   min-height: 0;
 }
 
+/* В DayPanel запрещаем выделение текста */
+.panel--day {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 body.interface-user-new .panel {
   /* "Бумажно": квадратные блоки + чуть сильнее границы */
   border-radius: 0;
