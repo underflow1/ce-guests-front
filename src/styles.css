@@ -661,6 +661,12 @@ body.interface-user-new .panel__content {
   margin-top: var(--user-new-space);
 }
 
+/* Сдвигаем только подписи часов к началу строки */
+body.interface-user-new .time-grid__label {
+  justify-self: start;
+  text-align: left;
+}
+
 .app--operator {
   font-size: 18px;
   padding: var(--space-4);
@@ -1037,6 +1043,17 @@ body.interface-user-new .panel__content {
   padding-bottom: 6px;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+/* В новом интерфейсе убираем зазор между часами и текстом */
+body.interface-user-new .time-grid__row {
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1);
+}
+
+/* Чуть опускаем контент строки, чтобы совпал с меткой времени */
+body.interface-user-new .time-grid__content {
+  padding-top: 1px;
 }
 
 .time-grid__row:hover {
