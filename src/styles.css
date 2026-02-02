@@ -64,7 +64,8 @@ select {
 
 /* Typography utilities (for future incremental adoption) */
 body.interface-default .text,
-body.interface-user-new .text {
+body.interface-user-new .text,
+body.interface-operator .text {
   font-family: var(--font-base);
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);
@@ -72,42 +73,50 @@ body.interface-user-new .text {
 }
 
 body.interface-default .text--up,
-body.interface-user-new .text--up {
+body.interface-user-new .text--up,
+body.interface-operator .text--up {
   font-size: var(--text-size-up);
 }
 
 body.interface-default .text--down,
-body.interface-user-new .text--down {
+body.interface-user-new .text--down,
+body.interface-operator .text--down {
   font-size: var(--text-size-down);
 }
 
 body.interface-default .text--bold,
-body.interface-user-new .text--bold {
+body.interface-user-new .text--bold,
+body.interface-operator .text--bold {
   font-weight: var(--text-weight-bold);
 }
 
 body.interface-default .text--thin,
-body.interface-user-new .text--thin {
+body.interface-user-new .text--thin,
+body.interface-operator .text--thin {
   font-weight: var(--text-weight-thin);
 }
 
 body.interface-default .text--italic,
-body.interface-user-new .text--italic {
+body.interface-user-new .text--italic,
+body.interface-operator .text--italic {
   font-style: italic;
 }
 
 body.interface-default .text--muted,
-body.interface-user-new .text--muted {
+body.interface-user-new .text--muted,
+body.interface-operator .text--muted {
   color: var(--color-text-muted);
 }
 
 body.interface-default .text--subtle,
-body.interface-user-new .text--subtle {
+body.interface-user-new .text--subtle,
+body.interface-operator .text--subtle {
   color: var(--color-text-subtle);
 }
 
 body.interface-default .text--strike,
-body.interface-user-new .text--strike {
+body.interface-user-new .text--strike,
+body.interface-operator .text--strike {
   text-decoration: line-through;
 }
 
@@ -785,6 +794,42 @@ body.interface-user-new .time-grid__label {
   cursor: default;
 }
 
+.operator-mobile__entry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+
+.operator-mobile__entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.operator-mobile__entry-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operator-mobile__entry-time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.operator-mobile__entry-goals {
+  font-size: 0.8em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-text);
+}
+
 .operator-mobile__controls {
   display: flex;
   align-items: center;
@@ -803,6 +848,20 @@ body.interface-user-new .time-grid__label {
 
 .operator-mobile .list__item--completed .list__name {
   text-decoration: line-through;
+}
+
+.operator-mobile .list__item--completed .operator-mobile__entry-name {
+  text-decoration: line-through;
+}
+
+.operator-mobile .list__item--cancelled .operator-mobile__entry-name {
+  text-decoration: line-through;
+}
+
+.operator-mobile .list__item--completed .operator-mobile__entry-name,
+.operator-mobile .list__item--cancelled .operator-mobile__entry-name {
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 .operator-mobile__item--new {

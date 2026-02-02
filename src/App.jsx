@@ -344,6 +344,7 @@ const App = () => {
               title="Сегодня"
               dateLabel={formatWeekdayWithDate(today)}
               people={todayPeople}
+              visitGoals={visitGoals}
               dateKey={todayKey}
               onToggleCompleted={handleToggleCompleted}
               canMarkCompleted={canMarkCompletedUi()}
