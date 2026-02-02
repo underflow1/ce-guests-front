@@ -15,6 +15,7 @@ const OperatorMobileView = ({
   title,
   dateLabel,
   people,
+  visitGoals = [],
   dateKey,
   onToggleCompleted,
   canMarkCompleted = false,
@@ -98,6 +99,15 @@ const OperatorMobileView = ({
   }
 
   const multiTapRef = useRef({ id: null, count: 0, time: 0 })
+  const visitGoalsMap = useMemo(() => {
+    return new Map((visitGoals || []).map((goal) => [goal.id, goal.name]))
+  }, [visitGoals])
+
+  const getVisitGoalNames = (person) => {
+    const ids = Array.isArray(person?.visit_goal_ids) ? person.visit_goal_ids : []
+    if (!ids.length) return []
+    return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
+  }
 
   const handleRowTap = (person) => {
     const now = Date.now()
@@ -156,13 +166,8 @@ const OperatorMobileView = ({
           <ul className="list operator-mobile__list">
             {sortedPeople.map((person) => {
               const isNew = newEntryIds.has(person.id)
-              const passStatus = person?.pass_status || null
-              const passState =
-                passStatus === 'ordered'
-                  ? 'ordered'
-                  : passStatus === 'failed'
-                  ? 'failed'
-                  : 'none'
+              const goals = getVisitGoalNames(person)
+              const time = getEntryTime(person)
               return (
                 <li
                   key={person.id}
@@ -173,18 +178,22 @@ const OperatorMobileView = ({
                   }`}
                   onPointerUp={() => handleRowTap(person)}
                 >
-                  <span className="list__name">
+                  <span className="operator-mobile__entry">
+                    <span className="operator-mobile__entry-header">
+                      <span className="operator-mobile__entry-name">{person.name}</span>
+                      {time && <span className="operator-mobile__entry-time">{time}</span>}
+                    </span>
                     <span
                       className={[
-                        'list__badge',
-                        'list__badge--pass',
-                        `list__badge--state-${passState}`,
-                      ].join(' ')}
-                      aria-hidden="true"
+                        'operator-mobile__entry-goals',
+                        'text--thin',
+                        'text--italic',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
                     >
-                      <i className="fa-solid fa-id-card-clip" aria-hidden="true" />
+                      {goals.length ? goals.join(', ') : 'Цель визита не установлена'}
                     </span>
-                    {person.name}
                   </span>
                 </li>
               )
