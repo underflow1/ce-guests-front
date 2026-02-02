@@ -356,6 +356,8 @@ const App = () => {
                 title="Сегодня"
                 dateLabel={formatWeekdayWithDate(today)}
                 people={todayPeople}
+                visitGoals={visitGoals}
+                showVisitGoals
                 dateKey={todayKey}
                 onDragStart={handleDragStart}
                 onDrop={handleDrop}
@@ -395,6 +397,8 @@ const App = () => {
                     : formatWeekdayWithDate(previousWorkday)
                 })()}
                 people={previousWorkdayPeople}
+                visitGoals={visitGoals}
+                showVisitGoals
                 dateKey={previousWorkdayKey}
                 onDragStart={handleDragStart}
                 onDrop={handleDrop}
@@ -424,6 +428,8 @@ const App = () => {
               peopleTypographyVariant="base"
               dateLabel={formatWeekdayWithDate(today)}
               people={todayPeople}
+              visitGoals={visitGoals}
+              showVisitGoals
               dateKey={todayKey}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
@@ -458,6 +464,8 @@ const App = () => {
                     : formatWeekdayWithDate(nextWorkday)
                 })()}
                 people={nextWorkdayPeople}
+                visitGoals={visitGoals}
+                showVisitGoals
                 dateKey={nextWorkdayKey}
                 onDragStart={handleDragStart}
                 onDrop={handleDrop}
@@ -641,6 +649,8 @@ const App = () => {
                   : formatWeekdayWithDate(previousWorkday)
               })()}
               people={previousWorkdayPeople}
+              visitGoals={visitGoals}
+              showVisitGoals
               dateKey={previousWorkdayKey}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
@@ -666,6 +676,8 @@ const App = () => {
             title="Сегодня"
             dateLabel={formatWeekdayWithDate(today)}
             people={todayPeople}
+            visitGoals={visitGoals}
+            showVisitGoals
             dateKey={todayKey}
             onDragStart={handleDragStart}
             onDrop={handleDrop}
@@ -696,6 +708,8 @@ const App = () => {
                   : formatWeekdayWithDate(nextWorkday)
               })()}
               people={nextWorkdayPeople}
+              visitGoals={visitGoals}
+              showVisitGoals
               dateKey={nextWorkdayKey}
               onDragStart={handleDragStart}
               onDrop={handleDrop}

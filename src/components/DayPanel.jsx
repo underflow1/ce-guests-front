@@ -8,6 +8,8 @@ const DayPanel = ({
   dateTextClassName,
   peopleTypographyVariant,
   people,
+  visitGoals,
+  showVisitGoals = false,
   dateKey,
   compact = false,
   onDragStart,
@@ -47,6 +49,8 @@ const DayPanel = ({
     <div className="panel__content text">
       <PeopleList
         people={people}
+        visitGoals={visitGoals}
+        showVisitGoals={showVisitGoals}
         dateKey={dateKey}
         compact={compact}
         typographyVariant={peopleTypographyVariant}
