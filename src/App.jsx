@@ -56,6 +56,7 @@ const App = () => {
     nextWorkdayPeople,
     bottomEntries,
     allResponsibles,
+    visitGoals,
     form,
     setForm,
     isFormActive,
@@ -355,6 +356,8 @@ const App = () => {
                 title="Сегодня"
                 dateLabel={formatWeekdayWithDate(today)}
                 people={todayPeople}
+                visitGoals={visitGoals}
+                showVisitGoals
                 dateKey={todayKey}
                 onDragStart={handleDragStart}
                 onDrop={handleDrop}
@@ -394,6 +397,8 @@ const App = () => {
                     : formatWeekdayWithDate(previousWorkday)
                 })()}
                 people={previousWorkdayPeople}
+                visitGoals={visitGoals}
+                showVisitGoals
                 dateKey={previousWorkdayKey}
                 onDragStart={handleDragStart}
                 onDrop={handleDrop}
@@ -423,6 +428,8 @@ const App = () => {
               peopleTypographyVariant="base"
               dateLabel={formatWeekdayWithDate(today)}
               people={todayPeople}
+              visitGoals={visitGoals}
+              showVisitGoals
               dateKey={todayKey}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
@@ -457,6 +464,8 @@ const App = () => {
                     : formatWeekdayWithDate(nextWorkday)
                 })()}
                 people={nextWorkdayPeople}
+                visitGoals={visitGoals}
+                showVisitGoals
                 dateKey={nextWorkdayKey}
                 onDragStart={handleDragStart}
                 onDrop={handleDrop}
@@ -500,6 +509,7 @@ const App = () => {
                 canMarkPass={canMarkPassUi()}
                 canRevokePass={canRevokePassUi()}
                 canDeleteEntry={canDeleteUi()}
+                visitGoals={visitGoals}
                 labelTextClassName="text text--muted"
                 interfaceType={interfaceType}
                 isFormActive={isFormActive}
@@ -639,6 +649,8 @@ const App = () => {
                   : formatWeekdayWithDate(previousWorkday)
               })()}
               people={previousWorkdayPeople}
+              visitGoals={visitGoals}
+              showVisitGoals
               dateKey={previousWorkdayKey}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
@@ -664,6 +676,8 @@ const App = () => {
             title="Сегодня"
             dateLabel={formatWeekdayWithDate(today)}
             people={todayPeople}
+            visitGoals={visitGoals}
+            showVisitGoals
             dateKey={todayKey}
             onDragStart={handleDragStart}
             onDrop={handleDrop}
@@ -694,6 +708,8 @@ const App = () => {
                   : formatWeekdayWithDate(nextWorkday)
               })()}
               people={nextWorkdayPeople}
+              visitGoals={visitGoals}
+              showVisitGoals
               dateKey={nextWorkdayKey}
               onDragStart={handleDragStart}
               onDrop={handleDrop}
@@ -737,6 +753,7 @@ const App = () => {
               canMarkPass={canMarkPassUi()}
               canRevokePass={canRevokePassUi()}
               canDeleteEntry={canDeleteUi()}
+              visitGoals={visitGoals}
               onOrderPass={handleOrderPass}
               onRevokePass={handleRevokePass}
               onDeleteEntry={handleDeleteEntry}

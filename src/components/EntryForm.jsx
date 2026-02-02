@@ -16,6 +16,7 @@ const EntryForm = ({
   allResponsibles = [],
   canEditEntry = true,
   canDeleteEntry = false,
+  visitGoals = [],
   canMarkPass = false,
   canRevokePass = false,
   labelTextClassName,
@@ -107,6 +108,19 @@ const EntryForm = ({
     }
   }
 
+  const toggleVisitGoal = (goalId) => {
+    setForm((prev) => {
+      const selected = prev.visitGoalIds || []
+      const isSelected = selected.includes(goalId)
+      return {
+        ...prev,
+        visitGoalIds: isSelected
+          ? selected.filter((id) => id !== goalId)
+          : [...selected, goalId],
+      }
+    })
+  }
+
   return (
   <form
     className={[
@@ -194,6 +208,38 @@ const EntryForm = ({
         )}
       </div>
     </label>
+
+    <div className="form__field">
+      <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
+        Цель визита
+      </span>
+      <div className="form__control">
+        <div className="visit-goals">
+          {visitGoals.length === 0 ? (
+            <span className="text text--muted">Нет активных целей</span>
+          ) : (
+            visitGoals.map((goal) => {
+              const isSelected = (form.visitGoalIds || []).includes(goal.id)
+              return (
+                <button
+                  key={goal.id}
+                  type="button"
+                  className={`visit-goal-chip${isSelected ? ' visit-goal-chip--selected' : ''}`}
+                  onClick={() => toggleVisitGoal(goal.id)}
+                  disabled={isFieldDisabled}
+                  aria-pressed={isSelected}
+                >
+                  {goal.name}
+                </button>
+              )
+            })
+          )}
+        </div>
+        {!isFieldDisabled && (form.visitGoalIds || []).length === 0 && (
+          <div className="visit-goals__hint text text--down text--muted">Выберите хотя бы одну цель</div>
+        )}
+      </div>
+    </div>
 
     <div className="form__submit-row">
       <button

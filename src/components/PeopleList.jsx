@@ -30,6 +30,8 @@ const PeopleList = ({
   onOrderPass,
   onRevokePass,
   onDeleteEntry,
+  visitGoals = [],
+  showVisitGoals = false,
   canDelete = false,
   canMarkCompleted = false,
   canUnmarkCompleted = false,
@@ -40,6 +42,9 @@ const PeopleList = ({
   canMove = false,
 }) => {
   const grouped = useMemo(() => groupPeopleByHour(people), [people])
+  const visitGoalsMap = useMemo(() => {
+    return new Map((visitGoals || []).map((goal) => [goal.id, goal.name]))
+  }, [visitGoals])
   const [dragOverHour, setDragOverHour] = useState(null)
   const clickStateRef = useRef(new Map())
   const CLICK_TIMEOUT = 400
@@ -72,6 +77,12 @@ const PeopleList = ({
     : 'list__name text'
 
   const getPassStatus = (person) => person?.pass_status || null
+
+  const getVisitGoalNames = (person) => {
+    const ids = Array.isArray(person?.visit_goal_ids) ? person.visit_goal_ids : []
+    if (!ids.length) return []
+    return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
+  }
 
   const renderPassBadge = (person) => {
     const status = getPassStatus(person)
@@ -257,42 +268,75 @@ const PeopleList = ({
           <div className="time-grid__content">
             {grouped[hour]?.length ? (
               <ul className={`list ${compact ? 'list--compact' : ''}`}>
-                {grouped[hour].map((person) => (
-                  <li
-                    key={person.id}
-                    className={`list__item ${person.is_completed ? 'list__item--completed' : ''} ${
-                      person.is_cancelled ? 'list__item--cancelled' : ''
-                    }`}
-                    draggable={!person.is_completed && !person.is_cancelled && canMove}
-                    onDragStart={(event) => {
-                      if (!canMove || person.is_completed || person.is_cancelled) {
-                        event.preventDefault()
-                        return
-                      }
-                      onDragStart(event, person, dateKey)
-                    }}
-                    onDoubleClick={(event) => {
-                      event.stopPropagation()
-                      onDoubleClick?.(person, dateKey)
-                    }}
-                  >
-                    <span className={nameClassName}>
-                      <span className="list__badges">
-                        {renderPassBadge(person)}
-                        {renderStatusBadge(person)}
+                {grouped[hour].map((person) => {
+                  const goals = showVisitGoals ? getVisitGoalNames(person) : []
+                  return (
+                    <li
+                      key={person.id}
+                      className={`list__item ${person.is_completed ? 'list__item--completed' : ''} ${
+                        person.is_cancelled ? 'list__item--cancelled' : ''
+                      }`}
+                      draggable={!person.is_completed && !person.is_cancelled && canMove}
+                      onDragStart={(event) => {
+                        if (!canMove || person.is_completed || person.is_cancelled) {
+                          event.preventDefault()
+                          return
+                        }
+                        onDragStart(event, person, dateKey)
+                      }}
+                      onDoubleClick={(event) => {
+                        event.stopPropagation()
+                        onDoubleClick?.(person, dateKey)
+                      }}
+                    >
+                      <span className={`${nameClassName}${showVisitGoals ? ' list__name--stacked' : ''}`}>
+                        <span className="list__badges">
+                          {renderPassBadge(person)}
+                          {renderStatusBadge(person)}
+                        </span>
+                        <span className={`list__content${showVisitGoals ? ' list__content--stacked' : ''}`}>
+                          {showVisitGoals ? (
+                            <>
+                              <span className="list__primary">
+                                <span className="list__text">{person.name}</span>
+                                {!compact && person.responsible && (
+                                  <span className={`list__responsible ${responsibleClassName}`}>
+                                    {' '}
+                                    / {person.responsible}
+                                  </span>
+                                )}
+                              </span>
+                              <span
+                                className={[
+                                  'list__goals',
+                                  'text',
+                                  'text--down',
+                                  'text--thin',
+                                  'text--italic',
+                                  goals.length ? '' : 'text--subtle',
+                                ]
+                                  .filter(Boolean)
+                                  .join(' ')}
+                              >
+                                {goals.length ? goals.join(', ') : 'Цель визита не установлена'}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="list__text">{person.name}</span>
+                              {!compact && person.responsible && (
+                                <span className={`list__responsible ${responsibleClassName}`}>
+                                  {' '}
+                                  / {person.responsible}
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </span>
                       </span>
-                      <span className="list__content">
-                        <span className="list__text">{person.name}</span>
-                        {!compact && person.responsible && (
-                          <span className={`list__responsible ${responsibleClassName}`}>
-                            {' '}
-                            / {person.responsible}
-                          </span>
-                        )}
-                      </span>
-                    </span>
-                  </li>
-                ))}
+                    </li>
+                  )
+                })}
               </ul>
             ) : (
               <div className="time-grid__empty-row" />
