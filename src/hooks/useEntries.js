@@ -10,9 +10,11 @@ import {
 import { apiGet, apiPost, apiPut, apiPatch, apiDelete, getAccessToken } from '../utils/api'
 import { API_BASE_URL } from '../config'
 import { useToast } from '../components/ToastProvider'
+import useVisitGoals from './useVisitGoals'
 
 const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticated = false }) => {
   const { pushToast } = useToast()
+  const { getActiveGoals } = useVisitGoals()
   const todayKey = toDateKey(today)
 
   const [previousWorkday, setPreviousWorkday] = useState(null)
@@ -23,6 +25,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   const [nextWorkdayPeople, setNextWorkdayPeople] = useState([])
   const [bottomEntries, setBottomEntries] = useState({})
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
+  const [visitGoals, setVisitGoals] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isWebSocketReady, setIsWebSocketReady] = useState(false)
@@ -134,6 +137,18 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     }
   }, [todayKey, isAuthenticated])
 
+  const loadVisitGoals = useCallback(async () => {
+    if (!isAuthenticated) {
+      return
+    }
+    try {
+      const goals = await getActiveGoals()
+      setVisitGoals(goals)
+    } catch (err) {
+      setError(err.message)
+    }
+  }, [isAuthenticated, getActiveGoals])
+
   const formatEntryDateLabel = useCallback((entry) => {
     const dateKey = entry?.datetime ? extractDateFromDateTime(entry.datetime) : ''
     if (!dateKey) return ''
@@ -216,6 +231,10 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   useEffect(() => {
     loadEntries()
   }, [loadEntries])
+
+  useEffect(() => {
+    loadVisitGoals()
+  }, [loadVisitGoals])
 
 
   // Функция для обновления локального состояния из данных WebSocket
@@ -579,6 +598,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     editingEntryId: null,
     editingDateKey: null,
     isCompleted: false,
+    visitGoalIds: [],
   })
   const [isFormActive, setIsFormActive] = useState(interfaceType !== 'user_new')
 
@@ -766,6 +786,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       editingEntryId: entry.id,
       editingDateKey: dateKey,
       isCompleted: entry.is_completed || false,
+      visitGoalIds: entry.visit_goal_ids || [],
     })
 
     setTimeout(() => {
@@ -787,6 +808,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       editingEntryId: null,
       editingDateKey: null,
       isCompleted: false,
+      visitGoalIds: [],
     })
 
     setTimeout(() => {
@@ -807,6 +829,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       editingEntryId: null,
       editingDateKey: null,
       isCompleted: false,
+      visitGoalIds: [],
     })
 
     setTimeout(() => {
@@ -819,7 +842,8 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     !isFormActiveEffective ||
     form.name.trim().length === 0 ||
     form.time.trim().length === 0 ||
-    (form.target === 'other' && form.otherDate.trim().length === 0)
+    (form.target === 'other' && form.otherDate.trim().length === 0) ||
+    form.visitGoalIds.length === 0
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -841,6 +865,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
           responsible: form.responsible.trim(),
           datetime,
           is_completed: form.isCompleted || false,
+          visit_goal_ids: form.visitGoalIds,
         })
 
         const sourceDateKey = form.editingDateKey
@@ -864,6 +889,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
           responsible: form.responsible.trim(),
           datetime,
           is_completed: false,
+          visit_goal_ids: form.visitGoalIds,
         })
 
         const targetList = getListForDateKey(targetDateKey)
@@ -880,6 +906,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
         editingEntryId: null,
         editingDateKey: null,
         isCompleted: false,
+        visitGoalIds: [],
       })
       if (interfaceType === 'user_new') {
         setIsFormActive(false)
@@ -907,6 +934,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     nextWorkdayPeople,
     bottomEntries,
     allResponsibles,
+    visitGoals,
     form,
     setForm,
     isFormActive: isFormActiveEffective,

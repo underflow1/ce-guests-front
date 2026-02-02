@@ -56,6 +56,7 @@ const App = () => {
     nextWorkdayPeople,
     bottomEntries,
     allResponsibles,
+    visitGoals,
     form,
     setForm,
     isFormActive,
@@ -500,6 +501,7 @@ const App = () => {
                 canMarkPass={canMarkPassUi()}
                 canRevokePass={canRevokePassUi()}
                 canDeleteEntry={canDeleteUi()}
+                visitGoals={visitGoals}
                 labelTextClassName="text text--muted"
                 interfaceType={interfaceType}
                 isFormActive={isFormActive}
@@ -737,6 +739,7 @@ const App = () => {
               canMarkPass={canMarkPassUi()}
               canRevokePass={canRevokePassUi()}
               canDeleteEntry={canDeleteUi()}
+              visitGoals={visitGoals}
               onOrderPass={handleOrderPass}
               onRevokePass={handleRevokePass}
               onDeleteEntry={handleDeleteEntry}

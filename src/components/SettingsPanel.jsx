@@ -1,12 +1,22 @@
 import { useState, useEffect, useRef } from 'react'
 import useSettings from '../hooks/useSettings'
+import useVisitGoals from '../hooks/useVisitGoals'
 import { useToast } from './ToastProvider'
 
 const SettingsPanel = ({ onBack }) => {
   const { getSettings, updateSettings, loading, error: apiError } = useSettings()
+  const {
+    getAllGoals,
+    createGoal,
+    updateGoal,
+    loading: goalsLoading,
+    error: goalsError,
+  } = useVisitGoals()
   const { pushToast } = useToast()
   const [error, setError] = useState(null)
   const lastErrorRef = useRef(null)
+  const [visitGoals, setVisitGoals] = useState([])
+  const [newGoalName, setNewGoalName] = useState('')
 
   // Типы уведомлений (fallback, если metadata отсутствует)
   const fallbackNotificationTypes = [
@@ -106,8 +116,20 @@ const SettingsPanel = ({ onBack }) => {
     loadSettings()
   }, [])
 
+  useEffect(() => {
+    const loadGoals = async () => {
+      try {
+        const goals = await getAllGoals()
+        setVisitGoals(goals)
+      } catch (err) {
+        console.log('Не удалось загрузить цели визита', err)
+      }
+    }
+    loadGoals()
+  }, [])
+
   // Обработка ошибок
-  const displayError = error || apiError
+  const displayError = error || apiError || goalsError
   useEffect(() => {
     if (!displayError) {
       lastErrorRef.current = null
@@ -171,6 +193,45 @@ const SettingsPanel = ({ onBack }) => {
       })
     } catch (err) {
       setError(err.message || 'Ошибка при сохранении настроек')
+    }
+  }
+
+  const handleCreateGoal = async () => {
+    const name = newGoalName.trim()
+    if (!name) {
+      setError('Введите название цели визита')
+      return
+    }
+
+    try {
+      setError(null)
+      await createGoal(name)
+      const updatedGoals = await getAllGoals()
+      setVisitGoals(updatedGoals)
+      setNewGoalName('')
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: 'Цель визита добавлена',
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при добавлении цели визита')
+    }
+  }
+
+  const handleToggleGoal = async (goalId, nextActive) => {
+    try {
+      setError(null)
+      await updateGoal(goalId, { is_active: nextActive })
+      const updatedGoals = await getAllGoals()
+      setVisitGoals(updatedGoals)
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: nextActive ? 'Цель визита восстановлена' : 'Цель визита скрыта',
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при обновлении цели визита')
     }
   }
 
@@ -516,6 +577,78 @@ const SettingsPanel = ({ onBack }) => {
                   <span>{type.title}</span>
                 </label>
               ))}
+            </div>
+          </div>
+
+          {/* Секция целей визита */}
+          <div style={{ marginTop: 'var(--space-6)' }}>
+            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
+              Цели визита
+            </h3>
+
+            <div
+              style={{
+                padding: 'var(--space-4)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-surface-muted)',
+                display: 'flex',
+                gap: 'var(--space-2)',
+                marginBottom: 'var(--space-4)',
+                flexWrap: 'wrap',
+              }}
+            >
+              <input
+                type="text"
+                className="input text text--down"
+                value={newGoalName}
+                onChange={(e) => setNewGoalName(e.target.value)}
+                placeholder="Новая цель визита"
+                style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
+              />
+              <button
+                className="button button--primary button--small"
+                onClick={handleCreateGoal}
+                disabled={goalsLoading}
+              >
+                Добавить
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              {visitGoals.length === 0 ? (
+                <div className="text text--muted">Целей визита пока нет</div>
+              ) : (
+                visitGoals.map((goal) => (
+                  <div
+                    key={goal.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 'var(--space-3)',
+                      padding: 'var(--space-2) var(--space-3)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: 'var(--color-surface)',
+                    }}
+                  >
+                    <div>
+                      <div className="text">{goal.name}</div>
+                      <div className="text text--down text--muted">
+                        {goal.is_active ? 'Активна' : 'Неактивна'}
+                      </div>
+                    </div>
+                    <button
+                      className={`button button--small${goal.is_active ? '' : ' button--primary'}`}
+                      onClick={() => handleToggleGoal(goal.id, !goal.is_active)}
+                      disabled={goalsLoading}
+                    >
+                      {goal.is_active ? 'Скрыть' : 'Восстановить'}
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
