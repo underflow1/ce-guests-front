@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { DEFAULT_INTERFACE_TYPE, resolveInterfaceType } from '../constants/interfaces'
 
 /**
  * Хук для проверки прав пользователя
@@ -58,13 +59,9 @@ const usePermissions = (user) => {
   }, [user])
 
   const interfaceType = useMemo(() => {
-    if (!user) return 'user'
-    // Админ всегда использует обычный интерфейс
-    if (isAdmin) return 'user'
-    // Заменяем старое значение 'guard' на 'operator' для обратной совместимости
-    const roleInterfaceType = user.role?.interface_type || 'user'
-    return roleInterfaceType === 'guard' ? 'operator' : roleInterfaceType
-  }, [user, isAdmin])
+    if (!user) return DEFAULT_INTERFACE_TYPE
+    return resolveInterfaceType(user.role?.interface_type)
+  }, [user])
 
   return {
     permissions,

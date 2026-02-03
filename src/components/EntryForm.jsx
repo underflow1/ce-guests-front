@@ -20,7 +20,7 @@ const EntryForm = ({
   canMarkPass = false,
   canRevokePass = false,
   labelTextClassName,
-  interfaceType = 'user',
+  interfaceType = 'user_new',
   isFormActive = true,
   onOrderPass,
   onRevokePass,

@@ -48,8 +48,7 @@ body {
   overscroll-behavior-x: none;
 }
 
-/* Default (non-operator) interface typography baseline */
-body.interface-default,
+/* "Обычный новый" interface typography baseline */
 body.interface-user-new {
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);
@@ -63,7 +62,6 @@ select {
 }
 
 /* Typography utilities (for future incremental adoption) */
-body.interface-default .text,
 body.interface-user-new .text,
 body.interface-operator .text {
   font-family: var(--font-base);
@@ -72,49 +70,41 @@ body.interface-operator .text {
   font-weight: var(--text-weight-base);
 }
 
-body.interface-default .text--up,
 body.interface-user-new .text--up,
 body.interface-operator .text--up {
   font-size: var(--text-size-up);
 }
 
-body.interface-default .text--down,
 body.interface-user-new .text--down,
 body.interface-operator .text--down {
   font-size: var(--text-size-down);
 }
 
-body.interface-default .text--bold,
 body.interface-user-new .text--bold,
 body.interface-operator .text--bold {
   font-weight: var(--text-weight-bold);
 }
 
-body.interface-default .text--thin,
 body.interface-user-new .text--thin,
 body.interface-operator .text--thin {
   font-weight: var(--text-weight-thin);
 }
 
-body.interface-default .text--italic,
 body.interface-user-new .text--italic,
 body.interface-operator .text--italic {
   font-style: italic;
 }
 
-body.interface-default .text--muted,
 body.interface-user-new .text--muted,
 body.interface-operator .text--muted {
   color: var(--color-text-muted);
 }
 
-body.interface-default .text--subtle,
 body.interface-user-new .text--subtle,
 body.interface-operator .text--subtle {
   color: var(--color-text-subtle);
 }
 
-body.interface-default .text--strike,
 body.interface-user-new .text--strike,
 body.interface-operator .text--strike {
   text-decoration: line-through;
@@ -305,7 +295,6 @@ body.operator-mobile .toast__title {
   color: var(--color-text-muted);
 }
 
-body.interface-default .toast__message,
 body.interface-user-new .toast__message {
   font-size: var(--text-size-base);
 }
@@ -480,8 +469,8 @@ body.operator-mobile * {
   padding-top: 0;
 }
 
-/* Login screen (default interface) */
-body.interface-default .login {
+/* Login screen (user_new interface) */
+body.interface-user-new .login {
   min-height: 100svh;
   display: flex;
   align-items: center;
@@ -490,28 +479,28 @@ body.interface-default .login {
   background: var(--color-bg);
 }
 
-body.interface-default .login__panel {
+body.interface-user-new .login__panel {
   width: 420px;
 }
 
-body.interface-default .login__header {
+body.interface-user-new .login__header {
   margin-bottom: var(--space-4);
   text-align: center;
 }
 
-body.interface-default .login__form {
+body.interface-user-new .login__form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-body.interface-default .login__field {
+body.interface-user-new .login__field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-body.interface-default .login__submit {
+body.interface-user-new .login__submit {
   width: 100%;
   justify-content: center;
   align-self: stretch;
@@ -1314,8 +1303,6 @@ body.interface-user-new .time-grid__content {
   background: var(--color-surface);
 }
 
-body.interface-default .input--compact,
-body.interface-default .select--compact,
 body.interface-user-new .input--compact,
 body.interface-user-new .select--compact {
   font-size: var(--text-size-down);
@@ -1344,7 +1331,6 @@ body.interface-user-new .select--compact {
   line-height: 1.4;
 }
 
-body.interface-default .button,
 body.interface-user-new .button {
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);

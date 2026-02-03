@@ -12,7 +12,7 @@ import { API_BASE_URL } from '../config'
 import { useToast } from '../components/ToastProvider'
 import useVisitGoals from './useVisitGoals'
 
-const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticated = false }) => {
+const useEntries = ({ today, nameInputRef, interfaceType = 'user_new', isAuthenticated = false }) => {
   const { pushToast } = useToast()
   const { getActiveGoals } = useVisitGoals()
   const todayKey = toDateKey(today)
