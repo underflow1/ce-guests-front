@@ -1083,10 +1083,20 @@ body.interface-user .time-grid__label {
 
 .list__badge--meeting-result-pending {
   color: #1e66ff;
+  animation: list-badge-spin 1s linear infinite;
 }
 
 .list__badge--meeting-result-employed {
   color: #28a745;
+}
+
+@keyframes list-badge-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 

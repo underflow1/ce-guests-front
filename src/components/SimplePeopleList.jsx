@@ -171,7 +171,7 @@ const SimplePeopleList = ({
       variant === 'pending'
         ? 'fa-spinner'
         : variant === 'employed'
-        ? 'fa-user-check'
+        ? 'fa-check-double'
         : 'fa-xmark'
     const title =
       variant === 'pending'
