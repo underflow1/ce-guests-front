@@ -29,6 +29,7 @@ const EntryForm = ({
   onOrderPass,
   onRevokePass,
   onDeleteEntry,
+  onExitEdit,
 }) => {
   const { suggestions, isLoading, showDropdown, setShowDropdown } = useResponsibleAutocomplete(form.responsible)
   const [showAllResponsiblesDropdown, setShowAllResponsiblesDropdown] = useState(false)
@@ -157,6 +158,13 @@ const EntryForm = ({
       isFormLocked ? 'form--inactive' : '',
     ].join(' ')}
     onSubmit={onSubmit}
+    onKeyDown={(event) => {
+      if (event.key === 'Escape' && isUser && isEditing) {
+        event.preventDefault()
+        event.stopPropagation()
+        onExitEdit?.()
+      }
+    }}
   >
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>ФИО</span>

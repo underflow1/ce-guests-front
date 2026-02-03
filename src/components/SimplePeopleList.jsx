@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const SimplePeopleList = ({
   people,
@@ -7,6 +7,7 @@ const SimplePeopleList = ({
   onDragStart,
   onDrop,
   onDoubleClick,
+  onSingleClick,
   onEmptyRowDoubleClick,
   onToggleCompleted,
   onToggleCancelled,
@@ -25,6 +26,17 @@ const SimplePeopleList = ({
   itemVariant = 'full',
 }) => {
   const [isDragOver, setIsDragOver] = useState(false)
+  const clickTimerRef = useRef(new Map())
+  const SINGLE_CLICK_DELAY = 220
+
+  useEffect(() => {
+    return () => {
+      clickTimerRef.current.forEach((timer) => {
+        if (timer) clearTimeout(timer)
+      })
+      clickTimerRef.current.clear()
+    }
+  }, [])
 
   const getPassStatus = (person) => person?.pass_status || null
 
@@ -141,6 +153,12 @@ const SimplePeopleList = ({
     )
   }
 
+  const resetClickTimer = (personId) => {
+    const timer = clickTimerRef.current.get(personId)
+    if (timer) clearTimeout(timer)
+    clickTimerRef.current.delete(personId)
+  }
+
   return (
       <div
       className={`simple-list ${isDragOver ? 'simple-list--dragover' : ''}`}
@@ -170,8 +188,19 @@ const SimplePeopleList = ({
                 }
                 onDragStart(event, person, dateKey)
               }}
+              onClick={() => {
+                if (!onSingleClick) return
+                const personId = person.id
+                resetClickTimer(personId)
+                const timer = setTimeout(() => {
+                  onSingleClick?.(person, dateKey)
+                  resetClickTimer(personId)
+                }, SINGLE_CLICK_DELAY)
+                clickTimerRef.current.set(personId, timer)
+              }}
               onDoubleClick={(event) => {
                 event.stopPropagation()
+                resetClickTimer(person.id)
                 onDoubleClick?.(person, dateKey)
               }}
             >

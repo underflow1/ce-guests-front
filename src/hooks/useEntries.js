@@ -882,6 +882,34 @@ const useEntries = ({
     }, 0)
   }
 
+  const handleSingleClick = (entry, dateKey) => {
+    const { target, otherDate } = resolveTarget(dateKey)
+    const entryTime = entry.datetime ? extractTimeFromDateTime(entry.datetime) : (entry.time || '00:00')
+
+    setForm({
+      name: entry.name,
+      responsible: entry.responsible || '',
+      time: entryTime,
+      target,
+      otherDate,
+      editingEntryId: entry.id,
+      editingDateKey: dateKey,
+      isCompleted: entry.is_completed || false,
+      visitGoalIds: entry.visit_goal_ids || [],
+      meetingResultId: entry.meeting_result_id || null,
+      meetingResultReasonId: entry.meeting_result_reason_id || null,
+    })
+    if (interfaceType === 'user') {
+      setIsFormActive(false)
+    }
+  }
+
+  const handleExitEdit = () => {
+    if (interfaceType === 'user') {
+      setIsFormActive(false)
+    }
+  }
+
   const handleEmptyRowDoubleClick = (dateKey, hour) => {
     const { target, otherDate } = resolveTarget(dateKey)
 
@@ -1060,8 +1088,10 @@ const useEntries = ({
     handleDragStart,
     handleDrop,
     handleDoubleClick,
+    handleSingleClick,
     handleEmptyRowDoubleClick,
     handleWeekendEmptyRowDoubleClick,
+    handleExitEdit,
     handleSubmit,
     handleToggleCompleted,
     handleToggleCancelled,

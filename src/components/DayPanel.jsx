@@ -16,6 +16,7 @@ const DayPanel = ({
   onDragStart,
   onDrop,
   onDoubleClick,
+  onSingleClick,
   onEmptyRowDoubleClick,
   onToggleCompleted,
   onToggleCancelled,
@@ -59,6 +60,7 @@ const DayPanel = ({
         onDragStart={onDragStart}
         onDrop={onDrop}
         onDoubleClick={onDoubleClick}
+        onSingleClick={onSingleClick}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
         onToggleCompleted={onToggleCompleted}
         onToggleCancelled={onToggleCancelled}

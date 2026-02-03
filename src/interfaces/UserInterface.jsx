@@ -47,8 +47,10 @@ const UserInterface = ({
   handleDragStart,
   handleDrop,
   handleDoubleClick,
+  handleSingleClick,
   handleEmptyRowDoubleClick,
   handleWeekendEmptyRowDoubleClick,
+  handleExitEdit,
   handleToggleCompleted,
   handleToggleCancelled,
   handleOrderPass,
@@ -80,6 +82,7 @@ const UserInterface = ({
           onDragStart={handleDragStart}
           onDrop={handleDrop}
           onDoubleClick={handleDoubleClick}
+          onSingleClick={handleSingleClick}
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
           onToggleCompleted={handleToggleCompleted}
           onToggleCancelled={handleToggleCancelled}
@@ -111,6 +114,7 @@ const UserInterface = ({
         onDragStart={handleDragStart}
         onDrop={handleDrop}
         onDoubleClick={handleDoubleClick}
+        onSingleClick={handleSingleClick}
         onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
         onToggleCompleted={handleToggleCompleted}
         onToggleCancelled={handleToggleCancelled}
@@ -147,6 +151,7 @@ const UserInterface = ({
           onDragStart={handleDragStart}
           onDrop={handleDrop}
           onDoubleClick={handleDoubleClick}
+          onSingleClick={handleSingleClick}
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
           onToggleCompleted={handleToggleCompleted}
           onToggleCancelled={handleToggleCancelled}
@@ -197,6 +202,7 @@ const UserInterface = ({
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onDeleteEntry={handleDeleteEntry}
+          onExitEdit={handleExitEdit}
         />
       </section>
     </div>
@@ -226,6 +232,7 @@ const UserInterface = ({
                         onDragStart={handleDragStart}
                         onDrop={handleDrop}
                         onDoubleClick={(entry) => handleDoubleClick?.(entry, saturdayItem.date)}
+                        onSingleClick={(entry) => handleSingleClick?.(entry, saturdayItem.date)}
                         onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
                         onToggleCompleted={handleToggleCompleted}
                         onToggleCancelled={handleToggleCancelled}
@@ -258,6 +265,7 @@ const UserInterface = ({
                         onDragStart={handleDragStart}
                         onDrop={handleDrop}
                         onDoubleClick={(entry) => handleDoubleClick?.(entry, sundayItem.date)}
+                        onSingleClick={(entry) => handleSingleClick?.(entry, sundayItem.date)}
                         onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
                         onToggleCompleted={handleToggleCompleted}
                         onToggleCancelled={handleToggleCancelled}
@@ -297,6 +305,7 @@ const UserInterface = ({
               onDragStart={handleDragStart}
               onDrop={handleDrop}
               onDoubleClick={handleDoubleClick}
+              onSingleClick={handleSingleClick}
               onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
               onToggleCompleted={handleToggleCompleted}
               onToggleCancelled={handleToggleCancelled}

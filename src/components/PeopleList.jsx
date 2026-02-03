@@ -25,6 +25,7 @@ const PeopleList = ({
   onDragStart,
   onDrop,
   onDoubleClick,
+  onSingleClick,
   onEmptyRowDoubleClick,
   onToggleCompleted,
   onToggleCancelled,
@@ -48,7 +49,9 @@ const PeopleList = ({
   }, [visitGoals])
   const [dragOverHour, setDragOverHour] = useState(null)
   const clickStateRef = useRef(new Map())
+  const clickTimerRef = useRef(new Map())
   const CLICK_TIMEOUT = 400
+  const SINGLE_CLICK_DELAY = 220
 
   useEffect(() => {
     return () => {
@@ -56,6 +59,10 @@ const PeopleList = ({
         if (state?.timer) clearTimeout(state.timer)
       })
       clickStateRef.current.clear()
+      clickTimerRef.current.forEach((timer) => {
+        if (timer) clearTimeout(timer)
+      })
+      clickTimerRef.current.clear()
     }
   }, [])
 
@@ -121,6 +128,12 @@ const PeopleList = ({
     const state = clickStateRef.current.get(personId)
     if (state?.timer) clearTimeout(state.timer)
     clickStateRef.current.delete(personId)
+  }
+
+  const resetClickTimer = (personId) => {
+    const timer = clickTimerRef.current.get(personId)
+    if (timer) clearTimeout(timer)
+    clickTimerRef.current.delete(personId)
   }
 
   const renderStatusBadge = (person) => {
@@ -284,8 +297,19 @@ const PeopleList = ({
                         }
                         onDragStart(event, person, dateKey)
                       }}
+                      onClick={() => {
+                        if (!onSingleClick) return
+                        const personId = person.id
+                        resetClickTimer(personId)
+                        const timer = setTimeout(() => {
+                          onSingleClick?.(person, dateKey)
+                          resetClickTimer(personId)
+                        }, SINGLE_CLICK_DELAY)
+                        clickTimerRef.current.set(personId, timer)
+                      }}
                       onDoubleClick={(event) => {
                         event.stopPropagation()
+                        resetClickTimer(person.id)
                         onDoubleClick?.(person, dateKey)
                       }}
                     >
