@@ -153,6 +153,49 @@ const SimplePeopleList = ({
     )
   }
 
+  const getMeetingResultBadgeVariant = (person) => {
+    if (person?.is_cancelled) return 'cancelled'
+    const resultName = String(person?.meeting_result_name || '').toLowerCase()
+    if (!resultName) return null
+    if (resultName.includes('отказ') || resultName.includes('отмен')) return 'cancelled'
+    if (resultName.includes('не оформ')) return 'pending'
+    if (resultName.includes('трудоустро')) return 'employed'
+    return null
+  }
+
+  const renderMeetingResultBadge = (person) => {
+    const variant = getMeetingResultBadgeVariant(person)
+    if (!variant) return null
+
+    const iconClass =
+      variant === 'pending'
+        ? 'fa-spinner'
+        : variant === 'employed'
+        ? 'fa-user-check'
+        : 'fa-xmark'
+    const title =
+      variant === 'pending'
+        ? 'В процессе'
+        : variant === 'employed'
+        ? 'Трудоустроен'
+        : 'Отказ или отмена визита'
+
+    const className = [
+      'list__badge',
+      'list__badge--static',
+      'list__badge--meeting-result',
+      `list__badge--meeting-result-${variant}`,
+    ]
+      .filter(Boolean)
+      .join(' ')
+
+    return (
+      <span className={className} title={title} aria-label={title}>
+        <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
+      </span>
+    )
+  }
+
   const resetClickTimer = (personId) => {
     const timer = clickTimerRef.current.get(personId)
     if (timer) clearTimeout(timer)
@@ -210,19 +253,23 @@ const SimplePeopleList = ({
                 </span>
               ) : (
                 <span className={nameClass}>
-                  <span className="list__badges">
-                    {renderPassBadge(person)}
-                    {renderCancelBadge(person)}
-                    {renderAcceptedBadge(person)}
-                  </span>
-                  <span className="list__content">
-                    <span className="list__text">{person.name}</span>
-                    {person.responsible && (
-                      <span className={`list__responsible ${responsibleClass}`}>
-                        {' '}
-                        / {person.responsible}
-                      </span>
-                    )}
+                  <span className="list__stacked-grid">
+                    <span className="list__badges">
+                      {renderPassBadge(person)}
+                      {renderCancelBadge(person)}
+                      {renderAcceptedBadge(person)}
+                    </span>
+                    <span className="list__content">
+                      <span className="list__text">{person.name}</span>
+                      {person.responsible && (
+                        <span className={`list__responsible ${responsibleClass}`}>
+                          {' '}
+                          / {person.responsible}
+                        </span>
+                      )}
+                    </span>
+                    <span className="list__stacked-icon">{renderMeetingResultBadge(person)}</span>
+                    <span className="list__stacked-secondary" />
                   </span>
                 </span>
               )}

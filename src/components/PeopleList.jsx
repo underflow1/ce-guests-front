@@ -93,6 +93,49 @@ const PeopleList = ({
     return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
   }
 
+  const getMeetingResultBadgeVariant = (person) => {
+    if (person?.is_cancelled) return 'cancelled'
+    const resultName = String(person?.meeting_result_name || '').toLowerCase()
+    if (!resultName) return null
+    if (resultName.includes('отказ') || resultName.includes('отмен')) return 'cancelled'
+    if (resultName.includes('не оформ')) return 'pending'
+    if (resultName.includes('трудоустро')) return 'employed'
+    return null
+  }
+
+  const renderMeetingResultBadge = (person) => {
+    const variant = getMeetingResultBadgeVariant(person)
+    if (!variant) return null
+
+    const iconClass =
+      variant === 'pending'
+        ? 'fa-spinner'
+        : variant === 'employed'
+        ? 'fa-user-check'
+        : 'fa-xmark'
+    const title =
+      variant === 'pending'
+        ? 'В процессе'
+        : variant === 'employed'
+        ? 'Трудоустроен'
+        : 'Отказ или отмена визита'
+
+    const className = [
+      'list__badge',
+      'list__badge--static',
+      'list__badge--meeting-result',
+      `list__badge--meeting-result-${variant}`,
+    ]
+      .filter(Boolean)
+      .join(' ')
+
+    return (
+      <span className={className} title={title} aria-label={title}>
+        <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
+      </span>
+    )
+  }
+
   const renderPassBadge = (person) => {
     const status = getPassStatus(person)
     const state =
@@ -322,39 +365,13 @@ const PeopleList = ({
                           const goals = showVisitGoals ? getVisitGoalNames(person) : []
                           return (
                         <span className={`${nameClassName}${showVisitGoals ? ' list__name--stacked' : ''}`}>
-                          <span className="list__badges">
-                            {renderPassBadge(person)}
-                            {renderStatusBadge(person)}
-                          </span>
-                          <span className={`list__content${showVisitGoals ? ' list__content--stacked' : ''}`}>
-                            {showVisitGoals ? (
-                              <>
-                                <span className="list__primary">
-                                  <span className="list__text">{person.name}</span>
-                                  {!compact && person.responsible && (
-                                    <span className={`list__responsible ${responsibleClassName}`}>
-                                      {' '}
-                                      / {person.responsible}
-                                    </span>
-                                  )}
-                                </span>
-                                <span
-                                  className={[
-                                    'list__goals',
-                                    'text',
-                                    'text--down',
-                                    'text--thin',
-                                    'text--italic',
-                                    goals.length ? '' : 'text--subtle',
-                                  ]
-                                    .filter(Boolean)
-                                    .join(' ')}
-                                >
-                                  {goals.length ? goals.join(', ') : 'Цель визита не установлена'}
-                                </span>
-                              </>
-                            ) : (
-                              <>
+                          {showVisitGoals ? (
+                            <span className="list__stacked-grid">
+                              <span className="list__badges">
+                                {renderPassBadge(person)}
+                                {renderStatusBadge(person)}
+                              </span>
+                              <span className="list__primary">
                                 <span className="list__text">{person.name}</span>
                                 {!compact && person.responsible && (
                                   <span className={`list__responsible ${responsibleClassName}`}>
@@ -362,9 +379,40 @@ const PeopleList = ({
                                     / {person.responsible}
                                   </span>
                                 )}
-                              </>
-                            )}
-                          </span>
+                              </span>
+                              <span className="list__stacked-icon">{renderMeetingResultBadge(person)}</span>
+                              <span
+                                className={[
+                                  'list__goals',
+                                  'text',
+                                  'text--down',
+                                  'text--thin',
+                                  'text--italic',
+                                  goals.length ? '' : 'text--subtle',
+                                ]
+                                  .filter(Boolean)
+                                  .join(' ')}
+                              >
+                                {goals.length ? goals.join(', ') : 'Цель визита не установлена'}
+                              </span>
+                            </span>
+                          ) : (
+                            <>
+                              <span className="list__badges">
+                                {renderPassBadge(person)}
+                                {renderStatusBadge(person)}
+                              </span>
+                              <span className="list__content">
+                                <span className="list__text">{person.name}</span>
+                                {!compact && person.responsible && (
+                                  <span className={`list__responsible ${responsibleClassName}`}>
+                                    {' '}
+                                    / {person.responsible}
+                                  </span>
+                                )}
+                              </span>
+                            </>
+                          )}
                         </span>
                           )
                         })()

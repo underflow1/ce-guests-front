@@ -989,6 +989,27 @@ body.interface-user .time-grid__label {
   mask-image: none;
 }
 
+.list__stacked-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-1);
+  row-gap: 2px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.list__stacked-icon,
+.list__stacked-secondary {
+  min-height: 1.1em;
+}
+
+.list__stacked-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .list__primary {
   display: inline-flex;
   align-items: center;
@@ -1054,6 +1075,18 @@ body.interface-user .time-grid__label {
 .list__badge--state-off,
 .list__badge--state-none {
   color: rgba(0, 0, 0, 0.1);
+}
+
+.list__badge--meeting-result-cancelled {
+  color: #dc3545;
+}
+
+.list__badge--meeting-result-pending {
+  color: #1e66ff;
+}
+
+.list__badge--meeting-result-employed {
+  color: #28a745;
 }
 
 
