@@ -1024,7 +1024,7 @@ body.interface-user .time-grid__label {
   padding: 0;
   margin: 0;
   background: transparent;
-  color: #cccccc;
+  color: rgba(0, 0, 0, 0.1);
 }
 
 .list__badge--static {
@@ -1046,21 +1046,14 @@ body.interface-user .time-grid__label {
 }
 
 .list__badge--state-ordered,
-.list__badge--state-on {
-  color: #28a745;
-}
-
+.list__badge--state-on,
 .list__badge--state-failed {
-  color: #ff1f1f;
+  color: #000000;
 }
 
 .list__badge--state-off,
 .list__badge--state-none {
-  color: #cccccc;
-}
-
-.list__badge--cancel.list__badge--state-on {
-  color: #ff1f1f;
+  color: rgba(0, 0, 0, 0.1);
 }
 
 
