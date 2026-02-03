@@ -48,8 +48,8 @@ body {
   overscroll-behavior-x: none;
 }
 
-/* "Обычный новый" interface typography baseline */
-body.interface-user-new {
+/* "Пользователь" interface typography baseline */
+body.interface-user {
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);
 }
@@ -62,51 +62,51 @@ select {
 }
 
 /* Typography utilities (for future incremental adoption) */
-body.interface-user-new .text,
-body.interface-operator .text {
+body.interface-user .text,
+body.interface-duty-officer .text {
   font-family: var(--font-base);
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);
   font-weight: var(--text-weight-base);
 }
 
-body.interface-user-new .text--up,
-body.interface-operator .text--up {
+body.interface-user .text--up,
+body.interface-duty-officer .text--up {
   font-size: var(--text-size-up);
 }
 
-body.interface-user-new .text--down,
-body.interface-operator .text--down {
+body.interface-user .text--down,
+body.interface-duty-officer .text--down {
   font-size: var(--text-size-down);
 }
 
-body.interface-user-new .text--bold,
-body.interface-operator .text--bold {
+body.interface-user .text--bold,
+body.interface-duty-officer .text--bold {
   font-weight: var(--text-weight-bold);
 }
 
-body.interface-user-new .text--thin,
-body.interface-operator .text--thin {
+body.interface-user .text--thin,
+body.interface-duty-officer .text--thin {
   font-weight: var(--text-weight-thin);
 }
 
-body.interface-user-new .text--italic,
-body.interface-operator .text--italic {
+body.interface-user .text--italic,
+body.interface-duty-officer .text--italic {
   font-style: italic;
 }
 
-body.interface-user-new .text--muted,
-body.interface-operator .text--muted {
+body.interface-user .text--muted,
+body.interface-duty-officer .text--muted {
   color: var(--color-text-muted);
 }
 
-body.interface-user-new .text--subtle,
-body.interface-operator .text--subtle {
+body.interface-user .text--subtle,
+body.interface-duty-officer .text--subtle {
   color: var(--color-text-subtle);
 }
 
-body.interface-user-new .text--strike,
-body.interface-operator .text--strike {
+body.interface-user .text--strike,
+body.interface-duty-officer .text--strike {
   text-decoration: line-through;
 }
 
@@ -219,7 +219,7 @@ button {
   pointer-events: none;
 }
 
-body.operator-mobile .toast-host {
+body.duty-officer-mobile .toast-host {
   top: auto;
   bottom: var(--space-3);
   width: min(92vw, 520px);
@@ -240,7 +240,7 @@ body.operator-mobile .toast-host {
   animation: toast-in 200ms ease-out both;
 }
 
-body.operator-mobile .toast {
+body.duty-officer-mobile .toast {
   grid-template-columns: 32px 1fr 24px;
   padding: 12px 14px;
 }
@@ -263,7 +263,7 @@ body.operator-mobile .toast {
   line-height: 1;
 }
 
-body.operator-mobile .toast__icon {
+body.duty-officer-mobile .toast__icon {
   width: 26px;
   height: 26px;
   font-size: 14px;
@@ -282,11 +282,11 @@ body.operator-mobile .toast__icon {
   color: var(--color-text);
 }
 
-body.interface-operator .toast__title {
+body.interface-duty-officer .toast__title {
   font-size: 13px;
 }
 
-body.operator-mobile .toast__title {
+body.duty-officer-mobile .toast__title {
   font-size: 16px;
 }
 
@@ -295,11 +295,11 @@ body.operator-mobile .toast__title {
   color: var(--color-text-muted);
 }
 
-body.interface-user-new .toast__message {
+body.interface-user .toast__message {
   font-size: var(--text-size-base);
 }
 
-body.operator-mobile .toast__message {
+body.duty-officer-mobile .toast__message {
   font-size: 14px;
 }
 
@@ -313,16 +313,16 @@ body.operator-mobile .toast__message {
   padding: 0;
 }
 
-body.interface-operator .toast__close {
+body.interface-duty-officer .toast__close {
   font-size: 14px;
 }
 
-body.operator-mobile .toast__close {
+body.duty-officer-mobile .toast__close {
   font-size: 18px;
 }
 
-body.operator-mobile,
-body.operator-mobile * {
+body.duty-officer-mobile,
+body.duty-officer-mobile * {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -465,12 +465,12 @@ body.operator-mobile * {
   overscroll-behavior-x: none;
 }
 
-.app__layout--operator-mobile {
+.app__layout--duty-officer-mobile {
   padding-top: 0;
 }
 
-/* Login screen (user_new interface) */
-body.interface-user-new .login {
+/* Login screen (user interface) */
+body.interface-user .login {
   min-height: 100svh;
   display: flex;
   align-items: center;
@@ -479,28 +479,28 @@ body.interface-user-new .login {
   background: var(--color-bg);
 }
 
-body.interface-user-new .login__panel {
+body.interface-user .login__panel {
   width: 420px;
 }
 
-body.interface-user-new .login__header {
+body.interface-user .login__header {
   margin-bottom: var(--space-4);
   text-align: center;
 }
 
-body.interface-user-new .login__form {
+body.interface-user .login__form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-body.interface-user-new .login__field {
+body.interface-user .login__field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-body.interface-user-new .login__submit {
+body.interface-user .login__submit {
   width: 100%;
   justify-content: center;
   align-self: stretch;
@@ -522,57 +522,57 @@ body.interface-user-new .login__submit {
   min-height: 0;
 }
 
-/* "Обычный новый" (user_new): бумажный/квадратный вариант интерфейса */
-body.interface-user-new {
+/* "Пользователь": бумажный/квадратный вариант интерфейса */
+body.interface-user {
   /*
-    Единый базовый отступ для интерфейса user_new.
+    Единый базовый отступ для интерфейса user.
     База = горизонтальный gap между блоками, уменьшенный в 1.5 раза.
     (1 / 1.5) ≈ 0.6667
   */
-  --user-new-space: calc(var(--space-2) * 0.6667);
-  --user-new-bottom-col: calc((100% - (5 * var(--user-new-space))) / 6);
+  --user-space: calc(var(--space-2) * 0.6667);
+  --user-bottom-col: calc((100% - (5 * var(--user-space))) / 6);
 }
 
-body.interface-user-new .app {
+body.interface-user .app {
   /* Единая внешняя рамка отступов */
-  padding: var(--user-new-space);
+  padding: var(--user-space);
   /* Больше воздуха под верхней строкой (header-bar) */
-  padding-top: calc((var(--user-new-space) * 2) + 21px);
+  padding-top: calc((var(--user-space) * 2) + 21px);
 }
 
-body.interface-user-new .app__header-bar {
+body.interface-user .app__header-bar {
   /* Держим один ритм с внешним padding */
-  top: var(--user-new-space);
-  left: var(--user-new-space);
-  right: var(--user-new-space);
+  top: var(--user-space);
+  left: var(--user-space);
+  right: var(--user-space);
 }
 
-body.interface-user-new .app__layout {
+body.interface-user .app__layout {
   /* Чётче разделяем верх/низ */
-  gap: var(--user-new-space);
+  gap: var(--user-space);
 }
 
-body.interface-user-new .app__top-row {
+body.interface-user .app__top-row {
   /* Единый ритм сетки */
-  gap: var(--user-new-space);
-  grid-template-columns: repeat(3, minmax(0, 1fr)) var(--user-new-bottom-col);
+  gap: var(--user-space);
+  grid-template-columns: repeat(3, minmax(0, 1fr)) var(--user-bottom-col);
 }
 
-body.interface-user-new .app__bottom-row {
+body.interface-user .app__bottom-row {
   /* Единый ритм сетки */
-  gap: var(--user-new-space);
+  gap: var(--user-space);
 }
 
 /* Weekend column (2 mini-panels) in bottom row */
-body.interface-user-new .weekend-stack {
+body.interface-user .weekend-stack {
   display: flex;
   flex-direction: column;
-  gap: var(--user-new-space);
+  gap: var(--user-space);
   height: 100%;
   min-height: 0;
 }
 
-body.interface-user-new .weekend-stack > .panel {
+body.interface-user .weekend-stack > .panel {
   flex: 1 1 0;
   min-height: 0;
 }
@@ -593,15 +593,15 @@ body.interface-user-new .weekend-stack > .panel {
   -webkit-user-select: none;
 }
 
-body.interface-user-new .panel {
+body.interface-user .panel {
   /* "Бумажно": квадратные блоки + чуть сильнее границы */
   border-radius: 0;
   border-color: var(--color-border-strong);
-  padding: var(--user-new-space);
-  gap: var(--user-new-space);
+  padding: var(--user-space);
+  gap: var(--user-space);
 }
 
-body.interface-user-new .panel--inactive {
+body.interface-user .panel--inactive {
   opacity: 0.7;
 }
 
@@ -616,9 +616,9 @@ body.interface-user-new .panel--inactive {
   gap: var(--space-2);
 }
 
-body.interface-user-new .panel__header {
+body.interface-user .panel__header {
   /* Отделяем заголовок от контента тонкой линией */
-  padding-bottom: var(--user-new-space);
+  padding-bottom: var(--user-space);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
@@ -660,18 +660,18 @@ body.interface-user-new .panel__header {
   overscroll-behavior-x: none;
 }
 
-body.interface-user-new .panel__content {
+body.interface-user .panel__content {
   /* Чуть плотнее контент в "бумажном" варианте */
-  margin-top: var(--user-new-space);
+  margin-top: var(--user-space);
 }
 
 /* Сдвигаем только подписи часов к началу строки */
-body.interface-user-new .time-grid__label {
+body.interface-user .time-grid__label {
   justify-self: start;
   text-align: left;
 }
 
-.app--operator {
+.app--duty-officer {
   font-size: 18px;
   padding: var(--space-4);
   padding-top: calc(var(--space-4) + 24px);
@@ -680,42 +680,42 @@ body.interface-user-new .time-grid__label {
   overflow: hidden;
 }
 
-.app--operator-mobile {
+.app--duty-officer-mobile {
   padding: var(--space-2);
   padding-top: var(--space-1);
 }
 
-.app--operator-mobile .app__header-bar {
+.app--duty-officer-mobile .app__header-bar {
   position: static;
   margin-bottom: var(--space-1);
 }
 
-.app--operator .app__header-title {
+.app--duty-officer .app__header-title {
   font-size: 20px;
 }
 
-.app--operator .app__user-name {
+.app--duty-officer .app__user-name {
   font-size: 16px;
 }
 
-.app--operator .panel__title {
+.app--duty-officer .panel__title {
   font-size: 20px;
 }
 
-.app--operator .panel__date {
+.app--duty-officer .panel__date {
   font-size: 14px;
 }
 
-.app--operator .time-grid__label {
+.app--duty-officer .time-grid__label {
   font-size: 14px;
 }
 
-.app--operator .list__item {
+.app--duty-officer .list__item {
   padding-bottom: 8px;
 }
 
 
-.operator-mobile {
+.duty-officer-mobile {
   flex: 1;
   min-height: 0;
   height: 100%;
@@ -728,45 +728,45 @@ body.interface-user-new .time-grid__label {
 }
 
 @media (min-width: 601px) {
-  .app--operator .app__layout {
+  .app--duty-officer .app__layout {
     align-items: center;
   }
 
-  .app--operator .operator-mobile {
+  .app--duty-officer .duty-officer-mobile {
     width: 50%;
     max-width: 50%;
   }
 }
 
-.operator-mobile__header {
+.duty-officer-mobile__header {
   align-items: center;
   margin-top: 0;
   margin-bottom: var(--space-2);
 }
 
-.operator-mobile__title {
+.duty-officer-mobile__title {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 
-.operator-mobile .panel__title {
+.duty-officer-mobile .panel__title {
   font-size: 24px;
 }
 
-.app--operator .app__header-title {
+.app--duty-officer .app__header-title {
   font-size: 24px;
 }
 
-.app--operator .app__user-name {
+.app--duty-officer .app__user-name {
   font-size: 12px;
 }
 
-.operator-mobile .panel__date {
+.duty-officer-mobile .panel__date {
   font-size: 16px;
 }
 
-.operator-mobile__content {
+.duty-officer-mobile__content {
   flex: 1;
   min-height: 0;
   max-height: 100%;
@@ -775,15 +775,15 @@ body.interface-user-new .time-grid__label {
   -webkit-overflow-scrolling: touch;
 }
 
-.operator-mobile__list {
+.duty-officer-mobile__list {
   gap: var(--space-3);
 }
 
-.operator-mobile__item {
+.duty-officer-mobile__item {
   cursor: default;
 }
 
-.operator-mobile__entry {
+.duty-officer-mobile__entry {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -791,7 +791,7 @@ body.interface-user-new .time-grid__label {
   width: 100%;
 }
 
-.operator-mobile__entry-header {
+.duty-officer-mobile__entry-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -799,19 +799,19 @@ body.interface-user-new .time-grid__label {
   min-width: 0;
 }
 
-.operator-mobile__entry-name {
+.duty-officer-mobile__entry-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.operator-mobile__entry-time {
+.duty-officer-mobile__entry-time {
   flex: 0 0 auto;
   white-space: nowrap;
 }
 
-.operator-mobile__entry-goals {
+.duty-officer-mobile__entry-goals {
   font-size: 0.8em;
   white-space: nowrap;
   overflow: hidden;
@@ -819,47 +819,47 @@ body.interface-user-new .time-grid__label {
   color: var(--color-text);
 }
 
-.operator-mobile__controls {
+.duty-officer-mobile__controls {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 
-.operator-mobile .list__item {
+.duty-officer-mobile .list__item {
   align-items: center;
 }
 
-.operator-mobile .list__name,
-.operator-mobile .list__controls {
+.duty-officer-mobile .list__name,
+.duty-officer-mobile .list__controls {
   align-items: center;
   line-height: 1.2;
 }
 
-.operator-mobile .list__item--completed .list__name {
+.duty-officer-mobile .list__item--completed .list__name {
   text-decoration: line-through;
 }
 
-.operator-mobile .list__item--completed .operator-mobile__entry-name {
+.duty-officer-mobile .list__item--completed .duty-officer-mobile__entry-name {
   text-decoration: line-through;
 }
 
-.operator-mobile .list__item--cancelled .operator-mobile__entry-name {
+.duty-officer-mobile .list__item--cancelled .duty-officer-mobile__entry-name {
   text-decoration: line-through;
 }
 
-.operator-mobile .list__item--completed .operator-mobile__entry-name,
-.operator-mobile .list__item--cancelled .operator-mobile__entry-name {
+.duty-officer-mobile .list__item--completed .duty-officer-mobile__entry-name,
+.duty-officer-mobile .list__item--cancelled .duty-officer-mobile__entry-name {
   color: var(--color-text-muted);
   font-style: italic;
 }
 
-.operator-mobile__item--new {
-  animation: operator-pulse 520ms ease-out;
+.duty-officer-mobile__item--new {
+  animation: duty-officer-pulse 520ms ease-out;
   transform-origin: center;
   will-change: transform;
 }
 
-@keyframes operator-pulse {
+@keyframes duty-officer-pulse {
   0% { transform: scale(1); }
   18% { transform: scale(1.14); }
   32% { transform: scale(0.98); }
@@ -868,13 +868,13 @@ body.interface-user-new .time-grid__label {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .operator-mobile__item--new {
+  .duty-officer-mobile__item--new {
     animation: none;
   }
 }
 
 
-.operator-mobile__empty {
+.duty-officer-mobile__empty {
   font-size: 16px;
   color: var(--color-text-muted);
 }
@@ -885,11 +885,11 @@ body.interface-user-new .time-grid__label {
     padding-top: calc(var(--space-4) + 24px);
   }
 
-  .operator-mobile {
+  .duty-officer-mobile {
     gap: var(--space-2);
   }
 
-  .app.app--operator-mobile {
+  .app.app--duty-officer-mobile {
     padding: var(--space-2);
     padding-top: var(--space-1);
   }
@@ -1135,13 +1135,13 @@ body.interface-user-new .time-grid__label {
 }
 
 /* В новом интерфейсе убираем зазор между часами и текстом */
-body.interface-user-new .time-grid__row {
+body.interface-user .time-grid__row {
   grid-template-columns: max-content 1fr;
   gap: var(--space-1);
 }
 
 /* Чуть опускаем контент строки, чтобы совпал с меткой времени */
-body.interface-user-new .time-grid__content {
+body.interface-user .time-grid__content {
   padding-top: 1px;
 }
 
@@ -1303,8 +1303,8 @@ body.interface-user-new .time-grid__content {
   background: var(--color-surface);
 }
 
-body.interface-user-new .input--compact,
-body.interface-user-new .select--compact {
+body.interface-user .input--compact,
+body.interface-user .select--compact {
   font-size: var(--text-size-down);
   padding: 2px 4px;
 }
@@ -1331,7 +1331,7 @@ body.interface-user-new .select--compact {
   line-height: 1.4;
 }
 
-body.interface-user-new .button {
+body.interface-user .button {
   font-size: var(--text-size-base);
   line-height: var(--text-line-height-base);
 }

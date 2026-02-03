@@ -1,20 +1,17 @@
-import { useMemo, useRef, useState, useEffect } from 'react'
-import DayPanel from './components/DayPanel'
-import EntryForm from './components/EntryForm'
-import WeekendBlock from './components/WeekendBlock'
-import SimplePeopleList from './components/SimplePeopleList'
+import { useRef, useState, useEffect } from 'react'
 import LoginForm from './components/LoginForm'
 import UserManagement from './components/UserManagement'
 import RoleManagement from './components/RoleManagement'
 import MaintenancePanel from './components/MaintenancePanel'
 import SettingsPanel from './components/SettingsPanel'
-import OperatorMobileView from './components/OperatorMobileView'
 import { useToast } from './components/ToastProvider'
 import useEntries from './hooks/useEntries'
 import useAuth from './hooks/useAuth'
 import usePermissions from './hooks/usePermissions'
 import { INTERFACE_OPTIONS, getInterfaceBodyClass, resolveInterfaceType } from './constants/interfaces'
-import { formatWeekdayWithDate, toDateKey, formatWeekdayAndDate, localizeWeekday, parseDateFromKey, formatShortDate } from './utils/date'
+import DutyOfficerInterface from './interfaces/DutyOfficerInterface'
+import UserInterface from './interfaces/UserInterface'
+import { toDateKey } from './utils/date'
 
 const App = () => {
   const { user, loading: authLoading, isAuthenticated, login, logout } = useAuth()
@@ -42,7 +39,8 @@ const App = () => {
   const [showMaintenance, setShowMaintenance] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const resolvedInterfaceType = resolveInterfaceType(interfaceType)
-  const isOperatorMobile = resolvedInterfaceType === 'operator'
+  const isDutyOfficer = resolvedInterfaceType === 'duty_officer'
+  const isDutyOfficerMobile = isDutyOfficer
   const dropdownRef = useRef(null)
   const lastErrorRef = useRef(null)
 
@@ -83,6 +81,15 @@ const App = () => {
 
   const isLoading = authLoading || entriesLoading || (isAuthenticated && !isWebSocketReady)
   const error = entriesError
+  const canDelete = canDeleteUi()
+  const canMarkCompleted = canMarkCompletedUi()
+  const canUnmarkCompleted = canUnmarkCompletedUi()
+  const canMarkCancelled = canMarkCancelledUi()
+  const canUnmarkCancelled = canUnmarkCancelledUi()
+  const canMarkPass = canMarkPassUi()
+  const canRevokePass = canRevokePassUi()
+  const canMove = canMoveUi()
+  const canEditEntry = canEditEntryUi()
 
   useEffect(() => {
     if (!error) {
@@ -153,11 +160,11 @@ const App = () => {
   }, [])
 
   useEffect(() => {
-    document.body.classList.toggle('operator-mobile', isOperatorMobile)
+    document.body.classList.toggle('duty-officer-mobile', isDutyOfficerMobile)
     return () => {
-      document.body.classList.remove('operator-mobile')
+      document.body.classList.remove('duty-officer-mobile')
     }
-  }, [isOperatorMobile])
+  }, [isDutyOfficerMobile])
 
   useEffect(() => {
     const classes = INTERFACE_OPTIONS.map((item) => item.bodyClass)
@@ -209,21 +216,95 @@ const App = () => {
   if (isLoading) {
     return (
       <div className="app">
-        <div className={`app__layout ${isOperatorMobile ? 'app__layout--operator-mobile' : ''}`}>
+        <div className={`app__layout ${isDutyOfficerMobile ? 'app__layout--duty-officer-mobile' : ''}`}>
           <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>
         </div>
       </div>
     )
   }
 
+  const dutyOfficerProps = {
+    isMobile: isDutyOfficerMobile,
+    today,
+    todayKey,
+    todayPeople,
+    visitGoals,
+    handleToggleCompleted,
+    canMarkCompleted,
+    canUnmarkCompleted,
+    logout,
+    handleDragStart,
+    handleDrop,
+    handleDoubleClick,
+    handleEmptyRowDoubleClick,
+    handleToggleCancelled,
+    handleOrderPass,
+    handleRevokePass,
+    handleDeleteEntry,
+    canDelete,
+    canMarkCancelled,
+    canUnmarkCancelled,
+    canMarkPass,
+    canRevokePass,
+    canMove,
+  }
+
+  const userInterfaceProps = {
+    previousWorkday,
+    previousWorkdayKey,
+    nextWorkday,
+    nextWorkdayKey,
+    calendarStructure,
+    today,
+    todayKey,
+    todayPeople,
+    previousWorkdayPeople,
+    nextWorkdayPeople,
+    bottomEntries,
+    visitGoals,
+    form,
+    setForm,
+    isFormActive,
+    isSubmitDisabled,
+    nameInputRef,
+    dateInputRef,
+    editingEntry,
+    allResponsibles,
+    canEditEntry,
+    canDelete,
+    canMarkCompleted,
+    canUnmarkCompleted,
+    canMarkCancelled,
+    canUnmarkCancelled,
+    canMarkPass,
+    canRevokePass,
+    canMove,
+    handleDragStart,
+    handleDrop,
+    handleDoubleClick,
+    handleEmptyRowDoubleClick,
+    handleWeekendEmptyRowDoubleClick,
+    handleToggleCompleted,
+    handleToggleCancelled,
+    handleOrderPass,
+    handleRevokePass,
+    handleDeleteEntry,
+    handleSubmit,
+    interfaceType: resolvedInterfaceType,
+    isAdmin: user?.is_admin || false,
+  }
+
+  const InterfaceComponent = isDutyOfficer ? DutyOfficerInterface : UserInterface
+  const interfaceProps = isDutyOfficer ? dutyOfficerProps : userInterfaceProps
+
   return (
     <div
-      className={`app ${interfaceType === 'operator' ? 'app--operator' : ''} ${
-        isOperatorMobile ? 'app--operator-mobile' : ''
+      className={`app ${isDutyOfficer ? 'app--duty-officer' : ''} ${
+        isDutyOfficerMobile ? 'app--duty-officer-mobile' : ''
       }`}
     >
       {/* Панель пользователя в правом верхнем углу */}
-      <div className={`app__header-bar${isOperatorMobile ? ' app__header-bar--hidden' : ''}`}>
+      <div className={`app__header-bar${isDutyOfficerMobile ? ' app__header-bar--hidden' : ''}`}>
         <div className="app__header-title">Гости</div>
         <div className="app__user-panel" ref={dropdownRef}>
           <div
@@ -333,307 +414,8 @@ const App = () => {
           </button>
           <RoleManagement />
         </div>
-      ) : resolvedInterfaceType === 'operator' ? (
-        // Интерфейс оперативного дежурного - только "Сегодня"
-        <div className="app__layout">
-          {isOperatorMobile ? (
-            <OperatorMobileView
-              title="Сегодня"
-              dateLabel={formatWeekdayWithDate(today)}
-              people={todayPeople}
-              visitGoals={visitGoals}
-              dateKey={todayKey}
-              onToggleCompleted={handleToggleCompleted}
-              canMarkCompleted={canMarkCompletedUi()}
-              canUnmarkCompleted={canUnmarkCompletedUi()}
-              onLogout={logout}
-            />
-          ) : (
-            <div className="app__top-row">
-              <DayPanel
-                title="Сегодня"
-                dateLabel={formatWeekdayWithDate(today)}
-                people={todayPeople}
-                visitGoals={visitGoals}
-                showVisitGoals
-                dateKey={todayKey}
-                onDragStart={handleDragStart}
-                onDrop={handleDrop}
-                onDoubleClick={handleDoubleClick}
-                onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-                onToggleCompleted={handleToggleCompleted}
-                onToggleCancelled={handleToggleCancelled}
-                onOrderPass={handleOrderPass}
-                onRevokePass={handleRevokePass}
-                onDeleteEntry={handleDeleteEntry}
-                canDelete={canDeleteUi()}
-                canMarkCompleted={canMarkCompletedUi()}
-                canUnmarkCompleted={canUnmarkCompletedUi()}
-                canMarkCancelled={canMarkCancelledUi()}
-                canUnmarkCancelled={canUnmarkCancelledUi()}
-                canMarkPass={canMarkPassUi()}
-                canRevokePass={canRevokePassUi()}
-                canMove={canMoveUi()}
-              />
-            </div>
-          )}
-        </div>
       ) : (
-        <div className="app__layout">
-          <div className="app__top-row">
-            {previousWorkday && previousWorkdayKey && (
-              <DayPanel
-                title="Предыдущий рабочий день"
-                titleAs="div"
-                titleTextClassName="text text--bold"
-                dateTextClassName="text text--muted"
-                peopleTypographyVariant="base"
-                dateLabel={(() => {
-                  const item = calendarStructure.find(item => item.date === previousWorkdayKey)
-                  return item?.weekday
-                    ? formatWeekdayAndDate(item.weekday, previousWorkdayKey)
-                    : formatWeekdayWithDate(previousWorkday)
-                })()}
-                people={previousWorkdayPeople}
-                visitGoals={visitGoals}
-                showVisitGoals
-                dateKey={previousWorkdayKey}
-                onDragStart={handleDragStart}
-                onDrop={handleDrop}
-                onDoubleClick={handleDoubleClick}
-                onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-                onToggleCompleted={handleToggleCompleted}
-                onToggleCancelled={handleToggleCancelled}
-                onOrderPass={handleOrderPass}
-                onRevokePass={handleRevokePass}
-                onDeleteEntry={handleDeleteEntry}
-                canDelete={canDeleteUi()}
-                canMarkCompleted={canMarkCompletedUi()}
-                canUnmarkCompleted={canUnmarkCompletedUi()}
-                canMarkCancelled={canMarkCancelledUi()}
-                canUnmarkCancelled={canUnmarkCancelledUi()}
-                canMarkPass={canMarkPassUi()}
-                canRevokePass={canRevokePassUi()}
-                canMove={canMoveUi()}
-              />
-            )}
-
-            <DayPanel
-              title="Сегодня"
-              titleAs="div"
-              titleTextClassName="text text--bold"
-              dateTextClassName="text text--muted"
-              peopleTypographyVariant="base"
-              dateLabel={formatWeekdayWithDate(today)}
-              people={todayPeople}
-              visitGoals={visitGoals}
-              showVisitGoals
-              dateKey={todayKey}
-              onDragStart={handleDragStart}
-              onDrop={handleDrop}
-              onDoubleClick={handleDoubleClick}
-              onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-              onToggleCompleted={handleToggleCompleted}
-              onToggleCancelled={handleToggleCancelled}
-              onOrderPass={handleOrderPass}
-              onRevokePass={handleRevokePass}
-              onDeleteEntry={handleDeleteEntry}
-              canDelete={canDeleteUi()}
-              canMarkCompleted={canMarkCompletedUi()}
-              canUnmarkCompleted={canUnmarkCompletedUi()}
-              canMarkCancelled={canMarkCancelledUi()}
-              canUnmarkCancelled={canUnmarkCancelledUi()}
-              canMarkPass={canMarkPassUi()}
-              canRevokePass={canRevokePassUi()}
-              canMove={canMoveUi()}
-            />
-
-            {nextWorkday && nextWorkdayKey && (
-              <DayPanel
-                title="Следующий рабочий день"
-                titleAs="div"
-                titleTextClassName="text text--bold"
-                dateTextClassName="text text--muted"
-                peopleTypographyVariant="base"
-                dateLabel={(() => {
-                  const item = calendarStructure.find(item => item.date === nextWorkdayKey)
-                  return item?.weekday
-                    ? formatWeekdayAndDate(item.weekday, nextWorkdayKey)
-                    : formatWeekdayWithDate(nextWorkday)
-                })()}
-                people={nextWorkdayPeople}
-                visitGoals={visitGoals}
-                showVisitGoals
-                dateKey={nextWorkdayKey}
-                onDragStart={handleDragStart}
-                onDrop={handleDrop}
-                onDoubleClick={handleDoubleClick}
-                onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-                onToggleCompleted={handleToggleCompleted}
-                onToggleCancelled={handleToggleCancelled}
-                onOrderPass={handleOrderPass}
-                onRevokePass={handleRevokePass}
-                onDeleteEntry={handleDeleteEntry}
-                canDelete={canDeleteUi()}
-                canMarkCompleted={canMarkCompletedUi()}
-                canUnmarkCompleted={canUnmarkCompletedUi()}
-                canMarkCancelled={canMarkCancelledUi()}
-                canUnmarkCancelled={canUnmarkCancelledUi()}
-                canMarkPass={canMarkPassUi()}
-                canRevokePass={canRevokePassUi()}
-                canMove={canMoveUi()}
-              />
-            )}
-
-            <section className={`panel${!isFormActive ? ' panel--inactive' : ''}`}>
-              <header className="panel__header text">
-                <div className="text text--bold">
-                  {form.editingEntryId ? 'Редактирование записи' : 'Новая запись'}
-                </div>
-              </header>
-              <EntryForm
-                form={form}
-                setForm={setForm}
-                onSubmit={handleSubmit}
-                isSubmitDisabled={isSubmitDisabled}
-                nameInputRef={nameInputRef}
-                dateInputRef={dateInputRef}
-                today={today}
-                todayKey={todayKey}
-                isEditing={Boolean(form.editingEntryId)}
-                editingEntry={editingEntry}
-                allResponsibles={allResponsibles}
-                canEditEntry={canEditEntryUi()}
-                canMarkPass={canMarkPassUi()}
-                canRevokePass={canRevokePassUi()}
-                canDeleteEntry={canDeleteUi()}
-                visitGoals={visitGoals}
-                labelTextClassName="text text--muted"
-                interfaceType={resolvedInterfaceType}
-                isFormActive={isFormActive}
-                onOrderPass={handleOrderPass}
-                onRevokePass={handleRevokePass}
-                onDeleteEntry={handleDeleteEntry}
-              />
-            </section>
-          </div>
-
-          <div className="app__bottom-row">
-            {(() => {
-              const saturdayItem = calendarStructure.find(item => item.weekday === 'Saturday')
-              const sundayItem = calendarStructure.find(item => item.weekday === 'Sunday')
-              const weekendRendered = saturdayItem && sundayItem
-
-              const bottomRowItems = []
-              calendarStructure.forEach((item, index) => {
-                if (item.weekday === 'Saturday' || item.weekday === 'Sunday') {
-                  if (item.weekday === 'Saturday' && weekendRendered) {
-                    bottomRowItems.push(
-                      <div className="weekend-stack" key={`weekend-stack-${index}`}>
-                        <section className="panel panel--compact">
-                          <header className="panel__header text">
-                            <div className="text">Суббота</div>
-                          </header>
-                          <div className="panel__content text">
-                            <SimplePeopleList
-                              people={bottomEntries[saturdayItem.date] ?? []}
-                              compact
-                              dateKey={saturdayItem.date}
-                              onDragStart={handleDragStart}
-                              onDrop={handleDrop}
-                              onDoubleClick={(entry) => handleDoubleClick?.(entry, saturdayItem.date)}
-                              onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
-                              onToggleCompleted={handleToggleCompleted}
-                              onToggleCancelled={handleToggleCancelled}
-                              onOrderPass={handleOrderPass}
-                              onRevokePass={handleRevokePass}
-                              onDeleteEntry={handleDeleteEntry}
-                              canDelete={canDeleteUi()}
-                              canMarkCompleted={canMarkCompletedUi()}
-                              canUnmarkCompleted={canUnmarkCompletedUi()}
-                              canMarkCancelled={canMarkCancelledUi()}
-                              canUnmarkCancelled={canUnmarkCancelledUi()}
-                              canMarkPass={canMarkPassUi()}
-                              canRevokePass={canRevokePassUi()}
-                              canMove={canMoveUi()}
-                              typographyVariant="base-light"
-                            />
-                          </div>
-                        </section>
-
-                        <section className="panel panel--compact">
-                          <header className="panel__header text">
-                            <div className="text">Воскресенье</div>
-                          </header>
-                          <div className="panel__content text">
-                            <SimplePeopleList
-                              people={bottomEntries[sundayItem.date] ?? []}
-                              compact
-                              dateKey={sundayItem.date}
-                              onDragStart={handleDragStart}
-                              onDrop={handleDrop}
-                              onDoubleClick={(entry) => handleDoubleClick?.(entry, sundayItem.date)}
-                              onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
-                              onToggleCompleted={handleToggleCompleted}
-                              onToggleCancelled={handleToggleCancelled}
-                              onOrderPass={handleOrderPass}
-                              onRevokePass={handleRevokePass}
-                              onDeleteEntry={handleDeleteEntry}
-                              canDelete={canDeleteUi()}
-                              canMarkCompleted={canMarkCompletedUi()}
-                              canUnmarkCompleted={canUnmarkCompletedUi()}
-                              canMarkCancelled={canMarkCancelledUi()}
-                              canUnmarkCancelled={canUnmarkCancelledUi()}
-                              canMarkPass={canMarkPassUi()}
-                              canRevokePass={canRevokePassUi()}
-                              canMove={canMoveUi()}
-                              typographyVariant="base-light"
-                            />
-                          </div>
-                        </section>
-                      </div>
-                    )
-                  }
-                  return
-                }
-
-                bottomRowItems.push(
-                  <DayPanel
-                    key={item.date}
-                    title={localizeWeekday(item.weekday)}
-                    dateLabel={formatShortDate(parseDateFromKey(item.date))}
-                    titleAs="div"
-                    titleTextClassName="text"
-                    dateTextClassName="text text--thin text--muted"
-                    people={bottomEntries[item.date] ?? []}
-                    dateKey={item.date}
-                    compact
-                    onDragStart={handleDragStart}
-                    onDrop={handleDrop}
-                    onDoubleClick={handleDoubleClick}
-                    onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-                    onToggleCompleted={handleToggleCompleted}
-                    onToggleCancelled={handleToggleCancelled}
-                    onOrderPass={handleOrderPass}
-                    onRevokePass={handleRevokePass}
-                    onDeleteEntry={handleDeleteEntry}
-                    canDelete={canDeleteUi()}
-                    canMarkCompleted={canMarkCompletedUi()}
-                    canUnmarkCompleted={canUnmarkCompletedUi()}
-                    canMarkCancelled={canMarkCancelledUi()}
-                    canUnmarkCancelled={canUnmarkCancelledUi()}
-                    canMarkPass={canMarkPassUi()}
-                    canRevokePass={canRevokePassUi()}
-                    canMove={canMoveUi()}
-                    peopleTypographyVariant="base-light"
-                    isAdmin={user?.is_admin || false}
-                  />
-                )
-              })
-              return bottomRowItems
-            })()}
-          </div>
-        </div>
+        <InterfaceComponent {...interfaceProps} />
       )}
     </div>
   )

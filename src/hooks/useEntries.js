@@ -12,7 +12,7 @@ import { API_BASE_URL } from '../config'
 import { useToast } from '../components/ToastProvider'
 import useVisitGoals from './useVisitGoals'
 
-const useEntries = ({ today, nameInputRef, interfaceType = 'user_new', isAuthenticated = false }) => {
+const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticated = false }) => {
   const { pushToast } = useToast()
   const { getActiveGoals } = useVisitGoals()
   const todayKey = toDateKey(today)
@@ -323,7 +323,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user_new', isAuthent
     
     // Для обычного интерфейса ВСЕГДА показываем попапы - никакой фильтрации
     // Это гарантирует что когда оперативный дежурный отмечает гостя, у всех остальных попапы показываются
-    if (interfaceType !== 'operator') {
+    if (interfaceType !== 'duty_officer') {
       return true
     }
     
@@ -600,10 +600,10 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user_new', isAuthent
     isCompleted: false,
     visitGoalIds: [],
   })
-  const [isFormActive, setIsFormActive] = useState(interfaceType !== 'user_new')
+  const [isFormActive, setIsFormActive] = useState(interfaceType !== 'user')
 
   useEffect(() => {
-    setIsFormActive(interfaceType !== 'user_new')
+    setIsFormActive(interfaceType !== 'user')
   }, [interfaceType])
 
   const handleDragStart = (event, entry, sourceDateKey) => {
@@ -837,7 +837,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user_new', isAuthent
     }, 0)
   }
 
-  const isFormActiveEffective = interfaceType === 'user_new' ? isFormActive : true
+  const isFormActiveEffective = interfaceType === 'user' ? isFormActive : true
   const isSubmitDisabled =
     !isFormActiveEffective ||
     form.name.trim().length === 0 ||
@@ -908,7 +908,7 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user_new', isAuthent
         isCompleted: false,
         visitGoalIds: [],
       })
-      if (interfaceType === 'user_new') {
+      if (interfaceType === 'user') {
         setIsFormActive(false)
       }
     } catch (err) {

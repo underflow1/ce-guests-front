@@ -20,7 +20,7 @@ const EntryForm = ({
   canMarkPass = false,
   canRevokePass = false,
   labelTextClassName,
-  interfaceType = 'user_new',
+  interfaceType = 'user',
   isFormActive = true,
   onOrderPass,
   onRevokePass,
@@ -30,13 +30,13 @@ const EntryForm = ({
   const [showAllResponsiblesDropdown, setShowAllResponsiblesDropdown] = useState(false)
   const autocompleteRef = useRef(null)
   const responsibleInputRef = useRef(null)
-  const isUserNew = interfaceType === 'user_new'
+  const isUser = interfaceType === 'user'
   const editingDateKey = form.editingDateKey
   const entry = editingEntry
   const isEditingActive = Boolean(isEditing && entry && editingDateKey)
   const isCancelled = Boolean(entry?.is_cancelled)
   const isCompleted = Boolean(entry?.is_completed)
-  const isFormLocked = isUserNew && !isFormActive
+  const isFormLocked = isUser && !isFormActive
   const isEntryLocked = isEditingActive && (isCancelled || isCompleted)
   const isFieldDisabled = isFormLocked || isEntryLocked || (isEditing && !canEditEntry)
   const passStatus = entry?.pass_status || null
@@ -127,7 +127,7 @@ const EntryForm = ({
       'form',
       'panel__content',
       'text',
-      isUserNew ? 'form--stacked' : '',
+      isUser ? 'form--stacked' : '',
       isFormLocked ? 'form--inactive' : '',
     ].join(' ')}
     onSubmit={onSubmit}
@@ -251,7 +251,7 @@ const EntryForm = ({
       </button>
     </div>
 
-    {!isUserNew && (
+    {!isUser && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Время</span>
       <div className="form__control">
@@ -279,7 +279,7 @@ const EntryForm = ({
     </label>
     )}
 
-    {!isUserNew && (
+    {!isUser && (
     <div className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Куда добавить</span>
       <div className="form__control">
@@ -341,7 +341,7 @@ const EntryForm = ({
     </div>
     )}
 
-    {!isUserNew && (
+    {!isUser && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Дата</span>
       <div
