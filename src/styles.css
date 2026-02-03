@@ -929,6 +929,10 @@ body.interface-user .time-grid__label {
   padding-bottom: 0;
 }
 
+.list__item:hover {
+  background-color: var(--color-surface-hover);
+}
+
 .list__item:active {
   cursor: grabbing;
 }
@@ -1143,10 +1147,6 @@ body.interface-user .time-grid__row {
 /* Чуть опускаем контент строки, чтобы совпал с меткой времени */
 body.interface-user .time-grid__content {
   padding-top: 1px;
-}
-
-.time-grid__row:hover {
-  background-color: var(--color-surface-hover);
 }
 
 .time-grid__row--dragover {

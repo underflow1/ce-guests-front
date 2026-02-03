@@ -214,6 +214,7 @@ const UserInterface = ({
                         people={bottomEntries[saturdayItem.date] ?? []}
                         compact
                         dateKey={saturdayItem.date}
+                        itemVariant="simple"
                         onDragStart={handleDragStart}
                         onDrop={handleDrop}
                         onDoubleClick={(entry) => handleDoubleClick?.(entry, saturdayItem.date)}
@@ -245,6 +246,7 @@ const UserInterface = ({
                         people={bottomEntries[sundayItem.date] ?? []}
                         compact
                         dateKey={sundayItem.date}
+                        itemVariant="simple"
                         onDragStart={handleDragStart}
                         onDrop={handleDrop}
                         onDoubleClick={(entry) => handleDoubleClick?.(entry, sundayItem.date)}
@@ -280,6 +282,7 @@ const UserInterface = ({
               titleAs="div"
               titleTextClassName="text"
               dateTextClassName="text text--thin text--muted"
+              peopleVariant="simple"
               people={bottomEntries[item.date] ?? []}
               dateKey={item.date}
               compact

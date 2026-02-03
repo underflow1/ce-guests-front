@@ -22,6 +22,7 @@ const SimplePeopleList = ({
   canRevokePass = false,
   canMove = false,
   typographyVariant,
+  itemVariant = 'full',
 }) => {
   const [isDragOver, setIsDragOver] = useState(false)
 
@@ -31,6 +32,7 @@ const SimplePeopleList = ({
   const isBaseLight = typographyVariant === 'base-light'
   const nameClass = isBase ? 'list__name text' : isBaseLight ? 'list__name text text--thin' : 'list__name text'
   const responsibleClass = isBase ? 'list__responsible text text--subtle' : isBaseLight ? 'list__responsible text text--thin text--subtle' : 'list__responsible text text--italic text--subtle'
+  const isSimpleVariant = itemVariant === 'simple'
 
   const renderPassBadge = (person) => {
     const status = getPassStatus(person)
@@ -173,22 +175,28 @@ const SimplePeopleList = ({
                 onDoubleClick?.(person, dateKey)
               }}
             >
-              <span className={nameClass}>
-                <span className="list__badges">
-                  {renderPassBadge(person)}
-                  {renderCancelBadge(person)}
-                  {renderAcceptedBadge(person)}
-                </span>
-                <span className="list__content">
+              {isSimpleVariant ? (
+                <span className={nameClass}>
                   <span className="list__text">{person.name}</span>
-                  {person.responsible && (
-                    <span className={`list__responsible ${responsibleClass}`}>
-                      {' '}
-                      / {person.responsible}
-                    </span>
-                  )}
                 </span>
-              </span>
+              ) : (
+                <span className={nameClass}>
+                  <span className="list__badges">
+                    {renderPassBadge(person)}
+                    {renderCancelBadge(person)}
+                    {renderAcceptedBadge(person)}
+                  </span>
+                  <span className="list__content">
+                    <span className="list__text">{person.name}</span>
+                    {person.responsible && (
+                      <span className={`list__responsible ${responsibleClass}`}>
+                        {' '}
+                        / {person.responsible}
+                      </span>
+                    )}
+                  </span>
+                </span>
+              )}
             </li>
           ))}
         </ul>

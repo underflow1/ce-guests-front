@@ -21,6 +21,7 @@ const PeopleList = ({
   compact = false,
   dateKey,
   typographyVariant,
+  itemVariant = 'full',
   onDragStart,
   onDrop,
   onDoubleClick,
@@ -60,6 +61,7 @@ const PeopleList = ({
 
   const isBaseTypography = typographyVariant === 'base'
   const isBaseLightTypography = typographyVariant === 'base-light'
+  const isSimpleVariant = itemVariant === 'simple'
   const timeLabelClassName = isBaseTypography
     ? 'text text--muted'
     : isBaseLightTypography
@@ -268,9 +270,7 @@ const PeopleList = ({
           <div className="time-grid__content">
             {grouped[hour]?.length ? (
               <ul className={`list ${compact ? 'list--compact' : ''}`}>
-                {grouped[hour].map((person) => {
-                  const goals = showVisitGoals ? getVisitGoalNames(person) : []
-                  return (
+                {grouped[hour].map((person) => (
                     <li
                       key={person.id}
                       className={`list__item ${person.is_completed ? 'list__item--completed' : ''} ${
@@ -289,15 +289,48 @@ const PeopleList = ({
                         onDoubleClick?.(person, dateKey)
                       }}
                     >
-                      <span className={`${nameClassName}${showVisitGoals ? ' list__name--stacked' : ''}`}>
-                        <span className="list__badges">
-                          {renderPassBadge(person)}
-                          {renderStatusBadge(person)}
+                      {isSimpleVariant ? (
+                        <span className={nameClassName}>
+                          <span className="list__text">{person.name}</span>
                         </span>
-                        <span className={`list__content${showVisitGoals ? ' list__content--stacked' : ''}`}>
-                          {showVisitGoals ? (
-                            <>
-                              <span className="list__primary">
+                      ) : (
+                        (() => {
+                          const goals = showVisitGoals ? getVisitGoalNames(person) : []
+                          return (
+                        <span className={`${nameClassName}${showVisitGoals ? ' list__name--stacked' : ''}`}>
+                          <span className="list__badges">
+                            {renderPassBadge(person)}
+                            {renderStatusBadge(person)}
+                          </span>
+                          <span className={`list__content${showVisitGoals ? ' list__content--stacked' : ''}`}>
+                            {showVisitGoals ? (
+                              <>
+                                <span className="list__primary">
+                                  <span className="list__text">{person.name}</span>
+                                  {!compact && person.responsible && (
+                                    <span className={`list__responsible ${responsibleClassName}`}>
+                                      {' '}
+                                      / {person.responsible}
+                                    </span>
+                                  )}
+                                </span>
+                                <span
+                                  className={[
+                                    'list__goals',
+                                    'text',
+                                    'text--down',
+                                    'text--thin',
+                                    'text--italic',
+                                    goals.length ? '' : 'text--subtle',
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' ')}
+                                >
+                                  {goals.length ? goals.join(', ') : 'Цель визита не установлена'}
+                                </span>
+                              </>
+                            ) : (
+                              <>
                                 <span className="list__text">{person.name}</span>
                                 {!compact && person.responsible && (
                                   <span className={`list__responsible ${responsibleClassName}`}>
@@ -305,38 +338,15 @@ const PeopleList = ({
                                     / {person.responsible}
                                   </span>
                                 )}
-                              </span>
-                              <span
-                                className={[
-                                  'list__goals',
-                                  'text',
-                                  'text--down',
-                                  'text--thin',
-                                  'text--italic',
-                                  goals.length ? '' : 'text--subtle',
-                                ]
-                                  .filter(Boolean)
-                                  .join(' ')}
-                              >
-                                {goals.length ? goals.join(', ') : 'Цель визита не установлена'}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="list__text">{person.name}</span>
-                              {!compact && person.responsible && (
-                                <span className={`list__responsible ${responsibleClassName}`}>
-                                  {' '}
-                                  / {person.responsible}
-                                </span>
-                              )}
-                            </>
-                          )}
+                              </>
+                            )}
+                          </span>
                         </span>
-                      </span>
+                          )
+                        })()
+                      )}
                     </li>
-                  )
-                })}
+                ))}
               </ul>
             ) : (
               <div className="time-grid__empty-row" />
