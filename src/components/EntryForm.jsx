@@ -258,7 +258,7 @@ const EntryForm = ({
                 <button
                   key={goal.id}
                   type="button"
-                  className={`visit-goal-chip${isSelected ? ' visit-goal-chip--selected' : ''}`}
+                  className={`visit-goal-chip text text--thin text--down${isSelected ? ' visit-goal-chip--selected' : ''}`}
                   onClick={() => toggleVisitGoal(goal.id)}
                   disabled={isFieldDisabled}
                   aria-pressed={isSelected}
@@ -291,7 +291,7 @@ const EntryForm = ({
                 <button
                   key={result.id}
                   type="button"
-                  className={`visit-goal-chip${isSelected ? ' visit-goal-chip--selected' : ''}`}
+                  className={`visit-goal-chip text text--thin text--down${isSelected ? ' visit-goal-chip--selected' : ''}`}
                   onClick={() => handleMeetingResultSelect(result.id)}
                   disabled={isMeetingResultDisabled}
                   aria-pressed={isSelected}
@@ -324,7 +324,7 @@ const EntryForm = ({
                 <button
                   key={reason.id}
                   type="button"
-                  className={`visit-goal-chip${isSelected ? ' visit-goal-chip--selected' : ''}`}
+                  className={`visit-goal-chip text text--thin text--down${isSelected ? ' visit-goal-chip--selected' : ''}`}
                   onClick={() => handleMeetingReasonSelect(reason.id)}
                   disabled={isMeetingResultDisabled}
                   aria-pressed={isSelected}
