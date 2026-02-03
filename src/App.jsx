@@ -25,6 +25,7 @@ const App = () => {
     canRevokePassUi,
     canMoveUi,
     canEditEntryUi,
+    canSetMeetingResultUi,
     interfaceType,
     isAdmin,
   } = usePermissions(user)
@@ -57,6 +58,9 @@ const App = () => {
     bottomEntries,
     allResponsibles,
     visitGoals,
+    meetingResults,
+    meetingResultReasons,
+    meetingResultReasonsLoading,
     form,
     setForm,
     isFormActive,
@@ -76,7 +80,13 @@ const App = () => {
     handleRevokePass,
     handleDeleteEntry,
     getEntryById,
-  } = useEntries({ today, nameInputRef, interfaceType: resolvedInterfaceType, isAuthenticated })
+  } = useEntries({
+    today,
+    nameInputRef,
+    interfaceType: resolvedInterfaceType,
+    isAuthenticated,
+    canSetMeetingResult: canSetMeetingResultUi(),
+  })
   const editingEntry = form.editingEntryId ? getEntryById(form.editingEntryId) : null
 
   const isLoading = authLoading || entriesLoading || (isAuthenticated && !isWebSocketReady)
@@ -90,6 +100,7 @@ const App = () => {
   const canRevokePass = canRevokePassUi()
   const canMove = canMoveUi()
   const canEditEntry = canEditEntryUi()
+  const canSetMeetingResult = canSetMeetingResultUi()
 
   useEffect(() => {
     if (!error) {
@@ -205,8 +216,8 @@ const App = () => {
     return <LoginForm onLogin={login} />
   }
 
-  // Если ошибка авторизации (401/403) и пользователь был авторизован, показываем форму логина
-  if (isAuthenticated && entriesError && (entriesError.includes('403') || entriesError.includes('401') || entriesError.includes('деактивирован'))) {
+  // Если ошибка авторизации (401) или деактивации, показываем форму логина
+  if (isAuthenticated && entriesError && (entriesError.includes('401') || entriesError.includes('деактивирован'))) {
     logout()
     return <LoginForm onLogin={login} />
   }
@@ -262,6 +273,9 @@ const App = () => {
     nextWorkdayPeople,
     bottomEntries,
     visitGoals,
+    meetingResults,
+    meetingResultReasons,
+    meetingResultReasonsLoading,
     form,
     setForm,
     isFormActive,
@@ -279,6 +293,7 @@ const App = () => {
     canMarkPass,
     canRevokePass,
     canMove,
+    canSetMeetingResult,
     handleDragStart,
     handleDrop,
     handleDoubleClick,

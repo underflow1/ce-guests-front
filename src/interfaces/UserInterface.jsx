@@ -23,6 +23,9 @@ const UserInterface = ({
   nextWorkdayPeople,
   bottomEntries,
   visitGoals,
+  meetingResults,
+  meetingResultReasons,
+  meetingResultReasonsLoading,
   form,
   setForm,
   isFormActive,
@@ -40,6 +43,7 @@ const UserInterface = ({
   canMarkPass,
   canRevokePass,
   canMove,
+  canSetMeetingResult,
   handleDragStart,
   handleDrop,
   handleDoubleClick,
@@ -183,6 +187,10 @@ const UserInterface = ({
           canRevokePass={canRevokePass}
           canDeleteEntry={canDelete}
           visitGoals={visitGoals}
+          meetingResults={meetingResults}
+          meetingResultReasons={meetingResultReasons}
+          meetingResultReasonsLoading={meetingResultReasonsLoading}
+          canSetMeetingResult={canSetMeetingResult}
           labelTextClassName="text text--muted"
           interfaceType={interfaceType}
           isFormActive={isFormActive}

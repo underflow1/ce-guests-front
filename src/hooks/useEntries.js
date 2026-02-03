@@ -11,10 +11,18 @@ import { apiGet, apiPost, apiPut, apiPatch, apiDelete, getAccessToken } from '..
 import { API_BASE_URL } from '../config'
 import { useToast } from '../components/ToastProvider'
 import useVisitGoals from './useVisitGoals'
+import useMeetingResults from './useMeetingResults'
 
-const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticated = false }) => {
+const useEntries = ({
+  today,
+  nameInputRef,
+  interfaceType = 'user',
+  isAuthenticated = false,
+  canSetMeetingResult = false,
+}) => {
   const { pushToast } = useToast()
   const { getActiveGoals } = useVisitGoals()
+  const { getActiveResults, getActiveReasons } = useMeetingResults()
   const todayKey = toDateKey(today)
 
   const [previousWorkday, setPreviousWorkday] = useState(null)
@@ -26,6 +34,9 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   const [bottomEntries, setBottomEntries] = useState({})
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [visitGoals, setVisitGoals] = useState([])
+  const [meetingResults, setMeetingResults] = useState([])
+  const [meetingResultReasons, setMeetingResultReasons] = useState([])
+  const [meetingResultReasonsLoading, setMeetingResultReasonsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isWebSocketReady, setIsWebSocketReady] = useState(false)
@@ -149,6 +160,18 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     }
   }, [isAuthenticated, getActiveGoals])
 
+  const loadMeetingResults = useCallback(async () => {
+    if (!isAuthenticated) {
+      return
+    }
+    try {
+      const results = await getActiveResults()
+      setMeetingResults(results)
+    } catch (err) {
+      setError(err.message)
+    }
+  }, [isAuthenticated, getActiveResults])
+
   const formatEntryDateLabel = useCallback((entry) => {
     const dateKey = entry?.datetime ? extractDateFromDateTime(entry.datetime) : ''
     if (!dateKey) return ''
@@ -194,6 +217,14 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     return details ? `${base}; ${details}` : base
   }, [formatEntryLine])
 
+  const buildMeetingResultDetails = useCallback((entry) => {
+    if (!entry) return ''
+    const resultName = entry.meeting_result_name || ''
+    const reasonName = entry.meeting_result_reason_name || ''
+    if (!resultName) return ''
+    return reasonName ? `${resultName} / ${reasonName}` : resultName
+  }, [])
+
   const buildUpdateDetails = useCallback((prevEntry, nextEntry) => {
     if (!prevEntry || !nextEntry) return ''
     const details = []
@@ -235,6 +266,10 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   useEffect(() => {
     loadVisitGoals()
   }, [loadVisitGoals])
+
+  useEffect(() => {
+    loadMeetingResults()
+  }, [loadMeetingResults])
 
 
   // Функция для обновления локального состояния из данных WebSocket
@@ -420,6 +455,18 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
               message: buildToastMessage('Обновлена запись', entry),
             })
           }
+        } else if (payload?.type === 'meeting_result_set') {
+          const entry = payload.change?.entry
+          if (!entry) return
+          
+          if (shouldShowToast(entry)) {
+            const details = buildMeetingResultDetails(entry)
+            pushToast({
+              type: 'info',
+              title: '',
+              message: buildToastMessage('Результат встречи установлен', entry, details),
+            })
+          }
         } else if (payload?.type === 'entry_completed') {
           const entry = payload.change?.entry
           if (!entry) return
@@ -599,12 +646,50 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     editingDateKey: null,
     isCompleted: false,
     visitGoalIds: [],
+    meetingResultId: null,
+    meetingResultReasonId: null,
   })
   const [isFormActive, setIsFormActive] = useState(interfaceType !== 'user')
 
   useEffect(() => {
     setIsFormActive(interfaceType !== 'user')
   }, [interfaceType])
+
+  useEffect(() => {
+    let isMounted = true
+    const resultId = form.meetingResultId
+    if (!isAuthenticated || !resultId) {
+      setMeetingResultReasons([])
+      setMeetingResultReasonsLoading(false)
+      return () => {
+        isMounted = false
+      }
+    }
+
+    const loadReasons = async () => {
+      try {
+        setMeetingResultReasonsLoading(true)
+        const reasons = await getActiveReasons(resultId)
+        if (isMounted) {
+          setMeetingResultReasons(reasons)
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message)
+        }
+      } finally {
+        if (isMounted) {
+          setMeetingResultReasonsLoading(false)
+        }
+      }
+    }
+
+    loadReasons()
+
+    return () => {
+      isMounted = false
+    }
+  }, [form.meetingResultId, isAuthenticated, getActiveReasons])
 
   const handleDragStart = (event, entry, sourceDateKey) => {
     // Не позволяем перетаскивать принятых гостей
@@ -787,6 +872,8 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       editingDateKey: dateKey,
       isCompleted: entry.is_completed || false,
       visitGoalIds: entry.visit_goal_ids || [],
+      meetingResultId: entry.meeting_result_id || null,
+      meetingResultReasonId: entry.meeting_result_reason_id || null,
     })
 
     setTimeout(() => {
@@ -809,6 +896,8 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       editingDateKey: null,
       isCompleted: false,
       visitGoalIds: [],
+      meetingResultId: null,
+      meetingResultReasonId: null,
     })
 
     setTimeout(() => {
@@ -830,6 +919,8 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
       editingDateKey: null,
       isCompleted: false,
       visitGoalIds: [],
+      meetingResultId: null,
+      meetingResultReasonId: null,
     })
 
     setTimeout(() => {
@@ -838,12 +929,25 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
   }
 
   const isFormActiveEffective = interfaceType === 'user' ? isFormActive : true
+  const meetingResultRequiresReason = Boolean(form.meetingResultId && meetingResultReasons.length > 0)
+  const isMeetingResultBlocked = form.isCompleted && !canSetMeetingResult
+  const isMeetingResultMissing = form.isCompleted && canSetMeetingResult && !form.meetingResultId
+  const isMeetingReasonMissing =
+    form.isCompleted &&
+    canSetMeetingResult &&
+    meetingResultRequiresReason &&
+    !form.meetingResultReasonId
+  const isMeetingResultLoading = form.isCompleted && canSetMeetingResult && meetingResultReasonsLoading
   const isSubmitDisabled =
     !isFormActiveEffective ||
     form.name.trim().length === 0 ||
     form.time.trim().length === 0 ||
     (form.target === 'other' && form.otherDate.trim().length === 0) ||
-    form.visitGoalIds.length === 0
+    form.visitGoalIds.length === 0 ||
+    isMeetingResultBlocked ||
+    isMeetingResultMissing ||
+    isMeetingReasonMissing ||
+    isMeetingResultLoading
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -857,6 +961,8 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     try {
       const targetDate = parseDateFromKey(targetDateKey)
       const datetime = formatDateTime(targetDate, form.time.trim())
+      const meetingResultId = form.isCompleted ? form.meetingResultId || null : null
+      const meetingResultReasonId = form.isCompleted ? form.meetingResultReasonId || null : null
 
       if (isEditing) {
         // Обновление существующей записи
@@ -866,6 +972,8 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
           datetime,
           is_completed: form.isCompleted || false,
           visit_goal_ids: form.visitGoalIds,
+          meeting_result_id: meetingResultId,
+          meeting_result_reason_id: meetingResultReasonId,
         })
 
         const sourceDateKey = form.editingDateKey
@@ -888,8 +996,10 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
           name: form.name.trim(),
           responsible: form.responsible.trim(),
           datetime,
-          is_completed: false,
+          is_completed: form.isCompleted || false,
           visit_goal_ids: form.visitGoalIds,
+          meeting_result_id: meetingResultId,
+          meeting_result_reason_id: meetingResultReasonId,
         })
 
         const targetList = getListForDateKey(targetDateKey)
@@ -907,6 +1017,8 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
         editingDateKey: null,
         isCompleted: false,
         visitGoalIds: [],
+        meetingResultId: null,
+        meetingResultReasonId: null,
       })
       if (interfaceType === 'user') {
         setIsFormActive(false)
@@ -935,6 +1047,9 @@ const useEntries = ({ today, nameInputRef, interfaceType = 'user', isAuthenticat
     bottomEntries,
     allResponsibles,
     visitGoals,
+    meetingResults,
+    meetingResultReasons,
+    meetingResultReasonsLoading,
     form,
     setForm,
     isFormActive: isFormActiveEffective,

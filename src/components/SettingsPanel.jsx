@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import useSettings from '../hooks/useSettings'
 import useVisitGoals from '../hooks/useVisitGoals'
+import useMeetingResults from '../hooks/useMeetingResults'
 import { useToast } from './ToastProvider'
 
 const SettingsPanel = ({ onBack }) => {
@@ -12,11 +13,28 @@ const SettingsPanel = ({ onBack }) => {
     loading: goalsLoading,
     error: goalsError,
   } = useVisitGoals()
+  const {
+    getAllResults,
+    createResult,
+    updateResult,
+    getAllReasons,
+    createReason,
+    updateReason,
+    loading: meetingResultsLoading,
+    error: meetingResultsError,
+  } = useMeetingResults()
   const { pushToast } = useToast()
   const [error, setError] = useState(null)
   const lastErrorRef = useRef(null)
   const [visitGoals, setVisitGoals] = useState([])
   const [newGoalName, setNewGoalName] = useState('')
+  const [meetingResults, setMeetingResults] = useState([])
+  const [meetingResultReasons, setMeetingResultReasons] = useState([])
+  const [selectedMeetingResultId, setSelectedMeetingResultId] = useState(null)
+  const [newMeetingResultName, setNewMeetingResultName] = useState('')
+  const [newMeetingReasonName, setNewMeetingReasonName] = useState('')
+  const [meetingResultEdits, setMeetingResultEdits] = useState({})
+  const [meetingReasonEdits, setMeetingReasonEdits] = useState({})
 
   // Типы уведомлений (fallback, если metadata отсутствует)
   const fallbackNotificationTypes = [
@@ -24,6 +42,7 @@ const SettingsPanel = ({ onBack }) => {
     { code: 'entry_updated', title: 'Обновление записи' },
     { code: 'entry_completed', title: 'Гость отмечен как пришедший' },
     { code: 'entry_uncompleted', title: 'Гость отмечен как не пришедший' },
+    { code: 'meeting_result_set', title: 'Результат встречи установлен' },
     { code: 'visit_cancelled', title: 'Визит отменен' },
     { code: 'visit_uncancelled', title: 'Отмена визита снята' },
     { code: 'entry_moved', title: 'Перенос записи' },
@@ -128,8 +147,44 @@ const SettingsPanel = ({ onBack }) => {
     loadGoals()
   }, [])
 
+  useEffect(() => {
+    const loadMeetingResults = async () => {
+      try {
+        const results = await getAllResults()
+        setMeetingResults(results)
+        if (results.length > 0) {
+          setSelectedMeetingResultId((prev) => prev || results[0].id)
+        }
+      } catch (err) {
+        console.log('Не удалось загрузить результаты встреч', err)
+      }
+    }
+    loadMeetingResults()
+  }, [])
+
+  useEffect(() => {
+    const loadMeetingReasons = async () => {
+      if (!selectedMeetingResultId) {
+        setMeetingResultReasons([])
+        return
+      }
+      try {
+        const reasons = await getAllReasons(selectedMeetingResultId)
+        setMeetingResultReasons(reasons)
+      } catch (err) {
+        console.log('Не удалось загрузить причины результата', err)
+      }
+    }
+    loadMeetingReasons()
+  }, [selectedMeetingResultId])
+
+  useEffect(() => {
+    setMeetingReasonEdits({})
+    setNewMeetingReasonName('')
+  }, [selectedMeetingResultId])
+
   // Обработка ошибок
-  const displayError = error || apiError || goalsError
+  const displayError = error || apiError || goalsError || meetingResultsError
   useEffect(() => {
     if (!displayError) {
       lastErrorRef.current = null
@@ -232,6 +287,144 @@ const SettingsPanel = ({ onBack }) => {
       })
     } catch (err) {
       setError(err.message || 'Ошибка при обновлении цели визита')
+    }
+  }
+
+  const handleCreateMeetingResult = async () => {
+    const name = newMeetingResultName.trim()
+    if (!name) {
+      setError('Введите название результата встречи')
+      return
+    }
+
+    try {
+      setError(null)
+      const created = await createResult(name)
+      const updatedResults = await getAllResults()
+      setMeetingResults(updatedResults)
+      setSelectedMeetingResultId(created?.id || null)
+      setNewMeetingResultName('')
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: 'Результат встречи добавлен',
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при добавлении результата встречи')
+    }
+  }
+
+  const handleToggleMeetingResult = async (resultId, nextActive) => {
+    try {
+      setError(null)
+      await updateResult(resultId, { is_active: nextActive })
+      const updatedResults = await getAllResults()
+      setMeetingResults(updatedResults)
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: nextActive ? 'Результат встречи восстановлен' : 'Результат встречи скрыт',
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при обновлении результата встречи')
+    }
+  }
+
+  const handleUpdateMeetingResultName = async (resultId) => {
+    const original = meetingResults.find((item) => item.id === resultId)
+    const nextName = (meetingResultEdits[resultId] ?? original?.name ?? '').trim()
+    if (!nextName) {
+      setError('Название результата встречи не может быть пустым')
+      return
+    }
+    if (nextName === original?.name) return
+
+    try {
+      setError(null)
+      await updateResult(resultId, { name: nextName })
+      const updatedResults = await getAllResults()
+      setMeetingResults(updatedResults)
+      setMeetingResultEdits((prev) => {
+        const next = { ...prev }
+        delete next[resultId]
+        return next
+      })
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: 'Результат встречи обновлен',
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при обновлении результата встречи')
+    }
+  }
+
+  const handleCreateMeetingReason = async () => {
+    if (!selectedMeetingResultId) return
+    const name = newMeetingReasonName.trim()
+    if (!name) {
+      setError('Введите название причины результата')
+      return
+    }
+
+    try {
+      setError(null)
+      await createReason(selectedMeetingResultId, name)
+      const updatedReasons = await getAllReasons(selectedMeetingResultId)
+      setMeetingResultReasons(updatedReasons)
+      setNewMeetingReasonName('')
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: 'Причина результата добавлена',
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при добавлении причины результата')
+    }
+  }
+
+  const handleToggleMeetingReason = async (reasonId, nextActive) => {
+    try {
+      setError(null)
+      await updateReason(reasonId, { is_active: nextActive })
+      const updatedReasons = await getAllReasons(selectedMeetingResultId)
+      setMeetingResultReasons(updatedReasons)
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: nextActive ? 'Причина результата восстановлена' : 'Причина результата скрыта',
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при обновлении причины результата')
+    }
+  }
+
+  const handleUpdateMeetingReasonName = async (reasonId) => {
+    const original = meetingResultReasons.find((item) => item.id === reasonId)
+    const nextName = (meetingReasonEdits[reasonId] ?? original?.name ?? '').trim()
+    if (!nextName) {
+      setError('Название причины не может быть пустым')
+      return
+    }
+    if (nextName === original?.name) return
+
+    try {
+      setError(null)
+      await updateReason(reasonId, { name: nextName })
+      const updatedReasons = await getAllReasons(selectedMeetingResultId)
+      setMeetingResultReasons(updatedReasons)
+      setMeetingReasonEdits((prev) => {
+        const next = { ...prev }
+        delete next[reasonId]
+        return next
+      })
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: 'Причина результата обновлена',
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при обновлении причины результата')
     }
   }
 
@@ -649,6 +842,210 @@ const SettingsPanel = ({ onBack }) => {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+
+          {/* Секция результатов встреч */}
+          <div style={{ marginTop: 'var(--space-6)' }}>
+            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
+              Результаты встреч
+            </h3>
+
+            <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 280px', minWidth: 260 }}>
+                <div
+                  style={{
+                    padding: 'var(--space-4)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'var(--color-surface-muted)',
+                    display: 'flex',
+                    gap: 'var(--space-2)',
+                    marginBottom: 'var(--space-4)',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <input
+                    type="text"
+                    className="input text text--down"
+                    value={newMeetingResultName}
+                    onChange={(e) => setNewMeetingResultName(e.target.value)}
+                    placeholder="Новый результат"
+                    style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
+                  />
+                  <button
+                    className="button button--primary button--small"
+                    onClick={handleCreateMeetingResult}
+                    disabled={meetingResultsLoading}
+                  >
+                    Добавить
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  {meetingResults.length === 0 ? (
+                    <div className="text text--muted">Результатов пока нет</div>
+                  ) : (
+                    meetingResults.map((result) => {
+                      const editValue = meetingResultEdits[result.id] ?? result.name
+                      const isSelected = selectedMeetingResultId === result.id
+                      const isNameChanged = editValue.trim() && editValue.trim() !== result.name
+                      return (
+                        <div
+                          key={result.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 'var(--space-3)',
+                            padding: 'var(--space-2) var(--space-3)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: 'var(--radius-sm)',
+                            backgroundColor: isSelected ? 'var(--color-surface-muted)' : 'var(--color-surface)',
+                          }}
+                        >
+                          <div style={{ flex: '1 1 auto' }}>
+                            <input
+                              type="text"
+                              className="input text text--down"
+                              value={editValue}
+                              onChange={(e) =>
+                                setMeetingResultEdits((prev) => ({
+                                  ...prev,
+                                  [result.id]: e.target.value,
+                                }))
+                              }
+                              style={{ width: '100%', padding: '4px 6px' }}
+                            />
+                            <div className="text text--down text--muted" style={{ marginTop: '4px' }}>
+                              {result.is_active ? 'Активен' : 'Неактивен'}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                            <button
+                              className="button button--small"
+                              onClick={() => setSelectedMeetingResultId(result.id)}
+                            >
+                              {isSelected ? 'Выбран' : 'Выбрать'}
+                            </button>
+                            <button
+                              className="button button--small"
+                              onClick={() => handleUpdateMeetingResultName(result.id)}
+                              disabled={!isNameChanged}
+                            >
+                              Сохранить
+                            </button>
+                            <button
+                              className={`button button--small${result.is_active ? '' : ' button--primary'}`}
+                              onClick={() => handleToggleMeetingResult(result.id, !result.is_active)}
+                              disabled={meetingResultsLoading}
+                            >
+                              {result.is_active ? 'Скрыть' : 'Восстановить'}
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div style={{ flex: '1 1 320px', minWidth: 280 }}>
+                {!selectedMeetingResultId ? (
+                  <div className="text text--muted">Выберите результат, чтобы редактировать причины</div>
+                ) : (
+                  <>
+                    <div
+                      style={{
+                        padding: 'var(--space-4)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-sm)',
+                        backgroundColor: 'var(--color-surface-muted)',
+                        display: 'flex',
+                        gap: 'var(--space-2)',
+                        marginBottom: 'var(--space-4)',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <input
+                        type="text"
+                        className="input text text--down"
+                        value={newMeetingReasonName}
+                        onChange={(e) => setNewMeetingReasonName(e.target.value)}
+                        placeholder="Новая причина"
+                        style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
+                      />
+                      <button
+                        className="button button--primary button--small"
+                        onClick={handleCreateMeetingReason}
+                        disabled={meetingResultsLoading}
+                      >
+                        Добавить
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                      {meetingResultReasons.length === 0 ? (
+                        <div className="text text--muted">Причин пока нет</div>
+                      ) : (
+                        meetingResultReasons.map((reason) => {
+                          const editValue = meetingReasonEdits[reason.id] ?? reason.name
+                          const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
+                          return (
+                            <div
+                              key={reason.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 'var(--space-3)',
+                                padding: 'var(--space-2) var(--space-3)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-sm)',
+                                backgroundColor: 'var(--color-surface)',
+                              }}
+                            >
+                              <div style={{ flex: '1 1 auto' }}>
+                                <input
+                                  type="text"
+                                  className="input text text--down"
+                                  value={editValue}
+                                  onChange={(e) =>
+                                    setMeetingReasonEdits((prev) => ({
+                                      ...prev,
+                                      [reason.id]: e.target.value,
+                                    }))
+                                  }
+                                  style={{ width: '100%', padding: '4px 6px' }}
+                                />
+                                <div className="text text--down text--muted" style={{ marginTop: '4px' }}>
+                                  {reason.is_active ? 'Активна' : 'Неактивна'}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                                <button
+                                  className="button button--small"
+                                  onClick={() => handleUpdateMeetingReasonName(reason.id)}
+                                  disabled={!isNameChanged}
+                                >
+                                  Сохранить
+                                </button>
+                                <button
+                                  className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
+                                  onClick={() => handleToggleMeetingReason(reason.id, !reason.is_active)}
+                                  disabled={meetingResultsLoading}
+                                >
+                                  {reason.is_active ? 'Скрыть' : 'Восстановить'}
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
