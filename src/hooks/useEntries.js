@@ -905,6 +905,19 @@ const useEntries = ({
   }
 
   const handleExitEdit = () => {
+    setForm({
+      name: '',
+      responsible: '',
+      time: '09:00',
+      target: 'today',
+      otherDate: '',
+      editingEntryId: null,
+      editingDateKey: null,
+      isCompleted: false,
+      visitGoalIds: [],
+      meetingResultId: null,
+      meetingResultReasonId: null,
+    })
     if (interfaceType === 'user') {
       setIsFormActive(false)
     }
