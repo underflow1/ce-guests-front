@@ -134,10 +134,10 @@ const OperatorMobileView = ({
   }
 
   return (
-    <section className="operator-mobile panel">
-      <header className="panel__header operator-mobile__header">
+    <section className="duty-officer-mobile panel">
+      <header className="panel__header duty-officer-mobile__header">
         <h2
-          className="panel__title operator-mobile__title"
+          className="panel__title duty-officer-mobile__title"
           onTouchStart={handleReloadStart}
           onTouchEnd={handleReloadCancel}
           onTouchMove={handleReloadCancel}
@@ -149,7 +149,7 @@ const OperatorMobileView = ({
         </h2>
         {dateLabel && (
           <div
-            className="panel__date operator-mobile__date"
+            className="panel__date duty-officer-mobile__date"
             onTouchStart={handleLogoutStart}
             onTouchEnd={handleLogoutCancel}
             onTouchMove={handleLogoutCancel}
@@ -161,9 +161,9 @@ const OperatorMobileView = ({
           </div>
         )}
       </header>
-      <div className="operator-mobile__content">
+      <div className="duty-officer-mobile__content">
         {sortedPeople.length ? (
-          <ul className="list operator-mobile__list">
+          <ul className="list duty-officer-mobile__list">
             {sortedPeople.map((person) => {
               const isNew = newEntryIds.has(person.id)
               const goals = getVisitGoalNames(person)
@@ -171,21 +171,21 @@ const OperatorMobileView = ({
               return (
                 <li
                   key={person.id}
-                  className={`list__item operator-mobile__item ${
+                  className={`list__item duty-officer-mobile__item ${
                     person.is_completed ? 'list__item--completed' : ''
                   } ${person.is_cancelled ? 'list__item--cancelled' : ''} ${
-                    isNew ? 'operator-mobile__item--new' : ''
+                    isNew ? 'duty-officer-mobile__item--new' : ''
                   }`}
                   onPointerUp={() => handleRowTap(person)}
                 >
-                  <span className="operator-mobile__entry">
-                    <span className="operator-mobile__entry-header">
-                      <span className="operator-mobile__entry-name">{person.name}</span>
-                      {time && <span className="operator-mobile__entry-time">{time}</span>}
+                  <span className="duty-officer-mobile__entry">
+                    <span className="duty-officer-mobile__entry-header">
+                      <span className="duty-officer-mobile__entry-name">{person.name}</span>
+                      {time && <span className="duty-officer-mobile__entry-time">{time}</span>}
                     </span>
                     <span
                       className={[
-                        'operator-mobile__entry-goals',
+                        'duty-officer-mobile__entry-goals',
                         'text--thin',
                         'text--italic',
                       ]
@@ -200,7 +200,7 @@ const OperatorMobileView = ({
             })}
           </ul>
         ) : (
-          <div className="operator-mobile__empty">Пока пусто</div>
+          <div className="duty-officer-mobile__empty">Пока пусто</div>
         )}
       </div>
     </section>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const SimplePeopleList = ({
   people,
@@ -7,6 +7,7 @@ const SimplePeopleList = ({
   onDragStart,
   onDrop,
   onDoubleClick,
+  onSingleClick,
   onEmptyRowDoubleClick,
   onToggleCompleted,
   onToggleCancelled,
@@ -22,8 +23,20 @@ const SimplePeopleList = ({
   canRevokePass = false,
   canMove = false,
   typographyVariant,
+  itemVariant = 'full',
 }) => {
   const [isDragOver, setIsDragOver] = useState(false)
+  const clickTimerRef = useRef(new Map())
+  const SINGLE_CLICK_DELAY = 220
+
+  useEffect(() => {
+    return () => {
+      clickTimerRef.current.forEach((timer) => {
+        if (timer) clearTimeout(timer)
+      })
+      clickTimerRef.current.clear()
+    }
+  }, [])
 
   const getPassStatus = (person) => person?.pass_status || null
 
@@ -31,6 +44,7 @@ const SimplePeopleList = ({
   const isBaseLight = typographyVariant === 'base-light'
   const nameClass = isBase ? 'list__name text' : isBaseLight ? 'list__name text text--thin' : 'list__name text'
   const responsibleClass = isBase ? 'list__responsible text text--subtle' : isBaseLight ? 'list__responsible text text--thin text--subtle' : 'list__responsible text text--italic text--subtle'
+  const isSimpleVariant = itemVariant === 'simple'
 
   const renderPassBadge = (person) => {
     const status = getPassStatus(person)
@@ -139,6 +153,55 @@ const SimplePeopleList = ({
     )
   }
 
+  const getMeetingResultBadgeVariant = (person) => {
+    if (person?.is_cancelled) return 'cancelled'
+    const resultName = String(person?.meeting_result_name || '').toLowerCase()
+    if (!resultName) return null
+    if (resultName.includes('отказ') || resultName.includes('отмен')) return 'cancelled'
+    if (resultName.includes('не оформ')) return 'pending'
+    if (resultName.includes('трудоустро')) return 'employed'
+    return null
+  }
+
+  const renderMeetingResultBadge = (person) => {
+    const variant = getMeetingResultBadgeVariant(person)
+    if (!variant) return null
+
+    const iconClass =
+      variant === 'pending'
+        ? 'fa-spinner'
+        : variant === 'employed'
+        ? 'fa-check-double'
+        : 'fa-xmark'
+    const title =
+      variant === 'pending'
+        ? 'В процессе'
+        : variant === 'employed'
+        ? 'Трудоустроен'
+        : 'Отказ или отмена визита'
+
+    const className = [
+      'list__badge',
+      'list__badge--static',
+      'list__badge--meeting-result',
+      `list__badge--meeting-result-${variant}`,
+    ]
+      .filter(Boolean)
+      .join(' ')
+
+    return (
+      <span className={className} title={title} aria-label={title}>
+        <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
+      </span>
+    )
+  }
+
+  const resetClickTimer = (personId) => {
+    const timer = clickTimerRef.current.get(personId)
+    if (timer) clearTimeout(timer)
+    clickTimerRef.current.delete(personId)
+  }
+
   return (
       <div
       className={`simple-list ${isDragOver ? 'simple-list--dragover' : ''}`}
@@ -168,27 +231,48 @@ const SimplePeopleList = ({
                 }
                 onDragStart(event, person, dateKey)
               }}
+              onClick={() => {
+                if (!onSingleClick) return
+                const personId = person.id
+                resetClickTimer(personId)
+                const timer = setTimeout(() => {
+                  onSingleClick?.(person, dateKey)
+                  resetClickTimer(personId)
+                }, SINGLE_CLICK_DELAY)
+                clickTimerRef.current.set(personId, timer)
+              }}
               onDoubleClick={(event) => {
                 event.stopPropagation()
+                resetClickTimer(person.id)
                 onDoubleClick?.(person, dateKey)
               }}
             >
-              <span className={nameClass}>
-                <span className="list__badges">
-                  {renderPassBadge(person)}
-                  {renderCancelBadge(person)}
-                  {renderAcceptedBadge(person)}
-                </span>
-                <span className="list__content">
+              {isSimpleVariant ? (
+                <span className={nameClass}>
                   <span className="list__text">{person.name}</span>
-                  {person.responsible && (
-                    <span className={`list__responsible ${responsibleClass}`}>
-                      {' '}
-                      / {person.responsible}
-                    </span>
-                  )}
                 </span>
-              </span>
+              ) : (
+                <span className={nameClass}>
+                  <span className="list__stacked-grid">
+                    <span className="list__badges">
+                      {renderPassBadge(person)}
+                      {renderCancelBadge(person)}
+                      {renderAcceptedBadge(person)}
+                    </span>
+                    <span className="list__content">
+                      <span className="list__text">{person.name}</span>
+                      {person.responsible && (
+                        <span className={`list__responsible ${responsibleClass}`}>
+                          {' '}
+                          / {person.responsible}
+                        </span>
+                      )}
+                    </span>
+                    <span className="list__stacked-icon">{renderMeetingResultBadge(person)}</span>
+                    <span className="list__stacked-secondary" />
+                  </span>
+                </span>
+              )}
             </li>
           ))}
         </ul>

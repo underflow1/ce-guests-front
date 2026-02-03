@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { DEFAULT_INTERFACE_TYPE, resolveInterfaceType } from '../constants/interfaces'
 
 /**
  * Хук для проверки прав пользователя
@@ -26,6 +27,7 @@ const usePermissions = (user) => {
         'can_revoke_pass_ui',
         'can_edit_entry_ui',
         'can_delete_ui',
+        'can_set_meeting_result_ui',
       ])
     }
     // Обычный пользователь - права из роли (только UI-права, бэкенд-права не отдаются на фронт)
@@ -49,6 +51,7 @@ const usePermissions = (user) => {
   const canRevokePassUi = () => hasPermission('can_revoke_pass_ui')
   const canEditEntryUi = () => hasPermission('can_edit_entry_ui')
   const canDeleteUi = () => hasPermission('can_delete_ui')
+  const canSetMeetingResultUi = () => hasPermission('can_set_meeting_result_ui')
 
   // Проверяем is_admin как булево значение или число 1
   const isAdmin = useMemo(() => {
@@ -58,13 +61,9 @@ const usePermissions = (user) => {
   }, [user])
 
   const interfaceType = useMemo(() => {
-    if (!user) return 'user'
-    // Админ всегда использует обычный интерфейс
-    if (isAdmin) return 'user'
-    // Заменяем старое значение 'guard' на 'operator' для обратной совместимости
-    const roleInterfaceType = user.role?.interface_type || 'user'
-    return roleInterfaceType === 'guard' ? 'operator' : roleInterfaceType
-  }, [user, isAdmin])
+    if (!user) return DEFAULT_INTERFACE_TYPE
+    return resolveInterfaceType(user.role?.interface_type)
+  }, [user])
 
   return {
     permissions,
@@ -78,6 +77,7 @@ const usePermissions = (user) => {
     canRevokePassUi,
     canEditEntryUi,
     canDeleteUi,
+    canSetMeetingResultUi,
     interfaceType,
     isAdmin,
   }

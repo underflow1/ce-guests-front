@@ -21,9 +21,11 @@ const PeopleList = ({
   compact = false,
   dateKey,
   typographyVariant,
+  itemVariant = 'full',
   onDragStart,
   onDrop,
   onDoubleClick,
+  onSingleClick,
   onEmptyRowDoubleClick,
   onToggleCompleted,
   onToggleCancelled,
@@ -47,7 +49,9 @@ const PeopleList = ({
   }, [visitGoals])
   const [dragOverHour, setDragOverHour] = useState(null)
   const clickStateRef = useRef(new Map())
+  const clickTimerRef = useRef(new Map())
   const CLICK_TIMEOUT = 400
+  const SINGLE_CLICK_DELAY = 220
 
   useEffect(() => {
     return () => {
@@ -55,11 +59,16 @@ const PeopleList = ({
         if (state?.timer) clearTimeout(state.timer)
       })
       clickStateRef.current.clear()
+      clickTimerRef.current.forEach((timer) => {
+        if (timer) clearTimeout(timer)
+      })
+      clickTimerRef.current.clear()
     }
   }, [])
 
   const isBaseTypography = typographyVariant === 'base'
   const isBaseLightTypography = typographyVariant === 'base-light'
+  const isSimpleVariant = itemVariant === 'simple'
   const timeLabelClassName = isBaseTypography
     ? 'text text--muted'
     : isBaseLightTypography
@@ -82,6 +91,49 @@ const PeopleList = ({
     const ids = Array.isArray(person?.visit_goal_ids) ? person.visit_goal_ids : []
     if (!ids.length) return []
     return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
+  }
+
+  const getMeetingResultBadgeVariant = (person) => {
+    if (person?.is_cancelled) return 'cancelled'
+    const resultName = String(person?.meeting_result_name || '').toLowerCase()
+    if (!resultName) return null
+    if (resultName.includes('отказ') || resultName.includes('отмен')) return 'cancelled'
+    if (resultName.includes('не оформ')) return 'pending'
+    if (resultName.includes('трудоустро')) return 'employed'
+    return null
+  }
+
+  const renderMeetingResultBadge = (person) => {
+    const variant = getMeetingResultBadgeVariant(person)
+    if (!variant) return null
+
+    const iconClass =
+      variant === 'pending'
+        ? 'fa-spinner'
+        : variant === 'employed'
+        ? 'fa-check-double'
+        : 'fa-xmark'
+    const title =
+      variant === 'pending'
+        ? 'В процессе'
+        : variant === 'employed'
+        ? 'Трудоустроен'
+        : 'Отказ или отмена визита'
+
+    const className = [
+      'list__badge',
+      'list__badge--static',
+      'list__badge--meeting-result',
+      `list__badge--meeting-result-${variant}`,
+    ]
+      .filter(Boolean)
+      .join(' ')
+
+    return (
+      <span className={className} title={title} aria-label={title}>
+        <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
+      </span>
+    )
   }
 
   const renderPassBadge = (person) => {
@@ -119,6 +171,12 @@ const PeopleList = ({
     const state = clickStateRef.current.get(personId)
     if (state?.timer) clearTimeout(state.timer)
     clickStateRef.current.delete(personId)
+  }
+
+  const resetClickTimer = (personId) => {
+    const timer = clickTimerRef.current.get(personId)
+    if (timer) clearTimeout(timer)
+    clickTimerRef.current.delete(personId)
   }
 
   const renderStatusBadge = (person) => {
@@ -268,9 +326,7 @@ const PeopleList = ({
           <div className="time-grid__content">
             {grouped[hour]?.length ? (
               <ul className={`list ${compact ? 'list--compact' : ''}`}>
-                {grouped[hour].map((person) => {
-                  const goals = showVisitGoals ? getVisitGoalNames(person) : []
-                  return (
+                {grouped[hour].map((person) => (
                     <li
                       key={person.id}
                       className={`list__item ${person.is_completed ? 'list__item--completed' : ''} ${
@@ -284,19 +340,37 @@ const PeopleList = ({
                         }
                         onDragStart(event, person, dateKey)
                       }}
+                      onClick={() => {
+                        if (!onSingleClick) return
+                        const personId = person.id
+                        resetClickTimer(personId)
+                        const timer = setTimeout(() => {
+                          onSingleClick?.(person, dateKey)
+                          resetClickTimer(personId)
+                        }, SINGLE_CLICK_DELAY)
+                        clickTimerRef.current.set(personId, timer)
+                      }}
                       onDoubleClick={(event) => {
                         event.stopPropagation()
+                        resetClickTimer(person.id)
                         onDoubleClick?.(person, dateKey)
                       }}
                     >
-                      <span className={`${nameClassName}${showVisitGoals ? ' list__name--stacked' : ''}`}>
-                        <span className="list__badges">
-                          {renderPassBadge(person)}
-                          {renderStatusBadge(person)}
+                      {isSimpleVariant ? (
+                        <span className={nameClassName}>
+                          <span className="list__text">{person.name}</span>
                         </span>
-                        <span className={`list__content${showVisitGoals ? ' list__content--stacked' : ''}`}>
+                      ) : (
+                        (() => {
+                          const goals = showVisitGoals ? getVisitGoalNames(person) : []
+                          return (
+                        <span className={`${nameClassName}${showVisitGoals ? ' list__name--stacked' : ''}`}>
                           {showVisitGoals ? (
-                            <>
+                            <span className="list__stacked-grid">
+                              <span className="list__badges">
+                                {renderPassBadge(person)}
+                                {renderStatusBadge(person)}
+                              </span>
                               <span className="list__primary">
                                 <span className="list__text">{person.name}</span>
                                 {!compact && person.responsible && (
@@ -306,6 +380,7 @@ const PeopleList = ({
                                   </span>
                                 )}
                               </span>
+                              <span className="list__stacked-icon">{renderMeetingResultBadge(person)}</span>
                               <span
                                 className={[
                                   'list__goals',
@@ -320,23 +395,30 @@ const PeopleList = ({
                               >
                                 {goals.length ? goals.join(', ') : 'Цель визита не установлена'}
                               </span>
-                            </>
+                            </span>
                           ) : (
                             <>
-                              <span className="list__text">{person.name}</span>
-                              {!compact && person.responsible && (
-                                <span className={`list__responsible ${responsibleClassName}`}>
-                                  {' '}
-                                  / {person.responsible}
-                                </span>
-                              )}
+                              <span className="list__badges">
+                                {renderPassBadge(person)}
+                                {renderStatusBadge(person)}
+                              </span>
+                              <span className="list__content">
+                                <span className="list__text">{person.name}</span>
+                                {!compact && person.responsible && (
+                                  <span className={`list__responsible ${responsibleClassName}`}>
+                                    {' '}
+                                    / {person.responsible}
+                                  </span>
+                                )}
+                              </span>
                             </>
                           )}
                         </span>
-                      </span>
+                          )
+                        })()
+                      )}
                     </li>
-                  )
-                })}
+                ))}
               </ul>
             ) : (
               <div className="time-grid__empty-row" />

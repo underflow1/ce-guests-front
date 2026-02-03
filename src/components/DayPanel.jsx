@@ -7,6 +7,7 @@ const DayPanel = ({
   titleTextClassName,
   dateTextClassName,
   peopleTypographyVariant,
+  peopleVariant = 'full',
   people,
   visitGoals,
   showVisitGoals = false,
@@ -15,6 +16,7 @@ const DayPanel = ({
   onDragStart,
   onDrop,
   onDoubleClick,
+  onSingleClick,
   onEmptyRowDoubleClick,
   onToggleCompleted,
   onToggleCancelled,
@@ -54,9 +56,11 @@ const DayPanel = ({
         dateKey={dateKey}
         compact={compact}
         typographyVariant={peopleTypographyVariant}
+        itemVariant={peopleVariant}
         onDragStart={onDragStart}
         onDrop={onDrop}
         onDoubleClick={onDoubleClick}
+        onSingleClick={onSingleClick}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
         onToggleCompleted={onToggleCompleted}
         onToggleCancelled={onToggleCancelled}

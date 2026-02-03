@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useRoles from '../hooks/useRoles'
+import { DEFAULT_INTERFACE_TYPE, INTERFACE_OPTIONS, resolveInterfaceType, toApiInterfaceType } from '../constants/interfaces'
 import { useToast } from './ToastProvider'
 
 const RoleManagement = () => {
@@ -15,12 +16,10 @@ const RoleManagement = () => {
   const [form, setForm] = useState({
     name: '',
     description: '',
-    interface_type: 'user',
+    interface_type: DEFAULT_INTERFACE_TYPE,
     permission_ids: [],
   })
-
-  const toApiInterfaceType = (value) => (value === 'operator' ? 'guard' : value)
-  const fromApiInterfaceType = (value) => (value === 'guard' ? 'operator' : value)
+  const fromApiInterfaceType = (value) => resolveInterfaceType(value)
 
   // Загрузить список ролей и прав
   const loadData = async () => {
@@ -51,7 +50,7 @@ const RoleManagement = () => {
 
   const openCreate = () => {
     setModal({ open: true, mode: 'create', roleId: null })
-    setForm({ name: '', description: '', interface_type: 'user', permission_ids: [] })
+    setForm({ name: '', description: '', interface_type: DEFAULT_INTERFACE_TYPE, permission_ids: [] })
     setError(null)
   }
 
@@ -357,10 +356,15 @@ const RoleManagement = () => {
                         value={form.interface_type}
                         onChange={(e) => setForm((p) => ({ ...p, interface_type: e.target.value }))}
                       >
-                        <option value="user">Обычный</option>
-                        <option value="user_new">Обычный новый</option>
-                        <option value="operator">Оперативный дежурный</option>
+                        {INTERFACE_OPTIONS.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
+                      <div className="text text--down text--muted">
+                        Пользователь — полный интерфейс. Оперативный дежурный — только текущий день.
+                      </div>
                     </label>
 
                     <label className="modal__field modal__field--description">

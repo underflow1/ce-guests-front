@@ -17,28 +17,38 @@ const EntryForm = ({
   canEditEntry = true,
   canDeleteEntry = false,
   visitGoals = [],
+  meetingResults = [],
+  meetingResultReasons = [],
+  meetingResultReasonsLoading = false,
   canMarkPass = false,
   canRevokePass = false,
+  canSetMeetingResult = false,
   labelTextClassName,
   interfaceType = 'user',
   isFormActive = true,
   onOrderPass,
   onRevokePass,
   onDeleteEntry,
+  onExitEdit,
 }) => {
   const { suggestions, isLoading, showDropdown, setShowDropdown } = useResponsibleAutocomplete(form.responsible)
   const [showAllResponsiblesDropdown, setShowAllResponsiblesDropdown] = useState(false)
   const autocompleteRef = useRef(null)
   const responsibleInputRef = useRef(null)
-  const isUserNew = interfaceType === 'user_new'
+  const isUser = interfaceType === 'user'
   const editingDateKey = form.editingDateKey
   const entry = editingEntry
   const isEditingActive = Boolean(isEditing && entry && editingDateKey)
   const isCancelled = Boolean(entry?.is_cancelled)
   const isCompleted = Boolean(entry?.is_completed)
-  const isFormLocked = isUserNew && !isFormActive
+  const isFormLocked = isUser && !isFormActive
   const isEntryLocked = isEditingActive && (isCancelled || isCompleted)
   const isFieldDisabled = isFormLocked || isEntryLocked || (isEditing && !canEditEntry)
+  const isMeetingResultVisible = isEditingActive && isCompleted
+  const canEditMeetingResult = isMeetingResultVisible && canSetMeetingResult && !isFormLocked
+  const isMeetingResultDisabled = !canEditMeetingResult
+  const meetingResultRequiresReason = isMeetingResultVisible && (meetingResultReasons || []).length > 0
+  const isSubmitLocked = isFormLocked || isCancelled || (isCompleted && !canSetMeetingResult)
   const passStatus = entry?.pass_status || null
   const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
   const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
@@ -121,16 +131,40 @@ const EntryForm = ({
     })
   }
 
+  const handleMeetingResultSelect = (resultId) => {
+    if (isMeetingResultDisabled) return
+    setForm((prev) => ({
+      ...prev,
+      meetingResultId: resultId,
+      meetingResultReasonId: null,
+    }))
+  }
+
+  const handleMeetingReasonSelect = (reasonId) => {
+    if (isMeetingResultDisabled) return
+    setForm((prev) => ({
+      ...prev,
+      meetingResultReasonId: reasonId,
+    }))
+  }
+
   return (
   <form
     className={[
       'form',
       'panel__content',
       'text',
-      isUserNew ? 'form--stacked' : '',
+      isUser ? 'form--stacked' : '',
       isFormLocked ? 'form--inactive' : '',
     ].join(' ')}
     onSubmit={onSubmit}
+    onKeyDown={(event) => {
+      if (event.key === 'Escape' && isUser && isEditing) {
+        event.preventDefault()
+        event.stopPropagation()
+        onExitEdit?.()
+      }
+    }}
   >
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>ФИО</span>
@@ -224,7 +258,7 @@ const EntryForm = ({
                 <button
                   key={goal.id}
                   type="button"
-                  className={`visit-goal-chip${isSelected ? ' visit-goal-chip--selected' : ''}`}
+                  className={`visit-goal-chip text text--thin text--down${isSelected ? ' visit-goal-chip--selected' : ''}`}
                   onClick={() => toggleVisitGoal(goal.id)}
                   disabled={isFieldDisabled}
                   aria-pressed={isSelected}
@@ -241,17 +275,85 @@ const EntryForm = ({
       </div>
     </div>
 
+    {isMeetingResultVisible && (
+    <div className="form__field">
+      <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
+        Результат встречи
+      </span>
+      <div className="form__control">
+        <div className="visit-goals">
+          {meetingResults.length === 0 ? (
+            <span className="text text--muted">Нет доступных результатов</span>
+          ) : (
+            meetingResults.map((result) => {
+              const isSelected = form.meetingResultId === result.id
+              return (
+                <button
+                  key={result.id}
+                  type="button"
+                  className={`visit-goal-chip text text--thin text--down${isSelected ? ' visit-goal-chip--selected' : ''}`}
+                  onClick={() => handleMeetingResultSelect(result.id)}
+                  disabled={isMeetingResultDisabled}
+                  aria-pressed={isSelected}
+                >
+                  {result.name}
+                </button>
+              )
+            })
+          )}
+        </div>
+        {isMeetingResultDisabled && (
+          <div className="visit-goals__hint text text--down text--muted">Нет прав на изменение результата</div>
+        )}
+        {!isMeetingResultDisabled && !form.meetingResultId && (
+          <div className="visit-goals__hint text text--down text--muted">Выберите результат встречи</div>
+        )}
+      </div>
+
+      {form.meetingResultId && (meetingResultRequiresReason || meetingResultReasonsLoading) && (
+      <div className="form__control" style={{ marginTop: 'var(--space-2)' }}>
+        <div className="visit-goals">
+          {meetingResultReasonsLoading ? (
+            <span className="text text--muted">Загрузка причин...</span>
+          ) : meetingResultReasons.length === 0 ? (
+            <span className="text text--muted">Причины не требуются</span>
+          ) : (
+            meetingResultReasons.map((reason) => {
+              const isSelected = form.meetingResultReasonId === reason.id
+              return (
+                <button
+                  key={reason.id}
+                  type="button"
+                  className={`visit-goal-chip text text--thin text--down${isSelected ? ' visit-goal-chip--selected' : ''}`}
+                  onClick={() => handleMeetingReasonSelect(reason.id)}
+                  disabled={isMeetingResultDisabled}
+                  aria-pressed={isSelected}
+                >
+                  {reason.name}
+                </button>
+              )
+            })
+          )}
+        </div>
+        {!isMeetingResultDisabled && meetingResultRequiresReason && !form.meetingResultReasonId && (
+          <div className="visit-goals__hint text text--down text--muted">Выберите причину</div>
+        )}
+      </div>
+      )}
+    </div>
+    )}
+
     <div className="form__submit-row">
       <button
         className="button button--primary text form__submit"
         type="submit"
-        disabled={isSubmitDisabled || isFormLocked || isEntryLocked}
+        disabled={isSubmitDisabled || isSubmitLocked}
       >
         {isEditing ? 'Сохранить' : 'Создать'}
       </button>
     </div>
 
-    {!isUserNew && (
+    {!isUser && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Время</span>
       <div className="form__control">
@@ -279,7 +381,7 @@ const EntryForm = ({
     </label>
     )}
 
-    {!isUserNew && (
+    {!isUser && (
     <div className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Куда добавить</span>
       <div className="form__control">
@@ -341,7 +443,7 @@ const EntryForm = ({
     </div>
     )}
 
-    {!isUserNew && (
+    {!isUser && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Дата</span>
       <div
