@@ -312,6 +312,9 @@ const EntryForm = ({
 
       {form.meetingResultId && (meetingResultRequiresReason || meetingResultReasonsLoading) && (
       <div className="form__control" style={{ marginTop: 'var(--space-2)' }}>
+        {!isMeetingResultDisabled && meetingResultRequiresReason && (
+          <div className="visit-goals__hint text text--down text--muted">Выберите причину</div>
+        )}
         <div className="visit-goals">
           {meetingResultReasonsLoading ? (
             <span className="text text--muted">Загрузка причин...</span>
@@ -335,15 +338,21 @@ const EntryForm = ({
             })
           )}
         </div>
-        {!isMeetingResultDisabled && meetingResultRequiresReason && !form.meetingResultReasonId && (
-          <div className="visit-goals__hint text text--down text--muted">Выберите причину</div>
-        )}
       </div>
       )}
     </div>
     )}
 
-    <div className="form__submit-row">
+    <div className="form__submit-row" style={{ gap: 'var(--space-2)' }}>
+      {isEditing && (
+        <button
+          className="button text"
+          type="button"
+          onClick={onExitEdit}
+        >
+          Отмена
+        </button>
+      )}
       <button
         className="button button--primary text form__submit"
         type="submit"
