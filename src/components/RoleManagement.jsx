@@ -362,6 +362,9 @@ const RoleManagement = () => {
                           </option>
                         ))}
                       </select>
+                      <div className="text text--down text--muted">
+                        Пользователь — полный интерфейс. Оперативный дежурный — только текущий день.
+                      </div>
                     </label>
 
                     <label className="modal__field modal__field--description">
