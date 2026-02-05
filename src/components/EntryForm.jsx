@@ -282,10 +282,21 @@ const EntryForm = ({
       </span>
       <div className="form__control">
         <div className="visit-goals">
-          {meetingResults.length === 0 ? (
-            <span className="text text--muted">Нет доступных результатов</span>
-          ) : (
-            meetingResults.map((result) => {
+          {(() => {
+            // Показываем только статусы с code > 0 (статусы с code <= 0 - служебные, не для выбора)
+            // Также исключаем статус "Встреча не состоялась" по названию (на случай если code еще не установлен)
+            const filteredResults = meetingResults.filter(
+              (result) => {
+                // Исключаем по названию
+                if (result.name.toLowerCase() === 'встреча не состоялась') return false
+                // Показываем только с code > 0 или code == null (для обратной совместимости)
+                return result.code == null || result.code > 0
+              }
+            )
+            return filteredResults.length === 0 ? (
+              <span className="text text--muted">Нет доступных результатов</span>
+            ) : (
+              filteredResults.map((result) => {
               const isSelected = form.meetingResultId === result.id
               return (
                 <button
@@ -300,7 +311,8 @@ const EntryForm = ({
                 </button>
               )
             })
-          )}
+            )
+          })()}
         </div>
         {isMeetingResultDisabled && (
           <div className="visit-goals__hint text text--down text--muted">Нет прав на изменение результата</div>

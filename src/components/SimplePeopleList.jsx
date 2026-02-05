@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { getMeetingResultIcon, getMeetingResultVariant, getMeetingResultTitle } from '../utils/meetingResult'
 
 const SimplePeopleList = ({
   people,
@@ -153,32 +154,14 @@ const SimplePeopleList = ({
     )
   }
 
-  const getMeetingResultBadgeVariant = (person) => {
-    if (person?.is_cancelled) return 'cancelled'
-    const resultName = String(person?.meeting_result_name || '').toLowerCase()
-    if (!resultName) return null
-    if (resultName.includes('отказ') || resultName.includes('отмен')) return 'cancelled'
-    if (resultName.includes('не оформ')) return 'pending'
-    if (resultName.includes('трудоустро')) return 'employed'
-    return null
-  }
-
   const renderMeetingResultBadge = (person) => {
-    const variant = getMeetingResultBadgeVariant(person)
+    const code = person?.meeting_result_code
+    const isCancelled = Boolean(person?.is_cancelled)
+    const variant = getMeetingResultVariant(code, isCancelled)
     if (!variant) return null
 
-    const iconClass =
-      variant === 'pending'
-        ? 'fa-spinner'
-        : variant === 'employed'
-        ? 'fa-check-double'
-        : 'fa-xmark'
-    const title =
-      variant === 'pending'
-        ? 'В процессе'
-        : variant === 'employed'
-        ? 'Трудоустроен'
-        : 'Отказ или отмена визита'
+    const iconClass = getMeetingResultIcon(code, isCancelled)
+    const title = getMeetingResultTitle(code, isCancelled)
 
     const className = [
       'list__badge',
