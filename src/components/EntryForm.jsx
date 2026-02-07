@@ -23,12 +23,16 @@ const EntryForm = ({
   canMarkPass = false,
   canRevokePass = false,
   canSetMeetingResult = false,
+  canChangeMeetingResult = false,
+  canRollbackMeetingResult = false,
+  isAdmin = false,
   labelTextClassName,
   interfaceType = 'user',
   isFormActive = true,
   onOrderPass,
   onRevokePass,
   onDeleteEntry,
+  onRollbackMeetingResult,
   onExitEdit,
 }) => {
   const { suggestions, isLoading, showDropdown, setShowDropdown } = useResponsibleAutocomplete(form.responsible)
@@ -39,16 +43,30 @@ const EntryForm = ({
   const editingDateKey = form.editingDateKey
   const entry = editingEntry
   const isEditingActive = Boolean(isEditing && entry && editingDateKey)
-  const isCancelled = Boolean(entry?.is_cancelled)
-  const isCompleted = Boolean(entry?.is_completed)
+  const entryState = entry?.state ?? null
+  const isCancelled = Number(entryState) === 20
+  const isCompleted = [30, 40, 50, 60].includes(Number(entryState))
   const isFormLocked = isUser && !isFormActive
   const isEntryLocked = isEditingActive && (isCancelled || isCompleted)
   const isFieldDisabled = isFormLocked || isEntryLocked || (isEditing && !canEditEntry)
   const isMeetingResultVisible = isEditingActive && isCompleted
-  const canEditMeetingResult = isMeetingResultVisible && canSetMeetingResult && !isFormLocked
+  const canEditMeetingResultByState =
+    entryState === 30 || entryState === 50
+      ? canSetMeetingResult
+      : entryState === 40 || entryState === 60
+      ? canChangeMeetingResult
+      : false
+  const canEditMeetingResult = isMeetingResultVisible && canEditMeetingResultByState && !isFormLocked
   const isMeetingResultDisabled = !canEditMeetingResult
   const meetingResultRequiresReason = isMeetingResultVisible && (meetingResultReasons || []).length > 0
-  const isSubmitLocked = isFormLocked || isCancelled || (isCompleted && !canSetMeetingResult)
+  const isSubmitLocked =
+    isFormLocked ||
+    (isEditingActive &&
+      (entryState === 10
+        ? !canEditEntry
+        : entryState === 30 || entryState === 40 || entryState === 50 || entryState === 60
+        ? !canEditMeetingResultByState
+        : true))
   const passStatus = entry?.pass_status || null
   const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
   const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
@@ -68,12 +86,25 @@ const EntryForm = ({
       : 'Пропуск не заказан'
   const passPastDateTitle = 'Заказ пропуска недоступен для прошлых дат'
   const passActionTitle = passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск'
-  const passDisabled = !isEditingActive || isCancelled || isCompleted || !canPassAction || isPassOrderingDisabled
+  const isPassOrderForbiddenByState = entryState === 20 || entryState === 40
+  const passDisabled =
+    !isEditingActive ||
+    !canPassAction ||
+    (passAction === 'order' && (isPassOrderingDisabled || isPassOrderForbiddenByState))
   const passButtonTitle = isPassOrderingDisabled
     ? `${passTitle}. ${passPastDateTitle}`
     : `${passTitle}. ${passActionTitle}`
 
-  const deleteDisabled = !isEditingActive || isCancelled || isCompleted || !canDeleteEntry
+  const deleteDisabled =
+    !isEditingActive ||
+    !canDeleteEntry ||
+    (!isAdmin && entryState !== 10)
+
+  const canRollback =
+    isEditingActive &&
+    (entryState === 40 || entryState === 50 || entryState === 60) &&
+    canRollbackMeetingResult &&
+    !isFormLocked
 
   // Закрываем дропдаун при клике вне его
   useEffect(() => {
@@ -319,6 +350,20 @@ const EntryForm = ({
         )}
         {!isMeetingResultDisabled && !form.meetingResultId && (
           <div className="visit-goals__hint text text--down text--muted">Выберите результат встречи</div>
+        )}
+        {canRollback && (
+          <div className="visit-goals__hint text text--down" style={{ marginTop: '4px' }}>
+            <button
+              type="button"
+              className="button button--small"
+              onClick={() => {
+                if (!entry?.id) return
+                onRollbackMeetingResult?.(entry.id, editingDateKey)
+              }}
+            >
+              Откатить результат
+            </button>
+          </div>
         )}
       </div>
 

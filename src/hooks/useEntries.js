@@ -19,6 +19,8 @@ const useEntries = ({
   interfaceType = 'user',
   isAuthenticated = false,
   canSetMeetingResult = false,
+  canChangeMeetingResult = false,
+  canRollbackMeetingResult = false,
 }) => {
   const { pushToast } = useToast()
   const { getActiveGoals } = useVisitGoals()
@@ -41,6 +43,24 @@ const useEntries = ({
   const [error, setError] = useState(null)
   const [isWebSocketReady, setIsWebSocketReady] = useState(false)
   const entriesByIdRef = useRef(new Map())
+
+  const meetingResultCodeFromState = useCallback((state) => {
+    const s = Number(state)
+    if (s === 50) return 1 // Не оформлен
+    if (s === 60) return 2 // Трудоустроен
+    if (s === 40) return 3 // Отказ
+    return null
+  }, [])
+
+  const meetingResultIdFromEntry = useCallback(
+    (entry) => {
+      const code = meetingResultCodeFromState(entry?.state)
+      if (!code) return null
+      const found = (meetingResults || []).find((r) => Number(r.code) === code)
+      return found?.id || null
+    },
+    [meetingResults, meetingResultCodeFromState],
+  )
 
   const previousWorkdayKey = previousWorkday ? toDateKey(previousWorkday) : null
   const nextWorkdayKey = nextWorkday ? toDateKey(nextWorkday) : null
@@ -651,6 +671,16 @@ const useEntries = ({
   })
   const [isFormActive, setIsFormActive] = useState(interfaceType !== 'user')
 
+  // Если список результатов подгрузился уже после открытия формы — догружаем выбор по state
+  useEffect(() => {
+    if (!form?.editingEntryId) return
+    if (form.meetingResultId) return
+    const entry = entriesByIdRef.current.get(form.editingEntryId) || null
+    const id = meetingResultIdFromEntry(entry)
+    if (!id) return
+    setForm((prev) => ({ ...prev, meetingResultId: id }))
+  }, [meetingResults, form?.editingEntryId, form?.meetingResultId, meetingResultIdFromEntry])
+
   useEffect(() => {
     setIsFormActive(interfaceType !== 'user')
   }, [interfaceType])
@@ -692,8 +722,8 @@ const useEntries = ({
   }, [form.meetingResultId, isAuthenticated, getActiveReasons])
 
   const handleDragStart = (event, entry, sourceDateKey) => {
-    // Не позволяем перетаскивать принятых гостей
-    if (entry.is_completed) {
+    // Двигать можно только state=10
+    if (Number(entry?.state) !== 10) {
       event.preventDefault()
       return
     }
@@ -763,9 +793,9 @@ const useEntries = ({
     if (!entry) return
 
     try {
-      // Отдельный PATCH для отметки "пришел" (меняем только is_completed)
+      // Отдельный PATCH для отметки "пришел" (теперь completed)
       const updatedEntry = await apiPatch(`/entries/${entryId}/completed`, {
-        is_completed: Boolean(isCompleted),
+        completed: Boolean(isCompleted),
       })
 
       // Обновляем локальное состояние
@@ -786,7 +816,7 @@ const useEntries = ({
 
     try {
       const updatedEntry = await apiPatch(`/entries/${entryId}/cancelled`, {
-        is_cancelled: Boolean(isCancelled),
+        cancelled: Boolean(isCancelled),
       })
 
       const updatedList = list.map((item) =>
@@ -870,9 +900,9 @@ const useEntries = ({
       otherDate,
       editingEntryId: entry.id,
       editingDateKey: dateKey,
-      isCompleted: entry.is_completed || false,
+      isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
       visitGoalIds: entry.visit_goal_ids || [],
-      meetingResultId: entry.meeting_result_id || null,
+      meetingResultId: meetingResultIdFromEntry(entry),
       meetingResultReasonId: entry.meeting_result_reason_id || null,
     })
 
@@ -894,9 +924,9 @@ const useEntries = ({
       otherDate,
       editingEntryId: entry.id,
       editingDateKey: dateKey,
-      isCompleted: entry.is_completed || false,
+      isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
       visitGoalIds: entry.visit_goal_ids || [],
-      meetingResultId: entry.meeting_result_id || null,
+      meetingResultId: meetingResultIdFromEntry(entry),
       meetingResultReasonId: entry.meeting_result_reason_id || null,
     })
     if (interfaceType === 'user') {
@@ -971,14 +1001,15 @@ const useEntries = ({
 
   const isFormActiveEffective = interfaceType === 'user' ? isFormActive : true
   const meetingResultRequiresReason = Boolean(form.meetingResultId && meetingResultReasons.length > 0)
-  const isMeetingResultBlocked = form.isCompleted && !canSetMeetingResult
-  const isMeetingResultMissing = form.isCompleted && canSetMeetingResult && !form.meetingResultId
+  const canEditMeetingResult = canSetMeetingResult || canChangeMeetingResult
+  const isMeetingResultBlocked = form.isCompleted && !canEditMeetingResult
+  const isMeetingResultMissing = form.isCompleted && canEditMeetingResult && !form.meetingResultId
   const isMeetingReasonMissing =
     form.isCompleted &&
-    canSetMeetingResult &&
+    canEditMeetingResult &&
     meetingResultRequiresReason &&
     !form.meetingResultReasonId
-  const isMeetingResultLoading = form.isCompleted && canSetMeetingResult && meetingResultReasonsLoading
+  const isMeetingResultLoading = form.isCompleted && canEditMeetingResult && meetingResultReasonsLoading
   const isSubmitDisabled =
     !isFormActiveEffective ||
     form.name.trim().length === 0 ||
@@ -1006,41 +1037,47 @@ const useEntries = ({
       const meetingResultReasonId = form.isCompleted ? form.meetingResultReasonId || null : null
 
       if (isEditing) {
-        // Обновление существующей записи
-        const updatedEntry = await apiPut(`/entries/${form.editingEntryId}`, {
-          name: form.name.trim(),
-          responsible: form.responsible.trim(),
-          datetime,
-          is_completed: form.isCompleted || false,
-          visit_goal_ids: form.visitGoalIds,
-          meeting_result_id: meetingResultId,
-          meeting_result_reason_id: meetingResultReasonId,
-        })
-
+        const entryId = form.editingEntryId
         const sourceDateKey = form.editingDateKey
-        const sourceList = getListForDateKey(sourceDateKey)
-        const nextSourceList = sourceList.filter(
-          (item) => item.id !== form.editingEntryId,
-        )
+        const existingEntry = entriesByIdRef.current.get(entryId) || null
+        const state = existingEntry?.state ?? null
 
-        updateListForDateKey(sourceDateKey, nextSourceList)
+        let updatedEntry = null
 
-        if (sourceDateKey !== targetDateKey) {
-          const targetList = getListForDateKey(targetDateKey)
-          updateListForDateKey(targetDateKey, [...targetList, updatedEntry])
+        // Атомарные операции в зависимости от state:
+        // - state=10: правим детали визита через /details
+        // - state=30/40/50/60: ставим/меняем результат встречи через /meeting-result
+        if (state === 10) {
+          updatedEntry = await apiPatch(`/entries/${entryId}/details`, {
+            name: form.name.trim(),
+            responsible: form.responsible.trim(),
+            visit_goal_ids: form.visitGoalIds,
+          })
+        } else if ([30, 40, 50, 60].includes(state)) {
+          if (!meetingResultId) {
+            throw new Error('Нужно выбрать результат встречи')
+          }
+          updatedEntry = await apiPatch(`/entries/${entryId}/meeting-result`, {
+            meeting_result_id: meetingResultId,
+            meeting_result_reason_id: meetingResultReasonId,
+          })
         } else {
-          updateListForDateKey(targetDateKey, [...nextSourceList, updatedEntry])
+          throw new Error('Запись нельзя изменить в текущем состоянии')
         }
+
+        const sourceList = getListForDateKey(sourceDateKey)
+        const nextSourceList = sourceList.map((item) =>
+          item.id === entryId ? updatedEntry : item
+        )
+        updateListForDateKey(sourceDateKey, nextSourceList)
       } else {
         // Создание новой записи
         const newEntry = await apiPost('/entries', {
           name: form.name.trim(),
           responsible: form.responsible.trim(),
           datetime,
-          is_completed: form.isCompleted || false,
+          // Создаем только черновик (принятие/отмена/результат — отдельные атомарные операции)
           visit_goal_ids: form.visitGoalIds,
-          meeting_result_id: meetingResultId,
-          meeting_result_reason_id: meetingResultReasonId,
         })
 
         const targetList = getListForDateKey(targetDateKey)
@@ -1066,6 +1103,33 @@ const useEntries = ({
       }
     } catch (err) {
       console.error('Ошибка при сохранении записи:', err)
+      setError(err.message)
+    }
+  }
+
+  const handleRollbackMeetingResult = async (entryId, dateKey) => {
+    const list = getListForDateKey(dateKey)
+    const entry = list.find((item) => item.id === entryId)
+    if (!entry) return
+
+    try {
+      const updatedEntry = await apiPatch(`/entries/${entryId}/meeting-result/rollback`, {})
+
+      const updatedList = list.map((item) =>
+        item.id === entryId ? updatedEntry : item
+      )
+      updateListForDateKey(dateKey, updatedList)
+
+      // Если сейчас редактируем эту запись — чистим выбранный результат в форме
+      if (form.editingEntryId === entryId) {
+        setForm((prev) => ({
+          ...prev,
+          meetingResultId: null,
+          meetingResultReasonId: null,
+        }))
+      }
+    } catch (err) {
+      console.error('Ошибка при откате результата встречи:', err)
       setError(err.message)
     }
   }
@@ -1111,6 +1175,7 @@ const useEntries = ({
     handleOrderPass,
     handleRevokePass,
     handleDeleteEntry,
+    handleRollbackMeetingResult,
     getEntryById,
   }
 }

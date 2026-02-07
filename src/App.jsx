@@ -26,6 +26,8 @@ const App = () => {
     canMoveUi,
     canEditEntryUi,
     canSetMeetingResultUi,
+    canChangeMeetingResultUi,
+    canRollbackMeetingResultUi,
     interfaceType,
     isAdmin,
   } = usePermissions(user)
@@ -81,6 +83,7 @@ const App = () => {
     handleOrderPass,
     handleRevokePass,
     handleDeleteEntry,
+    handleRollbackMeetingResult,
     getEntryById,
   } = useEntries({
     today,
@@ -88,6 +91,8 @@ const App = () => {
     interfaceType: resolvedInterfaceType,
     isAuthenticated,
     canSetMeetingResult: canSetMeetingResultUi(),
+    canChangeMeetingResult: canChangeMeetingResultUi(),
+    canRollbackMeetingResult: canRollbackMeetingResultUi(),
   })
   const editingEntry = form.editingEntryId ? getEntryById(form.editingEntryId) : null
 
@@ -103,6 +108,8 @@ const App = () => {
   const canMove = canMoveUi()
   const canEditEntry = canEditEntryUi()
   const canSetMeetingResult = canSetMeetingResultUi()
+  const canChangeMeetingResult = canChangeMeetingResultUi()
+  const canRollbackMeetingResult = canRollbackMeetingResultUi()
 
   useEffect(() => {
     if (!error) {
@@ -255,12 +262,15 @@ const App = () => {
     handleOrderPass,
     handleRevokePass,
     handleDeleteEntry,
+    handleRollbackMeetingResult,
     canDelete,
     canMarkCancelled,
     canUnmarkCancelled,
     canMarkPass,
     canRevokePass,
     canMove,
+    canChangeMeetingResult,
+    canRollbackMeetingResult,
   }
 
   const userInterfaceProps = {
@@ -297,6 +307,8 @@ const App = () => {
     canRevokePass,
     canMove,
     canSetMeetingResult,
+    canChangeMeetingResult,
+    canRollbackMeetingResult,
     handleDragStart,
     handleDrop,
     handleDoubleClick,
@@ -309,6 +321,7 @@ const App = () => {
     handleOrderPass,
     handleRevokePass,
     handleDeleteEntry,
+    handleRollbackMeetingResult,
     handleSubmit,
     interfaceType: resolvedInterfaceType,
     isAdmin: user?.is_admin || false,

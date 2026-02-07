@@ -117,9 +117,13 @@ const OperatorMobileView = ({
 
     multiTapRef.current = { id: person.id, count: nextCount, time: now }
 
-    if (nextCount === 2 && !person.is_completed) {
+    const state = Number(person?.state)
+    const isCompleted = state >= 30
+    const isCancelled = state === 20
+
+    if (nextCount === 2 && !isCompleted && !isCancelled) {
       multiTapRef.current = { id: null, count: 0, time: 0 }
-      if (canMarkCompleted) {
+      if (canMarkCompleted && state === 10) {
         onToggleCompleted?.(person.id, dateKey, true)
       }
       return
@@ -127,7 +131,7 @@ const OperatorMobileView = ({
 
     if (nextCount === 3) {
       multiTapRef.current = { id: null, count: 0, time: 0 }
-      if (person.is_completed && canUnmarkCompleted) {
+      if (isCompleted && canUnmarkCompleted && state === 30) {
         onToggleCompleted?.(person.id, dateKey, false)
       }
     }
@@ -168,12 +172,13 @@ const OperatorMobileView = ({
               const isNew = newEntryIds.has(person.id)
               const goals = getVisitGoalNames(person)
               const time = getEntryTime(person)
+              const state = Number(person?.state)
               return (
                 <li
                   key={person.id}
                   className={`list__item duty-officer-mobile__item ${
-                    person.is_completed ? 'list__item--completed' : ''
-                  } ${person.is_cancelled ? 'list__item--cancelled' : ''} ${
+                    state >= 30 ? 'list__item--completed' : ''
+                  } ${state === 20 ? 'list__item--cancelled' : ''} ${
                     isNew ? 'duty-officer-mobile__item--new' : ''
                   }`}
                   onPointerUp={() => handleRowTap(person)}

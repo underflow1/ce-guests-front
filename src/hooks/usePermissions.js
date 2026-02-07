@@ -28,6 +28,8 @@ const usePermissions = (user) => {
         'can_edit_entry_ui',
         'can_delete_ui',
         'can_set_meeting_result_ui',
+        'can_change_meeting_result_ui',
+        'can_rollback_meeting_result_ui',
       ])
     }
     // Обычный пользователь - права из роли (только UI-права, бэкенд-права не отдаются на фронт)
@@ -52,6 +54,8 @@ const usePermissions = (user) => {
   const canEditEntryUi = () => hasPermission('can_edit_entry_ui')
   const canDeleteUi = () => hasPermission('can_delete_ui')
   const canSetMeetingResultUi = () => hasPermission('can_set_meeting_result_ui')
+  const canChangeMeetingResultUi = () => hasPermission('can_change_meeting_result_ui')
+  const canRollbackMeetingResultUi = () => hasPermission('can_rollback_meeting_result_ui')
 
   // Проверяем is_admin как булево значение или число 1
   const isAdmin = useMemo(() => {
@@ -78,6 +82,8 @@ const usePermissions = (user) => {
     canEditEntryUi,
     canDeleteUi,
     canSetMeetingResultUi,
+    canChangeMeetingResultUi,
+    canRollbackMeetingResultUi,
     interfaceType,
     isAdmin,
   }

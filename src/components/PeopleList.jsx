@@ -96,7 +96,8 @@ const PeopleList = ({
 
   const renderMeetingResultBadge = (person) => {
     const code = person?.meeting_result_code
-    const isCancelled = Boolean(person?.is_cancelled)
+    const state = Number(person?.state)
+    const isCancelled = state === 20
     const variant = getMeetingResultVariant(code, isCancelled)
     if (!variant) return null
 
@@ -163,10 +164,11 @@ const PeopleList = ({
   }
 
   const renderStatusBadge = (person) => {
-    const isCompleted = Boolean(person.is_completed)
-    const isCancelled = Boolean(person.is_cancelled)
-    const canToggleCompleted = isCompleted ? canUnmarkCompleted : canMarkCompleted
-    const canToggleCancelled = isCancelled ? canUnmarkCancelled : canMarkCancelled
+    const state = Number(person?.state)
+    const isCancelled = state === 20
+    const isCompleted = state >= 30
+    const canToggleCompleted = state === 30 ? canUnmarkCompleted : state === 10 ? canMarkCompleted : false
+    const canToggleCancelled = state === 20 ? canUnmarkCancelled : state === 10 ? canMarkCancelled : false
     const isAllowed = isCancelled
       ? canToggleCancelled
       : isCompleted
@@ -174,8 +176,10 @@ const PeopleList = ({
       : canToggleCancelled || canToggleCompleted
     const title = isCancelled
       ? 'Снять отмену визита'
-      : isCompleted
+      : state === 30
       ? 'Снять принятие'
+      : isCompleted
+      ? 'Гость принят'
       : 'Визит не состоялся'
     const className = [
       'list__badge',
@@ -312,12 +316,12 @@ const PeopleList = ({
                 {grouped[hour].map((person) => (
                     <li
                       key={person.id}
-                      className={`list__item ${person.is_completed ? 'list__item--completed' : ''} ${
-                        person.is_cancelled ? 'list__item--cancelled' : ''
+                      className={`list__item ${Number(person?.state) >= 30 ? 'list__item--completed' : ''} ${
+                        Number(person?.state) === 20 ? 'list__item--cancelled' : ''
                       }`}
-                      draggable={!person.is_completed && !person.is_cancelled && canMove}
+                      draggable={Number(person?.state) === 10 && canMove}
                       onDragStart={(event) => {
-                        if (!canMove || person.is_completed || person.is_cancelled) {
+                        if (!canMove || Number(person?.state) !== 10) {
                           event.preventDefault()
                           return
                         }

@@ -44,6 +44,8 @@ const UserInterface = ({
   canRevokePass,
   canMove,
   canSetMeetingResult,
+  canChangeMeetingResult,
+  canRollbackMeetingResult,
   handleDragStart,
   handleDrop,
   handleDoubleClick,
@@ -56,6 +58,7 @@ const UserInterface = ({
   handleOrderPass,
   handleRevokePass,
   handleDeleteEntry,
+  handleRollbackMeetingResult,
   handleSubmit,
   interfaceType,
   isAdmin,
@@ -196,12 +199,16 @@ const UserInterface = ({
           meetingResultReasons={meetingResultReasons}
           meetingResultReasonsLoading={meetingResultReasonsLoading}
           canSetMeetingResult={canSetMeetingResult}
+          canChangeMeetingResult={canChangeMeetingResult}
+          canRollbackMeetingResult={canRollbackMeetingResult}
+          isAdmin={isAdmin}
           labelTextClassName="text text--muted"
           interfaceType={interfaceType}
           isFormActive={isFormActive}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onDeleteEntry={handleDeleteEntry}
+          onRollbackMeetingResult={handleRollbackMeetingResult}
           onExitEdit={handleExitEdit}
         />
       </section>
