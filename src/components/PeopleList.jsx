@@ -51,23 +51,42 @@ const PeopleList = ({
     return new Map((visitGoals || []).map((goal) => [goal.id, goal.name]))
   }, [visitGoals])
   const [dragOverHour, setDragOverHour] = useState(null)
-  const clickStateRef = useRef(new Map())
   const clickTimerRef = useRef(new Map())
-  const CLICK_TIMEOUT = 400
   const SINGLE_CLICK_DELAY = 220
+  const [visitMenu, setVisitMenu] = useState(null) // { person, x, y }
+  const visitMenuRef = useRef(null)
 
   useEffect(() => {
     return () => {
-      clickStateRef.current.forEach((state) => {
-        if (state?.timer) clearTimeout(state.timer)
-      })
-      clickStateRef.current.clear()
       clickTimerRef.current.forEach((timer) => {
         if (timer) clearTimeout(timer)
       })
       clickTimerRef.current.clear()
     }
   }, [])
+
+  useEffect(() => {
+    if (!visitMenu) return
+
+    const handleDocMouseDown = (event) => {
+      if (visitMenuRef.current && visitMenuRef.current.contains(event.target)) return
+      setVisitMenu(null)
+    }
+
+    const handleDocKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setVisitMenu(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleDocMouseDown)
+    document.addEventListener('keydown', handleDocKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleDocMouseDown)
+      document.removeEventListener('keydown', handleDocKeyDown)
+    }
+  }, [visitMenu])
 
   const isBaseTypography = typographyVariant === 'base'
   const isBaseLightTypography = typographyVariant === 'base-light'
@@ -151,29 +170,44 @@ const PeopleList = ({
     )
   }
 
-  const resetClickState = (personId) => {
-    const state = clickStateRef.current.get(personId)
-    if (state?.timer) clearTimeout(state.timer)
-    clickStateRef.current.delete(personId)
-  }
-
   const resetClickTimer = (personId) => {
     const timer = clickTimerRef.current.get(personId)
     if (timer) clearTimeout(timer)
     clickTimerRef.current.delete(personId)
   }
 
+  const buildVisitMenuItems = (person) => {
+    const s = Number(person?.state)
+
+    const accept = {
+      key: 'accept',
+      label: s === 30 ? 'Снять «гость принят»' : 'Гость принят',
+      enabled: s === 10 ? canMarkCompleted : s === 30 ? canUnmarkCompleted : false,
+      action: () => {
+        if (s === 10) onToggleCompleted?.(person.id, dateKey, true)
+        if (s === 30) onToggleCompleted?.(person.id, dateKey, false)
+      },
+    }
+
+    const cancel = {
+      key: 'cancel',
+      label: s === 20 ? 'Снять отмену' : 'Встреча отменена',
+      enabled: s === 10 ? canMarkCancelled : s === 20 ? canUnmarkCancelled : false,
+      action: () => {
+        if (s === 10) onToggleCancelled?.(person.id, dateKey, true)
+        if (s === 20) onToggleCancelled?.(person.id, dateKey, false)
+      },
+    }
+
+    return [accept, cancel]
+  }
+
   const renderStatusBadge = (person) => {
     const state = Number(person?.state)
     const isCancelled = state === 20
     const isCompleted = state >= 30
-    const canToggleCompleted = state === 30 ? canUnmarkCompleted : state === 10 ? canMarkCompleted : false
-    const canToggleCancelled = state === 20 ? canUnmarkCancelled : state === 10 ? canMarkCancelled : false
-    const isAllowed = isCancelled
-      ? canToggleCancelled
-      : isCompleted
-      ? canToggleCompleted
-      : canToggleCancelled || canToggleCompleted
+    const items = buildVisitMenuItems(person)
+    const hasAny = items.some((i) => i.enabled)
     const title = isCancelled
       ? 'Снять отмену визита'
       : state === 30
@@ -185,7 +219,7 @@ const PeopleList = ({
       'list__badge',
       isCancelled ? 'list__badge--cancel' : '',
       `list__badge--state-${isCancelled || isCompleted ? 'on' : 'off'}`,
-      isAllowed ? 'list__badge--clickable' : '',
+      'list__badge--clickable',
     ]
       .filter(Boolean)
       .join(' ')
@@ -198,82 +232,15 @@ const PeopleList = ({
         onSingleClick?.(person, dateKey)
       }
 
-      if (isCancelled && !canToggleCancelled) return
-      if (isCompleted && !canToggleCompleted) return
-      if (!isCancelled && !isCompleted && !canToggleCancelled && !canToggleCompleted) return
+      if (!items.length) return
 
-      const personId = person.id
-      const state = clickStateRef.current.get(personId) || { count: 0, timer: null }
-      state.count += 1
-      if (state.timer) {
-        clearTimeout(state.timer)
-        state.timer = null
-      }
+      // Если нет ни одного доступного действия — не показываем меню
+      if (!hasAny) return
 
-      const applyCancelledToggle = () => {
-        const nextValue = !isCancelled
-        if (nextValue && canMarkCancelled) {
-          onToggleCancelled?.(person.id, dateKey, true)
-        }
-        if (!nextValue && canUnmarkCancelled) {
-          onToggleCancelled?.(person.id, dateKey, false)
-        }
-      }
-
-      const applyCompletedToggle = () => {
-        const nextValue = !isCompleted
-        if (nextValue && canMarkCompleted) {
-          onToggleCompleted?.(person.id, dateKey, true)
-        }
-        if (!nextValue && canUnmarkCompleted) {
-          onToggleCompleted?.(person.id, dateKey, false)
-        }
-      }
-
-      if (isCancelled) {
-        if (state.count >= 3) {
-          applyCancelledToggle()
-          resetClickState(personId)
-          return
-        }
-        state.timer = setTimeout(() => resetClickState(personId), CLICK_TIMEOUT)
-        clickStateRef.current.set(personId, state)
-        return
-      }
-
-      if (isCompleted) {
-        if (state.count >= 2) {
-          applyCompletedToggle()
-          resetClickState(personId)
-          return
-        }
-        state.timer = setTimeout(() => resetClickState(personId), CLICK_TIMEOUT)
-        clickStateRef.current.set(personId, state)
-        return
-      }
-
-      if (state.count >= 3) {
-        if (canToggleCancelled) {
-          applyCancelledToggle()
-          resetClickState(personId)
-          return
-        }
-        if (canToggleCompleted) {
-          applyCompletedToggle()
-          resetClickState(personId)
-          return
-        }
-      }
-
-      if (state.count >= 2 && canToggleCompleted) {
-        state.timer = setTimeout(() => {
-          applyCompletedToggle()
-          resetClickState(personId)
-        }, CLICK_TIMEOUT)
-      } else {
-        state.timer = setTimeout(() => resetClickState(personId), CLICK_TIMEOUT)
-      }
-      clickStateRef.current.set(personId, state)
+      setVisitMenu((prev) => {
+        if (prev?.person?.id === person?.id) return null
+        return { person, x: event.clientX + 8, y: event.clientY + 8 }
+      })
     }
 
     return (
@@ -281,9 +248,9 @@ const PeopleList = ({
         type="button"
         className={className}
         title={title}
-        disabled={!isAllowed}
         onClick={handleStatusClick}
         aria-label={title}
+        aria-haspopup="menu"
       >
         <i
           className={`fa-solid ${isCancelled ? 'fa-person-running' : 'fa-user-check'}`}
@@ -451,6 +418,34 @@ const PeopleList = ({
         </div>
       ))}
       {!people.length && <div className="list__empty text text--muted">Пока пусто</div>}
+      {visitMenu && (
+        <div
+          ref={visitMenuRef}
+          className="visit-menu"
+          style={{ left: `${visitMenu.x}px`, top: `${visitMenu.y}px` }}
+          role="menu"
+        >
+          {buildVisitMenuItems(visitMenu.person)
+            .filter((item) => item.enabled)
+            .map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className="visit-menu__item"
+              onClick={(e) => {
+                e.stopPropagation()
+                // После выбора пункта открываем запись справа в режиме чтения
+                onSingleClick?.(visitMenu.person, dateKey)
+                item.action?.()
+                setVisitMenu(null)
+              }}
+              role="menuitem"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
