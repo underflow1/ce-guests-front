@@ -367,7 +367,9 @@ const EntryForm = ({
     {isMeetingResultVisible && !isFormLocked && (
       <div className="form__field">
         <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
-          Результат
+          {Number(entryState) === 30 && !isMeetingResultDisabled && !form.resultState
+            ? 'Выберите результат'
+            : 'Результат'}
         </span>
         <div className="form__control">
           <div className="visit-goals">
@@ -394,7 +396,7 @@ const EntryForm = ({
           {isMeetingResultDisabled && (
             <div className="visit-goals__hint text text--down text--muted">Нет прав на изменение результата</div>
           )}
-          {!isMeetingResultDisabled && !form.resultState && (
+          {!isMeetingResultDisabled && !form.resultState && Number(entryState) !== 30 && (
             <div className="visit-goals__hint text text--down text--muted">Выберите результат</div>
           )}
           {canRollback && Number(entryState) !== 50 && (
@@ -416,7 +418,15 @@ const EntryForm = ({
         {[40, 50].includes(Number(form?.resultState)) && (resultRequiresReason || resultReasonsLoading) && (
           <div className="form__control" style={{ marginTop: 'var(--space-2)' }}>
             {!isMeetingResultDisabled && resultRequiresReason && (
-              <div className="visit-goals__hint text text--down text--muted">Выберите причину</div>
+              <div
+                className={[
+                  'visit-goals__hint',
+                  'form__label',
+                  labelTextClassName || 'text text--down text--muted',
+                ].join(' ')}
+              >
+                Выберите причину
+              </div>
             )}
             <div className="visit-goals">
               {resultReasonsLoading ? (

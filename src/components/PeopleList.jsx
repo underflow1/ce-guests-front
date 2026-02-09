@@ -321,8 +321,10 @@ const PeopleList = ({
                 {grouped[hour].map((person) => (
                     <li
                       key={person.id}
-                      className={`list__item ${Number(person?.state) >= 30 ? 'list__item--completed' : ''} ${
+                      className={`list__item ${Number(person?.state) === 30 ? 'list__item--completed' : ''} ${
                         Number(person?.state) === 20 ? 'list__item--cancelled' : ''
+                      } ${[40, 60].includes(Number(person?.state)) ? 'list__item--subtle' : ''} ${
+                        [20, 40].includes(Number(person?.state)) ? 'list__item--strike' : ''
                       }`}
                       draggable={Number(person?.state) === 10 && canMove}
                       onDragStart={(event) => {
@@ -368,6 +370,11 @@ const PeopleList = ({
                     >
                       {isSimpleVariant ? (
                         <span className={nameClassName}>
+                          <span className="list__badges">
+                            {renderMeetingResultBadge(person) ?? (
+                              <span className="list__badge list__badge--static" aria-hidden="true" />
+                            )}
+                          </span>
                           <span className="list__text">{person.name}</span>
                         </span>
                       ) : (

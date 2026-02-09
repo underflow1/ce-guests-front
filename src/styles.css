@@ -1112,6 +1112,37 @@ body.interface-user .time-grid__label {
   opacity: 0.5;
 }
 
+/* User UI: тонкая настройка визуальных состояний по state.
+   - 40/50/60: приглушаем (subtle)
+   - 20/40: дополнительно зачеркиваем (strike)
+   При этом state=30 не должен быть приглушен только из-за класса completed. */
+body.interface-user .list__item--completed .list__content {
+  opacity: 1;
+}
+
+body.interface-user .list__item--subtle .list__content,
+body.interface-user .list__item--subtle .list__goals,
+body.interface-user .list__item--subtle .list__text,
+body.interface-user .list__item--subtle .list__responsible {
+  opacity: 0.6;
+}
+
+body.interface-user .list__item--strike .list__content,
+body.interface-user .list__item--strike .list__goals,
+body.interface-user .list__item--strike .list__text,
+body.interface-user .list__item--strike .list__responsible {
+  text-decoration: line-through;
+}
+
+/* Отменённые (state=20) оставляем ещё чуть более "мьютед" */
+body.interface-user .list__item--cancelled .list__content,
+body.interface-user .list__item--cancelled .list__goals,
+body.interface-user .list__item--cancelled .list__text,
+body.interface-user .list__item--cancelled .list__responsible {
+  opacity: 0.6;
+  color: var(--color-text-muted);
+}
+
 .list__responsible {
   font-style: italic;
   color: var(--color-text-subtle);
