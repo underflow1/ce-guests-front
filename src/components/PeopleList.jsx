@@ -387,6 +387,9 @@ const PeopleList = ({
                               <span className="list__badges">
                                 {renderPassBadge(person)}
                                 {renderStatusBadge(person)}
+                                {renderMeetingResultBadge(person) ?? (
+                                  <span className="list__badge list__badge--static" aria-hidden="true" />
+                                )}
                               </span>
                               <span className="list__primary">
                                 <span className="list__text">{person.name}</span>
@@ -397,7 +400,8 @@ const PeopleList = ({
                                   </span>
                                 )}
                               </span>
-                              <span className="list__stacked-icon">{renderMeetingResultBadge(person)}</span>
+                              {/* Оставляем слот, чтобы строка с целями не съезжала */}
+                              <span className="list__stacked-icon" aria-hidden="true" />
                               <span
                                 className={[
                                   'list__goals',
@@ -418,6 +422,9 @@ const PeopleList = ({
                               <span className="list__badges">
                                 {renderPassBadge(person)}
                                 {renderStatusBadge(person)}
+                                {renderMeetingResultBadge(person) ?? (
+                                  <span className="list__badge list__badge--static" aria-hidden="true" />
+                                )}
                               </span>
                               <span className="list__content">
                                 <span className="list__text">{person.name}</span>
