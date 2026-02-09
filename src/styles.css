@@ -219,6 +219,17 @@ button {
   pointer-events: none;
 }
 
+/* User UI: тосты в правом нижнем углу */
+body.interface-user .toast-host {
+  top: auto;
+  bottom: var(--space-4);
+  left: auto;
+  right: var(--space-4);
+  transform: none;
+  width: min(420px, calc(100vw - (var(--space-4) * 2)));
+  align-items: flex-end;
+}
+
 body.duty-officer-mobile .toast-host {
   top: auto;
   bottom: var(--space-3);
