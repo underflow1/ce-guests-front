@@ -23,6 +23,8 @@ const PeopleList = ({
   dateKey,
   typographyVariant,
   itemVariant = 'full',
+  activeEntryId,
+  isFormActive,
   onDragStart,
   onDrop,
   onDoubleClick,
@@ -95,20 +97,18 @@ const PeopleList = ({
   }
 
   const renderMeetingResultBadge = (person) => {
-    const code = person?.meeting_result_code
     const state = Number(person?.state)
-    const isCancelled = state === 20
-    const variant = getMeetingResultVariant(code, isCancelled)
+    const variant = getMeetingResultVariant(state)
     if (!variant) return null
 
-    const iconClass = getMeetingResultIcon(code, isCancelled)
-    const title = getMeetingResultTitle(code, isCancelled)
+    const iconClass = getMeetingResultIcon(state)
+    const title = getMeetingResultTitle(state)
 
     const className = [
       'list__badge',
       'list__badge--static',
-      'list__badge--meeting-result',
-      `list__badge--meeting-result-${variant}`,
+      'list__badge--result',
+      `list__badge--result-${variant}`,
     ]
       .filter(Boolean)
       .join(' ')
@@ -192,6 +192,11 @@ const PeopleList = ({
 
     const handleStatusClick = (event) => {
       event.stopPropagation()
+
+      // Если эта запись сейчас редактируется в правой панели — любой клик по ней в списке схлопывает в чтение
+      if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+        onSingleClick?.(person, dateKey)
+      }
 
       if (isCancelled && !canToggleCancelled) return
       if (isCompleted && !canToggleCompleted) return
@@ -327,7 +332,16 @@ const PeopleList = ({
                         }
                         onDragStart(event, person, dateKey)
                       }}
-                      onClick={() => {
+                      onClick={(event) => {
+                        // Любые клики по иконкам/бейджам не должны открывать просмотр/редактирование записи
+                        if (event?.target?.closest?.('.list__badge') || event?.target?.closest?.('.list__badges')) {
+                          // Но если это текущая редактируемая запись — схлопываем в чтение
+                          if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+                            onSingleClick?.(person, dateKey)
+                          }
+                          event.stopPropagation()
+                          return
+                        }
                         if (!onSingleClick) return
                         const personId = person.id
                         resetClickTimer(personId)
@@ -338,6 +352,15 @@ const PeopleList = ({
                         clickTimerRef.current.set(personId, timer)
                       }}
                       onDoubleClick={(event) => {
+                        // Любые клики по иконкам/бейджам не должны открывать просмотр/редактирование записи
+                        if (event?.target?.closest?.('.list__badge') || event?.target?.closest?.('.list__badges')) {
+                          // Но если это текущая редактируемая запись — схлопываем в чтение
+                          if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+                            onSingleClick?.(person, dateKey)
+                          }
+                          event.stopPropagation()
+                          return
+                        }
                         event.stopPropagation()
                         resetClickTimer(person.id)
                         onDoubleClick?.(person, dateKey)

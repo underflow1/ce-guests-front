@@ -23,9 +23,8 @@ const UserInterface = ({
   nextWorkdayPeople,
   bottomEntries,
   visitGoals,
-  meetingResults,
-  meetingResultReasons,
-  meetingResultReasonsLoading,
+  resultReasons,
+  resultReasonsLoading,
   form,
   setForm,
   isFormActive,
@@ -82,6 +81,8 @@ const UserInterface = ({
           visitGoals={visitGoals}
           showVisitGoals
           dateKey={previousWorkdayKey}
+          activeEntryId={form.editingEntryId}
+          isFormActive={isFormActive}
           onDragStart={handleDragStart}
           onDrop={handleDrop}
           onDoubleClick={handleDoubleClick}
@@ -114,6 +115,8 @@ const UserInterface = ({
         visitGoals={visitGoals}
         showVisitGoals
         dateKey={todayKey}
+        activeEntryId={form.editingEntryId}
+        isFormActive={isFormActive}
         onDragStart={handleDragStart}
         onDrop={handleDrop}
         onDoubleClick={handleDoubleClick}
@@ -151,6 +154,8 @@ const UserInterface = ({
           visitGoals={visitGoals}
           showVisitGoals
           dateKey={nextWorkdayKey}
+          activeEntryId={form.editingEntryId}
+          isFormActive={isFormActive}
           onDragStart={handleDragStart}
           onDrop={handleDrop}
           onDoubleClick={handleDoubleClick}
@@ -175,7 +180,7 @@ const UserInterface = ({
       <section className={`panel${!isFormActive ? ' panel--inactive' : ''}`}>
         <header className="panel__header text">
           <div className="text text--bold">
-            {form.editingEntryId ? 'Редактирование записи' : 'Новая запись'}
+            {form.editingEntryId ? (isFormActive ? 'Редактирование записи' : 'Просмотр записи') : 'Новая запись'}
           </div>
         </header>
         <EntryForm
@@ -193,11 +198,11 @@ const UserInterface = ({
           canEditEntry={canEditEntry}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
+          canUnmarkCancelled={canUnmarkCancelled}
           canDeleteEntry={canDelete}
           visitGoals={visitGoals}
-          meetingResults={meetingResults}
-          meetingResultReasons={meetingResultReasons}
-          meetingResultReasonsLoading={meetingResultReasonsLoading}
+          resultReasons={resultReasons}
+          resultReasonsLoading={resultReasonsLoading}
           canSetMeetingResult={canSetMeetingResult}
           canChangeMeetingResult={canChangeMeetingResult}
           canRollbackMeetingResult={canRollbackMeetingResult}
@@ -207,6 +212,7 @@ const UserInterface = ({
           isFormActive={isFormActive}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
+          onToggleCancelled={handleToggleCancelled}
           onDeleteEntry={handleDeleteEntry}
           onRollbackMeetingResult={handleRollbackMeetingResult}
           onExitEdit={handleExitEdit}

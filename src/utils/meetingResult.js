@@ -3,49 +3,43 @@
  */
 
 /**
- * Получить иконку для статуса результата встречи
- * @param {number|null|undefined} code - код статуса (1=pending, 2=employed, 3=rejected)
- * @param {boolean} isCancelled - отменена ли встреча
+ * Получить иконку для статуса результата (по state)
+ * @param {number|null|undefined} state - состояние записи (40/50/60, 20=отменена)
  * @returns {string|null} - класс иконки FontAwesome или null
  */
-export function getMeetingResultIcon(code, isCancelled = false) {
-  // Если встреча отменена, показываем крестик
-  if (isCancelled) return 'fa-xmark'
-  
-  if (code === 1) return 'fa-spinner'      // pending (Не оформлен)
-  if (code === 2) return 'fa-check-double' // employed (Трудоустроен)
-  if (code === 3) return 'fa-xmark'         // rejected (Отказ)
+export function getMeetingResultIcon(state) {
+  const s = Number(state)
+  if (s === 20) return 'fa-xmark'
+  if (s === 50) return 'fa-spinner' // Не оформлен
+  if (s === 60) return 'fa-check-double' // Трудоустроен
+  if (s === 40) return 'fa-xmark' // Отказ
   return null
 }
 
 /**
- * Получить вариант для CSS классов
- * @param {number|null|undefined} code - код статуса
- * @param {boolean} isCancelled - отменена ли встреча
+ * Получить вариант для CSS классов (по state)
+ * @param {number|null|undefined} state - состояние записи
  * @returns {string|null} - вариант (pending/employed/cancelled) или null
  */
-export function getMeetingResultVariant(code, isCancelled = false) {
-  // Если встреча отменена, показываем как cancelled
-  if (isCancelled) return 'cancelled'
-  
-  if (code === 1) return 'pending'   // Не оформлен
-  if (code === 2) return 'employed'  // Трудоустроен
-  if (code === 3) return 'cancelled' // Отказ
+export function getMeetingResultVariant(state) {
+  const s = Number(state)
+  if (s === 20) return 'cancelled'
+  if (s === 50) return 'pending' // Не оформлен
+  if (s === 60) return 'employed' // Трудоустроен
+  if (s === 40) return 'cancelled' // Отказ
   return null
 }
 
 /**
- * Получить текст для tooltip
- * @param {number|null|undefined} code - код статуса
- * @param {boolean} isCancelled - отменена ли встреча
+ * Получить текст для tooltip (по state)
+ * @param {number|null|undefined} state - состояние записи
  * @returns {string} - текст подсказки
  */
-export function getMeetingResultTitle(code, isCancelled = false) {
-  // Если встреча отменена
-  if (isCancelled) return 'Встреча отменена'
-  
-  if (code === 1) return 'В процессе'
-  if (code === 2) return 'Трудоустроен'
-  if (code === 3) return 'Отказ'
+export function getMeetingResultTitle(state) {
+  const s = Number(state)
+  if (s === 20) return 'Визит отменен'
+  if (s === 50) return 'В процессе'
+  if (s === 60) return 'Трудоустроен'
+  if (s === 40) return 'Отказ'
   return ''
 }

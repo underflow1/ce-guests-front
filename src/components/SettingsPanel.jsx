@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import useSettings from '../hooks/useSettings'
 import useVisitGoals from '../hooks/useVisitGoals'
-import useMeetingResults from '../hooks/useMeetingResults'
+import { apiGet, apiPost, apiPatch, apiPut } from '../utils/api'
 import { useToast } from './ToastProvider'
 
 const SettingsPanel = ({ onBack }) => {
@@ -13,28 +13,20 @@ const SettingsPanel = ({ onBack }) => {
     loading: goalsLoading,
     error: goalsError,
   } = useVisitGoals()
-  const {
-    getAllResults,
-    createResult,
-    updateResult,
-    getAllReasons,
-    createReason,
-    updateReason,
-    loading: meetingResultsLoading,
-    error: meetingResultsError,
-  } = useMeetingResults()
   const { pushToast } = useToast()
   const [error, setError] = useState(null)
   const lastErrorRef = useRef(null)
   const [visitGoals, setVisitGoals] = useState([])
   const [newGoalName, setNewGoalName] = useState('')
-  const [meetingResults, setMeetingResults] = useState([])
-  const [meetingResultReasons, setMeetingResultReasons] = useState([])
-  const [selectedMeetingResultId, setSelectedMeetingResultId] = useState(null)
-  const [newMeetingResultName, setNewMeetingResultName] = useState('')
-  const [newMeetingReasonName, setNewMeetingReasonName] = useState('')
-  const [meetingResultEdits, setMeetingResultEdits] = useState({})
-  const [meetingReasonEdits, setMeetingReasonEdits] = useState({})
+  const [allReasons, setAllReasons] = useState([])
+  const [newReasonName, setNewReasonName] = useState('')
+  const [reasonEdits, setReasonEdits] = useState({})
+  const [reasonsLoading, setReasonsLoading] = useState(false)
+  const [reasonsError, setReasonsError] = useState(null)
+
+  const [activeReasonState, setActiveReasonState] = useState(50) // 50=Не оформлен, 40=Отказ
+  const [allowedReasonIds, setAllowedReasonIds] = useState(new Set())
+  const [allowedLoading, setAllowedLoading] = useState(false)
 
   // Типы уведомлений (fallback, если metadata отсутствует)
   const fallbackNotificationTypes = [
@@ -42,7 +34,8 @@ const SettingsPanel = ({ onBack }) => {
     { code: 'entry_updated', title: 'Обновление записи' },
     { code: 'entry_completed', title: 'Гость отмечен как пришедший' },
     { code: 'entry_uncompleted', title: 'Гость отмечен как не пришедший' },
-    { code: 'meeting_result_set', title: 'Результат встречи установлен' },
+    { code: 'result_set', title: 'Результат установлен' },
+    { code: 'result_rollback', title: 'Результат откатан' },
     { code: 'visit_cancelled', title: 'Визит отменен' },
     { code: 'visit_uncancelled', title: 'Отмена визита снята' },
     { code: 'entry_moved', title: 'Перенос записи' },
@@ -135,6 +128,45 @@ const SettingsPanel = ({ onBack }) => {
     loadSettings()
   }, [])
 
+  const loadAllReasons = async () => {
+    try {
+      setReasonsError(null)
+      setReasonsLoading(true)
+      const res = await apiGet('/reasons/all')
+      setAllReasons(res?.reasons || [])
+    } catch (err) {
+      setReasonsError(err.message || 'Не удалось загрузить причины')
+    } finally {
+      setReasonsLoading(false)
+    }
+  }
+
+  const loadAllowedReasons = async (state) => {
+    const s = Number(state)
+    if (![40, 50].includes(s)) return
+    try {
+      setAllowedLoading(true)
+      const res = await apiGet(`/states/${s}/reasons/all`)
+      const list = res?.reasons || []
+      setAllowedReasons(list)
+      setAllowedReasonIds(new Set(list.map((r) => r.id)))
+    } catch (err) {
+      setReasonsError(err.message || 'Не удалось загрузить список разрешенных причин')
+    } finally {
+      setAllowedLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadAllReasons()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    loadAllowedReasons(activeReasonState)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeReasonState])
+
   useEffect(() => {
     const loadGoals = async () => {
       try {
@@ -148,43 +180,12 @@ const SettingsPanel = ({ onBack }) => {
   }, [])
 
   useEffect(() => {
-    const loadMeetingResults = async () => {
-      try {
-        const results = await getAllResults()
-        setMeetingResults(results)
-        if (results.length > 0) {
-          setSelectedMeetingResultId((prev) => prev || results[0].id)
-        }
-      } catch (err) {
-        console.log('Не удалось загрузить результаты встреч', err)
-      }
-    }
-    loadMeetingResults()
-  }, [])
-
-  useEffect(() => {
-    const loadMeetingReasons = async () => {
-      if (!selectedMeetingResultId) {
-        setMeetingResultReasons([])
-        return
-      }
-      try {
-        const reasons = await getAllReasons(selectedMeetingResultId)
-        setMeetingResultReasons(reasons)
-      } catch (err) {
-        console.log('Не удалось загрузить причины результата', err)
-      }
-    }
-    loadMeetingReasons()
-  }, [selectedMeetingResultId])
-
-  useEffect(() => {
-    setMeetingReasonEdits({})
-    setNewMeetingReasonName('')
-  }, [selectedMeetingResultId])
+    setReasonEdits({})
+    setNewReasonName('')
+  }, [activeReasonState])
 
   // Обработка ошибок
-  const displayError = error || apiError || goalsError || meetingResultsError
+  const displayError = error || apiError || goalsError || reasonsError
   useEffect(() => {
     if (!displayError) {
       lastErrorRef.current = null
@@ -290,118 +291,43 @@ const SettingsPanel = ({ onBack }) => {
     }
   }
 
-  const handleCreateMeetingResult = async () => {
-    const name = newMeetingResultName.trim()
+  const handleCreateReason = async () => {
+    const name = newReasonName.trim()
     if (!name) {
-      setError('Введите название результата встречи')
+      setError('Введите название причины')
       return
     }
-
     try {
       setError(null)
-      const created = await createResult(name)
-      const updatedResults = await getAllResults()
-      setMeetingResults(updatedResults)
-      setSelectedMeetingResultId(created?.id || null)
-      setNewMeetingResultName('')
-      pushToast({
-        type: 'success',
-        title: 'Готово',
-        message: 'Результат встречи добавлен',
-      })
+      await apiPost('/reasons', { name })
+      await loadAllReasons()
+      setNewReasonName('')
+      pushToast({ type: 'success', title: 'Готово', message: 'Причина добавлена' })
     } catch (err) {
-      setError(err.message || 'Ошибка при добавлении результата встречи')
+      setError(err.message || 'Ошибка при добавлении причины')
     }
   }
 
-  const handleToggleMeetingResult = async (resultId, nextActive) => {
+  const handleToggleReason = async (reasonId, nextActive) => {
     try {
       setError(null)
-      await updateResult(resultId, { is_active: nextActive })
-      const updatedResults = await getAllResults()
-      setMeetingResults(updatedResults)
+      await apiPatch(`/reasons/${reasonId}`, { is_active: nextActive })
+      await loadAllReasons()
+      // если причина сейчас разрешена для выбранного state — просто перезагрузим список
+      await loadAllowedReasons(activeReasonState)
       pushToast({
         type: 'success',
         title: 'Готово',
-        message: nextActive ? 'Результат встречи восстановлен' : 'Результат встречи скрыт',
+        message: nextActive ? 'Причина восстановлена' : 'Причина скрыта',
       })
     } catch (err) {
-      setError(err.message || 'Ошибка при обновлении результата встречи')
+      setError(err.message || 'Ошибка при обновлении причины')
     }
   }
 
-  const handleUpdateMeetingResultName = async (resultId) => {
-    const original = meetingResults.find((item) => item.id === resultId)
-    const nextName = (meetingResultEdits[resultId] ?? original?.name ?? '').trim()
-    if (!nextName) {
-      setError('Название результата встречи не может быть пустым')
-      return
-    }
-    if (nextName === original?.name) return
-
-    try {
-      setError(null)
-      await updateResult(resultId, { name: nextName })
-      const updatedResults = await getAllResults()
-      setMeetingResults(updatedResults)
-      setMeetingResultEdits((prev) => {
-        const next = { ...prev }
-        delete next[resultId]
-        return next
-      })
-      pushToast({
-        type: 'success',
-        title: 'Готово',
-        message: 'Результат встречи обновлен',
-      })
-    } catch (err) {
-      setError(err.message || 'Ошибка при обновлении результата встречи')
-    }
-  }
-
-  const handleCreateMeetingReason = async () => {
-    if (!selectedMeetingResultId) return
-    const name = newMeetingReasonName.trim()
-    if (!name) {
-      setError('Введите название причины результата')
-      return
-    }
-
-    try {
-      setError(null)
-      await createReason(selectedMeetingResultId, name)
-      const updatedReasons = await getAllReasons(selectedMeetingResultId)
-      setMeetingResultReasons(updatedReasons)
-      setNewMeetingReasonName('')
-      pushToast({
-        type: 'success',
-        title: 'Готово',
-        message: 'Причина результата добавлена',
-      })
-    } catch (err) {
-      setError(err.message || 'Ошибка при добавлении причины результата')
-    }
-  }
-
-  const handleToggleMeetingReason = async (reasonId, nextActive) => {
-    try {
-      setError(null)
-      await updateReason(reasonId, { is_active: nextActive })
-      const updatedReasons = await getAllReasons(selectedMeetingResultId)
-      setMeetingResultReasons(updatedReasons)
-      pushToast({
-        type: 'success',
-        title: 'Готово',
-        message: nextActive ? 'Причина результата восстановлена' : 'Причина результата скрыта',
-      })
-    } catch (err) {
-      setError(err.message || 'Ошибка при обновлении причины результата')
-    }
-  }
-
-  const handleUpdateMeetingReasonName = async (reasonId) => {
-    const original = meetingResultReasons.find((item) => item.id === reasonId)
-    const nextName = (meetingReasonEdits[reasonId] ?? original?.name ?? '').trim()
+  const handleUpdateReasonName = async (reasonId) => {
+    const original = allReasons.find((item) => item.id === reasonId)
+    const nextName = (reasonEdits[reasonId] ?? original?.name ?? '').trim()
     if (!nextName) {
       setError('Название причины не может быть пустым')
       return
@@ -410,21 +336,38 @@ const SettingsPanel = ({ onBack }) => {
 
     try {
       setError(null)
-      await updateReason(reasonId, { name: nextName })
-      const updatedReasons = await getAllReasons(selectedMeetingResultId)
-      setMeetingResultReasons(updatedReasons)
-      setMeetingReasonEdits((prev) => {
+      await apiPatch(`/reasons/${reasonId}`, { name: nextName })
+      await loadAllReasons()
+      await loadAllowedReasons(activeReasonState)
+      setReasonEdits((prev) => {
         const next = { ...prev }
         delete next[reasonId]
         return next
       })
-      pushToast({
-        type: 'success',
-        title: 'Готово',
-        message: 'Причина результата обновлена',
-      })
+      pushToast({ type: 'success', title: 'Готово', message: 'Причина обновлена' })
     } catch (err) {
-      setError(err.message || 'Ошибка при обновлении причины результата')
+      setError(err.message || 'Ошибка при обновлении причины')
+    }
+  }
+
+  const handleToggleAllowed = (reasonId) => {
+    setAllowedReasonIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(reasonId)) next.delete(reasonId)
+      else next.add(reasonId)
+      return next
+    })
+  }
+
+  const handleSaveAllowed = async () => {
+    try {
+      setError(null)
+      const ids = Array.from(allowedReasonIds)
+      await apiPut(`/states/${Number(activeReasonState)}/reasons`, { reason_ids: ids })
+      await loadAllowedReasons(activeReasonState)
+      pushToast({ type: 'success', title: 'Готово', message: 'Список причин сохранён' })
+    } catch (err) {
+      setError(err.message || 'Ошибка при сохранении списка причин')
     }
   }
 
@@ -845,54 +788,84 @@ const SettingsPanel = ({ onBack }) => {
             </div>
           </div>
 
-          {/* Секция результатов встреч */}
+          {/* Секция причин результатов (по state) */}
           <div style={{ marginTop: 'var(--space-6)' }}>
             <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Результаты встреч
+              Причины результатов
             </h3>
 
-            <div style={{ display: 'flex', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 280px', minWidth: 260 }}>
-                <div
-                  style={{
-                    padding: 'var(--space-4)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'var(--color-surface-muted)',
-                    display: 'flex',
-                    gap: 'var(--space-2)',
-                    marginBottom: 'var(--space-4)',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <input
-                    type="text"
-                    className="input text text--down"
-                    value={newMeetingResultName}
-                    onChange={(e) => setNewMeetingResultName(e.target.value)}
-                    placeholder="Новый результат"
-                    style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
-                  />
-                  <button
-                    className="button button--primary button--small"
-                    onClick={handleCreateMeetingResult}
-                    disabled={meetingResultsLoading}
-                  >
-                    Добавить
-                  </button>
-                </div>
+            <div
+              style={{
+                padding: 'var(--space-4)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-surface-muted)',
+                display: 'flex',
+                gap: 'var(--space-2)',
+                marginBottom: 'var(--space-4)',
+                flexWrap: 'wrap',
+              }}
+            >
+              <button
+                className={`button button--small${Number(activeReasonState) === 50 ? ' button--primary' : ''}`}
+                onClick={() => setActiveReasonState(50)}
+              >
+                Не оформлен (50)
+              </button>
+              <button
+                className={`button button--small${Number(activeReasonState) === 40 ? ' button--primary' : ''}`}
+                onClick={() => setActiveReasonState(40)}
+              >
+                Отказ (40)
+              </button>
+            </div>
 
+            <div
+              style={{
+                padding: 'var(--space-4)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-surface-muted)',
+                display: 'flex',
+                gap: 'var(--space-2)',
+                marginBottom: 'var(--space-4)',
+                flexWrap: 'wrap',
+              }}
+            >
+              <input
+                type="text"
+                className="input text text--down"
+                value={newReasonName}
+                onChange={(e) => setNewReasonName(e.target.value)}
+                placeholder="Новая причина"
+                style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
+              />
+              <button
+                className="button button--primary button--small"
+                onClick={handleCreateReason}
+                disabled={reasonsLoading}
+              >
+                Добавить
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gap: 'var(--space-4)', gridTemplateColumns: '1fr 1fr' }}>
+              <div>
+                <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
+                  Все причины
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                  {meetingResults.length === 0 ? (
-                    <div className="text text--muted">Результатов пока нет</div>
+                  {reasonsLoading ? (
+                    <div className="text text--muted">Загрузка...</div>
+                  ) : allReasons.length === 0 ? (
+                    <div className="text text--muted">Причин пока нет</div>
                   ) : (
-                    meetingResults.map((result) => {
-                      const editValue = meetingResultEdits[result.id] ?? result.name
-                      const isSelected = selectedMeetingResultId === result.id
-                      const isNameChanged = editValue.trim() && editValue.trim() !== result.name
+                    allReasons.map((reason) => {
+                      const editValue = reasonEdits[reason.id] ?? reason.name
+                      const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
                       return (
                         <div
-                          key={result.id}
+                          key={reason.id}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -901,7 +874,7 @@ const SettingsPanel = ({ onBack }) => {
                             padding: 'var(--space-2) var(--space-3)',
                             border: '1px solid var(--color-border)',
                             borderRadius: 'var(--radius-sm)',
-                            backgroundColor: isSelected ? 'var(--color-surface-muted)' : 'var(--color-surface)',
+                            backgroundColor: 'var(--color-surface)',
                           }}
                         >
                           <div style={{ flex: '1 1 auto' }}>
@@ -910,37 +883,31 @@ const SettingsPanel = ({ onBack }) => {
                               className="input text text--down"
                               value={editValue}
                               onChange={(e) =>
-                                setMeetingResultEdits((prev) => ({
+                                setReasonEdits((prev) => ({
                                   ...prev,
-                                  [result.id]: e.target.value,
+                                  [reason.id]: e.target.value,
                                 }))
                               }
                               style={{ width: '100%', padding: '4px 6px' }}
                             />
                             <div className="text text--down text--muted" style={{ marginTop: '4px' }}>
-                              {result.is_active ? 'Активен' : 'Неактивен'}
+                              {reason.is_active ? 'Активна' : 'Неактивна'}
                             </div>
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
                             <button
                               className="button button--small"
-                              onClick={() => setSelectedMeetingResultId(result.id)}
-                            >
-                              {isSelected ? 'Выбран' : 'Выбрать'}
-                            </button>
-                            <button
-                              className="button button--small"
-                              onClick={() => handleUpdateMeetingResultName(result.id)}
+                              onClick={() => handleUpdateReasonName(reason.id)}
                               disabled={!isNameChanged}
                             >
                               Сохранить
                             </button>
                             <button
-                              className={`button button--small${result.is_active ? '' : ' button--primary'}`}
-                              onClick={() => handleToggleMeetingResult(result.id, !result.is_active)}
-                              disabled={meetingResultsLoading}
+                              className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
+                              onClick={() => handleToggleReason(reason.id, !reason.is_active)}
+                              disabled={reasonsLoading}
                             >
-                              {result.is_active ? 'Скрыть' : 'Восстановить'}
+                              {reason.is_active ? 'Скрыть' : 'Восстановить'}
                             </button>
                           </div>
                         </div>
@@ -950,101 +917,55 @@ const SettingsPanel = ({ onBack }) => {
                 </div>
               </div>
 
-              <div style={{ flex: '1 1 320px', minWidth: 280 }}>
-                {!selectedMeetingResultId ? (
-                  <div className="text text--muted">Выберите результат, чтобы редактировать причины</div>
-                ) : (
-                  <>
-                    <div
-                      style={{
-                        padding: 'var(--space-4)',
-                        border: '1px solid var(--color-border)',
-                        borderRadius: 'var(--radius-sm)',
-                        backgroundColor: 'var(--color-surface-muted)',
-                        display: 'flex',
-                        gap: 'var(--space-2)',
-                        marginBottom: 'var(--space-4)',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <input
-                        type="text"
-                        className="input text text--down"
-                        value={newMeetingReasonName}
-                        onChange={(e) => setNewMeetingReasonName(e.target.value)}
-                        placeholder="Новая причина"
-                        style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
-                      />
-                      <button
-                        className="button button--primary button--small"
-                        onClick={handleCreateMeetingReason}
-                        disabled={meetingResultsLoading}
-                      >
-                        Добавить
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                      {meetingResultReasons.length === 0 ? (
-                        <div className="text text--muted">Причин пока нет</div>
-                      ) : (
-                        meetingResultReasons.map((reason) => {
-                          const editValue = meetingReasonEdits[reason.id] ?? reason.name
-                          const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
-                          return (
-                            <div
-                              key={reason.id}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: 'var(--space-3)',
-                                padding: 'var(--space-2) var(--space-3)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius-sm)',
-                                backgroundColor: 'var(--color-surface)',
-                              }}
-                            >
-                              <div style={{ flex: '1 1 auto' }}>
-                                <input
-                                  type="text"
-                                  className="input text text--down"
-                                  value={editValue}
-                                  onChange={(e) =>
-                                    setMeetingReasonEdits((prev) => ({
-                                      ...prev,
-                                      [reason.id]: e.target.value,
-                                    }))
-                                  }
-                                  style={{ width: '100%', padding: '4px 6px' }}
-                                />
-                                <div className="text text--down text--muted" style={{ marginTop: '4px' }}>
-                                  {reason.is_active ? 'Активна' : 'Неактивна'}
-                                </div>
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                                <button
-                                  className="button button--small"
-                                  onClick={() => handleUpdateMeetingReasonName(reason.id)}
-                                  disabled={!isNameChanged}
-                                >
-                                  Сохранить
-                                </button>
-                                <button
-                                  className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
-                                  onClick={() => handleToggleMeetingReason(reason.id, !reason.is_active)}
-                                  disabled={meetingResultsLoading}
-                                >
-                                  {reason.is_active ? 'Скрыть' : 'Восстановить'}
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        })
-                      )}
-                    </div>
-                  </>
-                )}
+              <div>
+                <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
+                  Разрешены для state={Number(activeReasonState)}
+                </div>
+                <div style={{ marginBottom: 'var(--space-2)' }}>
+                  <button
+                    className="button button--small button--primary"
+                    onClick={handleSaveAllowed}
+                    disabled={allowedLoading}
+                  >
+                    Сохранить список
+                  </button>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 'var(--space-2)',
+                    maxHeight: 420,
+                    overflow: 'auto',
+                    paddingRight: 6,
+                  }}
+                >
+                  {allowedLoading ? (
+                    <div className="text text--muted">Загрузка...</div>
+                  ) : allReasons.length === 0 ? (
+                    <div className="text text--muted">Сначала добавьте причины</div>
+                  ) : (
+                    allReasons.map((reason) => {
+                      const checked = allowedReasonIds.has(reason.id)
+                      return (
+                        <label
+                          key={reason.id}
+                          className="text text--down"
+                          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => handleToggleAllowed(reason.id)}
+                          />
+                          <span style={{ opacity: reason.is_active ? 1 : 0.5 }}>
+                            {reason.name}
+                          </span>
+                        </label>
+                      )
+                    })
+                  )}
+                </div>
               </div>
             </div>
           </div>

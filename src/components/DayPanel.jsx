@@ -13,6 +13,8 @@ const DayPanel = ({
   showVisitGoals = false,
   dateKey,
   compact = false,
+  activeEntryId,
+  isFormActive,
   onDragStart,
   onDrop,
   onDoubleClick,
@@ -57,6 +59,8 @@ const DayPanel = ({
         compact={compact}
         typographyVariant={peopleTypographyVariant}
         itemVariant={peopleVariant}
+        activeEntryId={activeEntryId}
+        isFormActive={isFormActive}
         onDragStart={onDragStart}
         onDrop={onDrop}
         onDoubleClick={onDoubleClick}

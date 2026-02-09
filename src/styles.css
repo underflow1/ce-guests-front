@@ -1077,16 +1077,16 @@ body.interface-user .time-grid__label {
   color: rgba(0, 0, 0, 0.1);
 }
 
-.list__badge--meeting-result-cancelled {
+.list__badge--result-cancelled {
   color: #dc3545;
 }
 
-.list__badge--meeting-result-pending {
+.list__badge--result-pending {
   color: #1e66ff;
   animation: list-badge-spin 1s linear infinite;
 }
 
-.list__badge--meeting-result-employed {
+.list__badge--result-employed {
   color: #28a745;
 }
 

@@ -156,19 +156,18 @@ const SimplePeopleList = ({
   }
 
   const renderMeetingResultBadge = (person) => {
-    const code = person?.meeting_result_code
-    const isCancelled = Number(person?.state) === 20
-    const variant = getMeetingResultVariant(code, isCancelled)
+    const state = Number(person?.state)
+    const variant = getMeetingResultVariant(state)
     if (!variant) return null
 
-    const iconClass = getMeetingResultIcon(code, isCancelled)
-    const title = getMeetingResultTitle(code, isCancelled)
+    const iconClass = getMeetingResultIcon(state)
+    const title = getMeetingResultTitle(state)
 
     const className = [
       'list__badge',
       'list__badge--static',
-      'list__badge--meeting-result',
-      `list__badge--meeting-result-${variant}`,
+      'list__badge--result',
+      `list__badge--result-${variant}`,
     ]
       .filter(Boolean)
       .join(' ')
@@ -215,7 +214,12 @@ const SimplePeopleList = ({
                 }
                 onDragStart(event, person, dateKey)
               }}
-              onClick={() => {
+              onClick={(event) => {
+                // Любые клики по иконкам/бейджам не должны открывать просмотр/редактирование записи
+                if (event?.target?.closest?.('.list__badge') || event?.target?.closest?.('.list__badges')) {
+                  event.stopPropagation()
+                  return
+                }
                 if (!onSingleClick) return
                 const personId = person.id
                 resetClickTimer(personId)
@@ -226,6 +230,11 @@ const SimplePeopleList = ({
                 clickTimerRef.current.set(personId, timer)
               }}
               onDoubleClick={(event) => {
+                // Любые клики по иконкам/бейджам не должны открывать просмотр/редактирование записи
+                if (event?.target?.closest?.('.list__badge') || event?.target?.closest?.('.list__badges')) {
+                  event.stopPropagation()
+                  return
+                }
                 event.stopPropagation()
                 resetClickTimer(person.id)
                 onDoubleClick?.(person, dateKey)
