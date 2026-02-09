@@ -12,7 +12,7 @@ export function getMeetingResultIcon(state) {
   if (s === 20) return 'fa-xmark'
   if (s === 50) return 'fa-spinner' // Не оформлен
   if (s === 60) return 'fa-check-double' // Трудоустроен
-  if (s === 40) return 'fa-xmark' // Отказ
+  if (s === 40) return 'fa-ban' // Отказ
   return null
 }
 

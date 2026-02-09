@@ -1281,14 +1281,24 @@ body.interface-user .time-grid__content {
 }
 
 .visit-goal-chip {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-muted);
-  color: var(--color-text-muted);
+  border: 1px solid var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-text);
   padding: 4px 10px;
   border-radius: 999px;
   cursor: pointer;
   font-size: var(--text-size-down);
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.visit-goal-chip:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.visit-goal-chip:hover:not(:disabled):not(.visit-goal-chip--selected) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent);
 }
 
 .visit-goal-chip--selected {
@@ -1300,6 +1310,7 @@ body.interface-user .time-grid__content {
 .visit-goal-chip:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+  border-color: var(--color-border);
 }
 
 .visit-goals__hint {
