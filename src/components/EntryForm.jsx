@@ -323,6 +323,19 @@ const EntryForm = ({
       </div>
     </div>
 
+    {isEditingActive && isFormLocked && (Number(entryState) === 20 || Number(entryState) === 30) && (
+      <div className="form__field">
+        <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
+          Статус
+        </span>
+        <div className="form__control">
+          <div className="text text--up text--bold">
+            {Number(entryState) === 20 ? 'Встреча отменена' : 'Гость принят'}
+          </div>
+        </div>
+      </div>
+    )}
+
     {isMeetingResultVisible && (
       <div className="form__field">
         <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
