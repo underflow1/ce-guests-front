@@ -765,6 +765,34 @@ const useEntries = ({
         item.id === entryId ? updatedEntry : item
       )
       updateListForDateKey(dateKey, updatedList)
+
+      // В user UI после "Отката" (30 -> 10) автоматически переходим в режим редактирования
+      if (interfaceType === 'user' && !Boolean(isCompleted) && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(true)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+          resultReasonId: updatedEntry.result_reason_id || null,
+        })
+
+        setTimeout(() => {
+          nameInputRef.current?.focus()
+          nameInputRef.current?.select()
+        }, 0)
+      }
     } catch (err) {
       console.error('Ошибка при обновлении статуса записи:', err)
       setError(err.message)
@@ -1130,6 +1158,29 @@ const useEntries = ({
           item.id === entryId ? updatedEntry : item
         )
         updateListForDateKey(sourceDateKey, nextSourceList)
+
+        // После сохранения в user UI оставляем текущую запись выбранной и переводим в режим чтения
+        if (interfaceType === 'user') {
+          const { target, otherDate } = resolveTarget(sourceDateKey)
+          const entryTime = updatedEntry.datetime
+            ? extractTimeFromDateTime(updatedEntry.datetime)
+            : (updatedEntry.time || '00:00')
+          setIsFormActive(false)
+          setForm({
+            name: updatedEntry.name,
+            responsible: updatedEntry.responsible || '',
+            time: entryTime,
+            target,
+            otherDate,
+            editingEntryId: updatedEntry.id,
+            editingDateKey: sourceDateKey,
+            isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            visitGoalIds: updatedEntry.visit_goal_ids || [],
+            resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+            resultReasonId: updatedEntry.result_reason_id || null,
+          })
+          return
+        }
       } else {
         // Создание новой записи
         const newEntry = await apiPost('/entries', {
@@ -1142,9 +1193,32 @@ const useEntries = ({
 
         const targetList = getListForDateKey(targetDateKey)
         updateListForDateKey(targetDateKey, [...targetList, newEntry])
+
+        // После создания в user UI показываем созданную запись в режиме чтения
+        if (interfaceType === 'user') {
+          const { target, otherDate } = resolveTarget(targetDateKey)
+          const entryTime = newEntry.datetime
+            ? extractTimeFromDateTime(newEntry.datetime)
+            : (newEntry.time || form.time || '00:00')
+          setIsFormActive(false)
+          setForm({
+            name: newEntry.name,
+            responsible: newEntry.responsible || '',
+            time: entryTime,
+            target,
+            otherDate,
+            editingEntryId: newEntry.id,
+            editingDateKey: targetDateKey,
+            isCompleted: [30, 40, 50, 60].includes(Number(newEntry?.state)),
+            visitGoalIds: newEntry.visit_goal_ids || [],
+            resultState: [40, 50, 60].includes(Number(newEntry?.state)) ? Number(newEntry.state) : null,
+            resultReasonId: newEntry.result_reason_id || null,
+          })
+          return
+        }
       }
 
-      // Сбрасываем форму
+      // Сбрасываем форму (не user UI)
       setForm({
         name: '',
         responsible: '',

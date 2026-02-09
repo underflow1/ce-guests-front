@@ -22,6 +22,7 @@ const EntryForm = ({
   canMarkPass = false,
   canRevokePass = false,
   canUnmarkCancelled = false,
+  canUnmarkCompleted = false,
   canSetMeetingResult = false,
   canChangeMeetingResult = false,
   canRollbackMeetingResult = false,
@@ -32,6 +33,7 @@ const EntryForm = ({
   onOrderPass,
   onRevokePass,
   onToggleCancelled,
+  onToggleCompleted,
   onDeleteEntry,
   onRollbackMeetingResult,
   onExitEdit,
@@ -50,7 +52,10 @@ const EntryForm = ({
   const isFormLocked = isUser && !isFormActive
   const isEntryLocked = isEditingActive && (isCancelled || isCompleted)
   const isFieldDisabled = isFormLocked || isEntryLocked || (isEditing && !canEditEntry)
-  const isVisitGoalsReadOnly = isFormLocked || isCancelled || (isEditingActive && Number(entryState) === 30)
+  const isVisitGoalsReadOnly =
+    isFormLocked ||
+    isCancelled ||
+    (isEditingActive && [30, 50].includes(Number(entryState)))
   const isMeetingResultVisible = isEditingActive && isCompleted
   const canEditMeetingResultByState =
     entryState === 30 || entryState === 50
@@ -328,17 +333,21 @@ const EntryForm = ({
       </div>
     </div>
 
-    {isEditingActive && isFormLocked && [20, 30, 40].includes(Number(entryState)) && (
+    {isEditingActive && isFormLocked && [10, 20, 30, 40, 50].includes(Number(entryState)) && (
       <div className="form__field">
         <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
           Статус
         </span>
         <div className="form__control">
           <div className="text text--up text--bold">
-            {Number(entryState) === 20
+            {Number(entryState) === 10
+              ? 'Ожидаем встречу'
+              : Number(entryState) === 20
               ? 'Встреча отменена'
               : Number(entryState) === 30
               ? 'Гость принят'
+              : Number(entryState) === 50
+              ? `Не оформлен: ${entry?.result_reason_name || '—'}`
               : `Отказ: ${entry?.result_reason_name || '—'}`}
           </div>
         </div>
@@ -378,7 +387,7 @@ const EntryForm = ({
           {!isMeetingResultDisabled && !form.resultState && (
             <div className="visit-goals__hint text text--down text--muted">Выберите результат</div>
           )}
-          {canRollback && (
+          {canRollback && Number(entryState) !== 50 && (
             <div className="visit-goals__hint text text--down" style={{ marginTop: '4px' }}>
               <button
                 type="button"
@@ -598,6 +607,21 @@ const EntryForm = ({
       >
         {passActionTitle}
       </button>
+      {isEditingActive && Number(entryState) === 30 && (
+        <button
+          type="button"
+          className="button text"
+          title="Откатить (вернуть в черновик)"
+          aria-label="Откатить (вернуть в черновик)"
+          disabled={!canUnmarkCompleted}
+          onClick={() => {
+            if (!canUnmarkCompleted) return
+            onToggleCompleted?.(entry.id, editingDateKey, false)
+          }}
+        >
+          Откатить
+        </button>
+      )}
       {isEditingActive && Number(entryState) === 40 && (
         <button
           type="button"
@@ -607,6 +631,19 @@ const EntryForm = ({
           disabled={!canRollbackFromRefused}
           onClick={() => {
             if (!canRollbackFromRefused) return
+            onRollbackMeetingResult?.(entry.id, editingDateKey)
+          }}
+        >
+          Откатить
+        </button>
+      )}
+      {isEditingActive && Number(entryState) === 50 && (
+        <button
+          type="button"
+          className="button text"
+          title="Откатить (вернуть в «Гость принят»)"
+          aria-label="Откатить (вернуть в «Гость принят»)"
+          onClick={() => {
             onRollbackMeetingResult?.(entry.id, editingDateKey)
           }}
         >
