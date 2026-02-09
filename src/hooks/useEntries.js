@@ -785,6 +785,34 @@ const useEntries = ({
         item.id === entryId ? updatedEntry : item
       )
       updateListForDateKey(dateKey, updatedList)
+
+      // В user UI после "Отката" (20 -> 10) автоматически переходим в режим редактирования
+      if (interfaceType === 'user' && !Boolean(isCancelled) && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(true)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+          resultReasonId: updatedEntry.result_reason_id || null,
+        })
+
+        setTimeout(() => {
+          nameInputRef.current?.focus()
+          nameInputRef.current?.select()
+        }, 0)
+      }
     } catch (err) {
       console.error('Ошибка при обновлении статуса отмены визита:', err)
       setError(err.message)
@@ -873,8 +901,8 @@ const useEntries = ({
       return
     }
 
-    // В пользовательском интерфейсе отменённую запись (state=20) нельзя переводить в режим редактирования
-    if (interfaceType === 'user' && Number(entry?.state) === 20) {
+    // В пользовательском интерфейсе отменённую/отказанную запись (state=20/40) нельзя переводить в режим редактирования
+    if (interfaceType === 'user' && [20, 40].includes(Number(entry?.state))) {
       const { target, otherDate } = resolveTarget(dateKey)
       const entryTime = entry.datetime ? extractTimeFromDateTime(entry.datetime) : (entry.time || '00:00')
 
@@ -942,6 +970,31 @@ const useEntries = ({
   }
 
   const handleExitEdit = () => {
+    // В user UI "Отмена" должна выходить из редактирования, но оставлять выбранную запись в режиме чтения
+    if (interfaceType === 'user' && form.editingEntryId && form.editingDateKey) {
+      const entry = entriesByIdRef.current.get(form.editingEntryId) || null
+      if (entry) {
+        const { target, otherDate } = resolveTarget(form.editingDateKey)
+        const entryTime = entry.datetime ? extractTimeFromDateTime(entry.datetime) : (entry.time || '00:00')
+        setIsFormActive(false)
+        setForm({
+          name: entry.name,
+          responsible: entry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: entry.id,
+          editingDateKey: form.editingDateKey,
+          isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+          visitGoalIds: entry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
+          resultReasonId: entry.result_reason_id || null,
+        })
+        return
+      }
+    }
+
+    // Fallback: сброс формы
     setForm({
       name: '',
       responsible: '',
@@ -1127,13 +1180,28 @@ const useEntries = ({
       )
       updateListForDateKey(dateKey, updatedList)
 
-      // Если сейчас редактируем эту запись — чистим выбранный результат в форме
-      if (form.editingEntryId === entryId) {
-        setForm((prev) => ({
-          ...prev,
+      // Если это текущая запись в user UI — после "Отката" переходим в режим редактирования
+      if (interfaceType === 'user' && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(true)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          // после отката результат сбрасывается (state=30)
           resultState: null,
           resultReasonId: null,
-        }))
+        })
       }
     } catch (err) {
       console.error('Ошибка при откате результата встречи:', err)
