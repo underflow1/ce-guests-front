@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { extractTimeFromDateTime } from '../utils/date'
+import { getMeetingResultIcon, getMeetingResultVariant, getMeetingResultTitle } from '../utils/meetingResult'
 
 const HOURS = Array.from({ length: 10 }, (_, idx) =>
   String(9 + idx).padStart(2, '0'),
@@ -22,6 +23,8 @@ const PeopleList = ({
   dateKey,
   typographyVariant,
   itemVariant = 'full',
+  activeEntryId,
+  isFormActive,
   onDragStart,
   onDrop,
   onDoubleClick,
@@ -93,38 +96,19 @@ const PeopleList = ({
     return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
   }
 
-  const getMeetingResultBadgeVariant = (person) => {
-    if (person?.is_cancelled) return 'cancelled'
-    const resultName = String(person?.meeting_result_name || '').toLowerCase()
-    if (!resultName) return null
-    if (resultName.includes('отказ') || resultName.includes('отмен')) return 'cancelled'
-    if (resultName.includes('не оформ')) return 'pending'
-    if (resultName.includes('трудоустро')) return 'employed'
-    return null
-  }
-
   const renderMeetingResultBadge = (person) => {
-    const variant = getMeetingResultBadgeVariant(person)
+    const state = Number(person?.state)
+    const variant = getMeetingResultVariant(state)
     if (!variant) return null
 
-    const iconClass =
-      variant === 'pending'
-        ? 'fa-spinner'
-        : variant === 'employed'
-        ? 'fa-check-double'
-        : 'fa-xmark'
-    const title =
-      variant === 'pending'
-        ? 'В процессе'
-        : variant === 'employed'
-        ? 'Трудоустроен'
-        : 'Отказ или отмена визита'
+    const iconClass = getMeetingResultIcon(state)
+    const title = getMeetingResultTitle(state)
 
     const className = [
       'list__badge',
       'list__badge--static',
-      'list__badge--meeting-result',
-      `list__badge--meeting-result-${variant}`,
+      'list__badge--result',
+      `list__badge--result-${variant}`,
     ]
       .filter(Boolean)
       .join(' ')
@@ -180,10 +164,11 @@ const PeopleList = ({
   }
 
   const renderStatusBadge = (person) => {
-    const isCompleted = Boolean(person.is_completed)
-    const isCancelled = Boolean(person.is_cancelled)
-    const canToggleCompleted = isCompleted ? canUnmarkCompleted : canMarkCompleted
-    const canToggleCancelled = isCancelled ? canUnmarkCancelled : canMarkCancelled
+    const state = Number(person?.state)
+    const isCancelled = state === 20
+    const isCompleted = state >= 30
+    const canToggleCompleted = state === 30 ? canUnmarkCompleted : state === 10 ? canMarkCompleted : false
+    const canToggleCancelled = state === 20 ? canUnmarkCancelled : state === 10 ? canMarkCancelled : false
     const isAllowed = isCancelled
       ? canToggleCancelled
       : isCompleted
@@ -191,8 +176,10 @@ const PeopleList = ({
       : canToggleCancelled || canToggleCompleted
     const title = isCancelled
       ? 'Снять отмену визита'
-      : isCompleted
+      : state === 30
       ? 'Снять принятие'
+      : isCompleted
+      ? 'Гость принят'
       : 'Визит не состоялся'
     const className = [
       'list__badge',
@@ -205,6 +192,11 @@ const PeopleList = ({
 
     const handleStatusClick = (event) => {
       event.stopPropagation()
+
+      // Если эта запись сейчас редактируется в правой панели — любой клик по ней в списке схлопывает в чтение
+      if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+        onSingleClick?.(person, dateKey)
+      }
 
       if (isCancelled && !canToggleCancelled) return
       if (isCompleted && !canToggleCompleted) return
@@ -329,18 +321,29 @@ const PeopleList = ({
                 {grouped[hour].map((person) => (
                     <li
                       key={person.id}
-                      className={`list__item ${person.is_completed ? 'list__item--completed' : ''} ${
-                        person.is_cancelled ? 'list__item--cancelled' : ''
+                      className={`list__item ${Number(person?.state) === 30 ? 'list__item--completed' : ''} ${
+                        Number(person?.state) === 20 ? 'list__item--cancelled' : ''
+                      } ${[40, 60].includes(Number(person?.state)) ? 'list__item--subtle' : ''} ${
+                        [20, 40].includes(Number(person?.state)) ? 'list__item--strike' : ''
                       }`}
-                      draggable={!person.is_completed && !person.is_cancelled && canMove}
+                      draggable={Number(person?.state) === 10 && canMove}
                       onDragStart={(event) => {
-                        if (!canMove || person.is_completed || person.is_cancelled) {
+                        if (!canMove || Number(person?.state) !== 10) {
                           event.preventDefault()
                           return
                         }
                         onDragStart(event, person, dateKey)
                       }}
-                      onClick={() => {
+                      onClick={(event) => {
+                        // Любые клики по иконкам/бейджам не должны открывать просмотр/редактирование записи
+                        if (event?.target?.closest?.('.list__badge') || event?.target?.closest?.('.list__badges')) {
+                          // Но если это текущая редактируемая запись — схлопываем в чтение
+                          if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+                            onSingleClick?.(person, dateKey)
+                          }
+                          event.stopPropagation()
+                          return
+                        }
                         if (!onSingleClick) return
                         const personId = person.id
                         resetClickTimer(personId)
@@ -351,6 +354,15 @@ const PeopleList = ({
                         clickTimerRef.current.set(personId, timer)
                       }}
                       onDoubleClick={(event) => {
+                        // Любые клики по иконкам/бейджам не должны открывать просмотр/редактирование записи
+                        if (event?.target?.closest?.('.list__badge') || event?.target?.closest?.('.list__badges')) {
+                          // Но если это текущая редактируемая запись — схлопываем в чтение
+                          if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+                            onSingleClick?.(person, dateKey)
+                          }
+                          event.stopPropagation()
+                          return
+                        }
                         event.stopPropagation()
                         resetClickTimer(person.id)
                         onDoubleClick?.(person, dateKey)
@@ -358,6 +370,11 @@ const PeopleList = ({
                     >
                       {isSimpleVariant ? (
                         <span className={nameClassName}>
+                          <span className="list__badges">
+                            {renderMeetingResultBadge(person) ?? (
+                              <span className="list__badge list__badge--static" aria-hidden="true" />
+                            )}
+                          </span>
                           <span className="list__text">{person.name}</span>
                         </span>
                       ) : (
