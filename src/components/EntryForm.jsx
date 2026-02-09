@@ -96,7 +96,7 @@ const EntryForm = ({
       : 'Пропуск не заказан'
   const passPastDateTitle = 'Заказ пропуска недоступен для прошлых дат'
   const passActionTitle = passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск'
-  const isPassForbiddenByState = entryState === 20 || entryState === 40
+  const isPassForbiddenByState = entryState === 20 || entryState === 40 || entryState === 60
   const passDisabled =
     !isEditingActive ||
     !canPassAction ||
@@ -106,7 +106,7 @@ const EntryForm = ({
     ? `${passTitle}. ${passPastDateTitle}`
     : `${passTitle}. ${passActionTitle}`
 
-  const isDeleteForbiddenByState = entryState === 20 || entryState === 40
+  const isDeleteForbiddenByState = entryState === 20 || entryState === 40 || entryState === 60
   const deleteDisabled =
     !isEditingActive ||
     !canDeleteEntry ||
@@ -210,6 +210,14 @@ const EntryForm = ({
       isFormLocked ? 'form--inactive' : '',
     ].join(' ')}
     onSubmit={onSubmit}
+    onKeyDownCapture={(event) => {
+      // Выходим из редактирования даже если вложенный элемент остановил всплытие
+      if (event.key === 'Escape' && isUser && isEditing) {
+        event.preventDefault()
+        event.stopPropagation()
+        onExitEdit?.()
+      }
+    }}
     onKeyDown={(event) => {
       if (event.key === 'Escape' && isUser && isEditing) {
         event.preventDefault()
@@ -333,7 +341,7 @@ const EntryForm = ({
       </div>
     </div>
 
-    {isEditingActive && isFormLocked && [10, 20, 30, 40, 50].includes(Number(entryState)) && (
+    {isEditingActive && isFormLocked && [10, 20, 30, 40, 50, 60].includes(Number(entryState)) && (
       <div className="form__field">
         <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
           Статус
@@ -348,6 +356,8 @@ const EntryForm = ({
               ? 'Гость принят'
               : Number(entryState) === 50
               ? `Не оформлен: ${entry?.result_reason_name || '—'}`
+              : Number(entryState) === 60
+              ? 'Трудоустроен'
               : `Отказ: ${entry?.result_reason_name || '—'}`}
           </div>
         </div>
@@ -644,6 +654,21 @@ const EntryForm = ({
           title="Откатить (вернуть в «Гость принят»)"
           aria-label="Откатить (вернуть в «Гость принят»)"
           onClick={() => {
+            onRollbackMeetingResult?.(entry.id, editingDateKey)
+          }}
+        >
+          Откатить
+        </button>
+      )}
+      {isEditingActive && Number(entryState) === 60 && (
+        <button
+          type="button"
+          className="button text"
+          title="Откатить (вернуть в «Гость принят»)"
+          aria-label="Откатить (вернуть в «Гость принят»)"
+          disabled={!canRollbackMeetingResult}
+          onClick={() => {
+            if (!canRollbackMeetingResult) return
             onRollbackMeetingResult?.(entry.id, editingDateKey)
           }}
         >

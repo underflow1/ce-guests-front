@@ -602,7 +602,9 @@ body.interface-user .panel {
 }
 
 body.interface-user .panel--inactive {
-  opacity: 0.7;
+  /* Не используем opacity на контейнере: она приглушает даже активные кнопки.
+     "Неактивность" режима задаётся disabled-состояниями элементов. */
+  opacity: 1;
 }
 
 .panel--compact {
@@ -1357,7 +1359,8 @@ body.interface-user .select--compact {
 
 .button {
   padding: 4px 8px;
-  border: 1px solid var(--color-border-strong);
+  /* Активная кнопка — "полный" контур */
+  border: 1px solid var(--color-accent);
   background: var(--color-surface);
   cursor: pointer;
   align-self: flex-start;
@@ -1374,12 +1377,13 @@ body.interface-user .button {
 
 .button:hover:not(:disabled) {
   background: var(--color-surface-hover);
-  border-color: var(--color-border);
+  border-color: var(--color-accent);
 }
 
 .button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  border-color: var(--color-border);
 }
 
 .button--primary {

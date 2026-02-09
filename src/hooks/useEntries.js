@@ -929,8 +929,8 @@ const useEntries = ({
       return
     }
 
-    // В пользовательском интерфейсе отменённую/отказанную запись (state=20/40) нельзя переводить в режим редактирования
-    if (interfaceType === 'user' && [20, 40].includes(Number(entry?.state))) {
+    // В пользовательском интерфейсе отменённую/отказанную/трудоустроен (state=20/40/60) нельзя переводить в режим редактирования
+    if (interfaceType === 'user' && [20, 40, 60].includes(Number(entry?.state))) {
       const { target, otherDate } = resolveTarget(dateKey)
       const entryTime = entry.datetime ? extractTimeFromDateTime(entry.datetime) : (entry.time || '00:00')
 
