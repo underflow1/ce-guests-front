@@ -148,8 +148,13 @@ const SettingsPanel = ({ onBack }) => {
       setAllowedLoading(true)
       const res = await apiGet(`/states/${s}/reasons/all`)
       const list = res?.reasons || []
-      setAllowedReasons(list)
-      setAllowedReasonIds(new Set(list.map((r) => r.id)))
+      // Важно: разрешённые причины храним только в allowedReasonIds (галки).
+      // Ранее тут был вызов setAllowedReasons(list), но такого state не существовало,
+      // из-за чего переключение 40/50 ломалось и казалось, что списки "одинаковые".
+      // Защита от гонки: применяем результат только если state не успел смениться.
+      if (Number(activeReasonState) === s) {
+        setAllowedReasonIds(new Set(list.map((r) => r.id)))
+      }
     } catch (err) {
       setReasonsError(err.message || 'Не удалось загрузить список разрешенных причин')
     } finally {
