@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { extractTimeFromDateTime, toDateKey } from '../utils/date'
 import { getMeetingResultIcon, getMeetingResultVariant, getMeetingResultTitle } from '../utils/meetingResult'
+import { buildVisitMenuItems } from '../utils/visitMenu'
+import VisitContextMenu from './VisitContextMenu'
 
 const HOURS = Array.from({ length: 10 }, (_, idx) =>
   String(9 + idx).padStart(2, '0'),
@@ -116,57 +118,21 @@ const PeopleList = ({
     return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
   }
 
-  const buildVisitMenuItems = (person) => {
-    const s = Number(person?.state)
-
-    const accept = {
-      key: 'accept',
-      label: s === 30 ? 'Снять «гость принят»' : 'Гость принят',
-      enabled: s === 10 ? canMarkCompleted : s === 30 ? canUnmarkCompleted : false,
-      action: () => {
-        if (s === 10) onToggleCompleted?.(person.id, dateKey, true)
-        if (s === 30) onToggleCompleted?.(person.id, dateKey, false)
-      },
-    }
-
-    const cancel = {
-      key: 'cancel',
-      label: s === 20 ? 'Снять отмену' : 'Встреча отменена',
-      enabled: s === 10 ? canMarkCancelled : s === 20 ? canUnmarkCancelled : false,
-      action: () => {
-        if (s === 10) onToggleCancelled?.(person.id, dateKey, true)
-        if (s === 20) onToggleCancelled?.(person.id, dateKey, false)
-      },
-    }
-
-    const passStatus = getPassStatus(person)
-    const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
-    const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
-    const isPassForbiddenByState = s === 20 || s === 40 || s === 60
-    const isPastEntry = Boolean(dateKey && dateKey < todayKey)
-    const isPassOrderingDisabled = passAction === 'order' && isPastEntry
-    const passEnabled = Boolean(
-      canPassAction &&
-      !isPassForbiddenByState &&
-      !isPassOrderingDisabled
-    )
-    const passHint = isPassOrderingDisabled
-      ? 'Заказ пропуска недоступен для прошлых дат'
-      : undefined
-    const pass = {
-      key: 'pass',
-      label: passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск',
-      enabled: passEnabled,
-      hint: passHint,
-      action: () => {
-        if (passAction === 'order') onOrderPass?.(person.id, dateKey)
-        if (passAction === 'revoke') onRevokePass?.(person.id, dateKey)
-      },
-    }
-
-    const result = [accept, cancel, pass]
-    return result.filter((item) => item.enabled || item.hint)
-  }
+  const getMenuItems = (person) => buildVisitMenuItems({
+    person,
+    dateKey,
+    todayKey,
+    canMarkCompleted,
+    canUnmarkCompleted,
+    canMarkCancelled,
+    canUnmarkCancelled,
+    canMarkPass,
+    canRevokePass,
+    onToggleCompleted,
+    onToggleCancelled,
+    onOrderPass,
+    onRevokePass,
+  })
 
   const handleBadgeMenuClick = (person, event) => {
     event.stopPropagation()
@@ -176,7 +142,7 @@ const PeopleList = ({
       onSingleClick?.(person, dateKey)
     }
 
-    const items = buildVisitMenuItems(person)
+    const items = getMenuItems(person)
     if (!items.length) return
 
     setVisitMenu((prev) => {
@@ -213,7 +179,7 @@ const PeopleList = ({
       )
     }
 
-    const items = buildVisitMenuItems(person)
+    const items = getMenuItems(person)
     const hasAny = items.length > 0
 
     const handleStatusClick = (event) => {
@@ -257,7 +223,7 @@ const PeopleList = ({
       .filter(Boolean)
       .join(' ')
 
-    const menuItems = buildVisitMenuItems(person)
+    const menuItems = getMenuItems(person)
     const hasMenu = menuItems.length > 0
 
     if (!hasMenu) {
@@ -366,7 +332,7 @@ const PeopleList = ({
                       {isSimpleVariant ? (
                         <span className={nameClassName}>
                           <span className="list__badges">
-                            {renderStateBadge(person)}
+                            {renderStateBadge(person, { interactive: true })}
                           </span>
                           <span className="list__text">{person.name}</span>
                         </span>
@@ -438,36 +404,17 @@ const PeopleList = ({
         </div>
       ))}
       {!people.length && <div className="list__empty text text--muted">Пока пусто</div>}
-      {visitMenu && (
-        <div
-          ref={visitMenuRef}
-          className="visit-menu"
-          style={{ left: `${visitMenu.x}px`, top: `${visitMenu.y}px` }}
-          role="menu"
-        >
-          {buildVisitMenuItems(visitMenu.person)
-            .map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className="visit-menu__item"
-              title={item.hint || item.label}
-              disabled={!item.enabled}
-              onClick={(e) => {
-                e.stopPropagation()
-                if (!item.enabled) return
-                // После выбора пункта открываем запись справа в режиме чтения
-                onSingleClick?.(visitMenu.person, dateKey)
-                item.action?.()
-                setVisitMenu(null)
-              }}
-              role="menuitem"
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <VisitContextMenu
+        menu={visitMenu}
+        menuRef={visitMenuRef}
+        items={visitMenu?.person ? getMenuItems(visitMenu.person) : []}
+        onSelect={(item) => {
+          // После выбора пункта открываем запись справа в режиме чтения
+          onSingleClick?.(visitMenu?.person, dateKey)
+          item.action?.()
+          setVisitMenu(null)
+        }}
+      />
     </div>
   )
 }

@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { getMeetingResultIcon, getMeetingResultVariant, getMeetingResultTitle } from '../utils/meetingResult'
+import { toDateKey } from '../utils/date'
+import { buildVisitMenuItems } from '../utils/visitMenu'
+import VisitContextMenu from './VisitContextMenu'
 
 const SimplePeopleList = ({
   people,
@@ -29,6 +32,9 @@ const SimplePeopleList = ({
   const [isDragOver, setIsDragOver] = useState(false)
   const clickTimerRef = useRef(new Map())
   const SINGLE_CLICK_DELAY = 220
+  const [visitMenu, setVisitMenu] = useState(null)
+  const visitMenuRef = useRef(null)
+  const todayKey = toDateKey(new Date())
 
   useEffect(() => {
     return () => {
@@ -39,7 +45,56 @@ const SimplePeopleList = ({
     }
   }, [])
 
+  useEffect(() => {
+    if (!visitMenu) return
+
+    const handleDocMouseDown = (event) => {
+      if (visitMenuRef.current && visitMenuRef.current.contains(event.target)) return
+      setVisitMenu(null)
+    }
+
+    const handleDocKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setVisitMenu(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleDocMouseDown)
+    document.addEventListener('keydown', handleDocKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleDocMouseDown)
+      document.removeEventListener('keydown', handleDocKeyDown)
+    }
+  }, [visitMenu])
+
   const getPassStatus = (person) => person?.pass_status || null
+  const getMenuItems = (person) => buildVisitMenuItems({
+    person,
+    dateKey,
+    todayKey,
+    canMarkCompleted,
+    canUnmarkCompleted,
+    canMarkCancelled,
+    canUnmarkCancelled,
+    canMarkPass,
+    canRevokePass,
+    onToggleCompleted,
+    onToggleCancelled,
+    onOrderPass,
+    onRevokePass,
+  })
+
+  const openMenu = (person, event) => {
+    event.stopPropagation()
+    const items = getMenuItems(person)
+    if (!items.length) return
+
+    setVisitMenu((prev) => {
+      if (prev?.person?.id === person?.id) return null
+      return { person, x: event.clientX + 8, y: event.clientY + 8 }
+    })
+  }
 
   const isBase = typographyVariant === 'base'
   const isBaseLight = typographyVariant === 'base-light'
@@ -165,17 +220,34 @@ const SimplePeopleList = ({
 
     const className = [
       'list__badge',
-      'list__badge--static',
       'list__badge--result',
       `list__badge--result-${variant}`,
     ]
       .filter(Boolean)
       .join(' ')
 
+    const menuItems = getMenuItems(person)
+    const hasMenu = menuItems.length > 0
+
+    if (!hasMenu) {
+      return (
+        <span className={`${className} list__badge--static`} title={title} aria-label={title}>
+          <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
+        </span>
+      )
+    }
+
     return (
-      <span className={className} title={title} aria-label={title}>
+      <button
+        type="button"
+        className={`${className} list__badge--clickable`}
+        title={title}
+        aria-label={title}
+        aria-haspopup="menu"
+        onClick={(event) => openMenu(person, event)}
+      >
         <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
-      </span>
+      </button>
     )
   }
 
@@ -282,6 +354,16 @@ const SimplePeopleList = ({
       <div
         className="simple-list__empty-row"
         onDoubleClick={() => onEmptyRowDoubleClick?.(dateKey)}
+      />
+      <VisitContextMenu
+        menu={visitMenu}
+        menuRef={visitMenuRef}
+        items={visitMenu?.person ? getMenuItems(visitMenu.person) : []}
+        onSelect={(item) => {
+          onSingleClick?.(visitMenu?.person, dateKey)
+          item.action?.()
+          setVisitMenu(null)
+        }}
       />
     </div>
   )

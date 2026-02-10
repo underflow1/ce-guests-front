@@ -96,7 +96,8 @@ const EntryForm = ({
       : 'Пропуск не заказан'
   const passPastDateTitle = 'Заказ пропуска недоступен для прошлых дат'
   const passActionTitle = passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск'
-  const isPassForbiddenByState = entryState === 20 || entryState === 40 || entryState === 60
+  const isPassForbiddenByState =
+    passAction === 'order' && (entryState === 20 || entryState === 40)
   const passDisabled =
     !isEditingActive ||
     !canPassAction ||
