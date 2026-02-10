@@ -24,6 +24,7 @@ const DayPanel = ({
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
+  onRollbackMeetingResult,
   onDeleteEntry,
   canDelete = false,
   canMarkCompleted = false,
@@ -32,6 +33,7 @@ const DayPanel = ({
   canUnmarkCancelled = false,
   canMarkPass = false,
   canRevokePass = false,
+  canRollbackMeetingResult = false,
   canMove = false,
 }) => (
   <section className={`panel panel--day ${compact ? 'panel--compact' : ''}`}>
@@ -70,6 +72,7 @@ const DayPanel = ({
         onToggleCancelled={onToggleCancelled}
         onOrderPass={onOrderPass}
         onRevokePass={onRevokePass}
+        onRollbackMeetingResult={onRollbackMeetingResult}
         onDeleteEntry={onDeleteEntry}
         canDelete={canDelete}
         canMarkCompleted={canMarkCompleted}
@@ -78,6 +81,7 @@ const DayPanel = ({
         canUnmarkCancelled={canUnmarkCancelled}
         canMarkPass={canMarkPass}
         canRevokePass={canRevokePass}
+        canRollbackMeetingResult={canRollbackMeetingResult}
         canMove={canMove}
       />
     </div>

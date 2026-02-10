@@ -19,12 +19,14 @@ const DutyOfficerInterface = ({
   handleToggleCancelled,
   handleOrderPass,
   handleRevokePass,
+  handleRollbackMeetingResult,
   handleDeleteEntry,
   canDelete,
   canMarkCancelled,
   canUnmarkCancelled,
   canMarkPass,
   canRevokePass,
+  canRollbackMeetingResult,
   canMove,
 }) => (
   <div className="app__layout">
@@ -57,6 +59,7 @@ const DutyOfficerInterface = ({
           onToggleCancelled={handleToggleCancelled}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
+          onRollbackMeetingResult={handleRollbackMeetingResult}
           onDeleteEntry={handleDeleteEntry}
           canDelete={canDelete}
           canMarkCompleted={canMarkCompleted}
@@ -65,6 +68,7 @@ const DutyOfficerInterface = ({
           canUnmarkCancelled={canUnmarkCancelled}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
+          canRollbackMeetingResult={canRollbackMeetingResult}
           canMove={canMove}
         />
       </div>

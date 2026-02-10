@@ -17,6 +17,7 @@ const SimplePeopleList = ({
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
+  onRollbackMeetingResult,
   onDeleteEntry,
   canDelete = false,
   canMarkCompleted = false,
@@ -25,6 +26,7 @@ const SimplePeopleList = ({
   canUnmarkCancelled = false,
   canMarkPass = false,
   canRevokePass = false,
+  canRollbackMeetingResult = false,
   canMove = false,
   typographyVariant,
   itemVariant = 'full',
@@ -79,10 +81,12 @@ const SimplePeopleList = ({
     canUnmarkCancelled,
     canMarkPass,
     canRevokePass,
+    canRollbackMeetingResult,
     onToggleCompleted,
     onToggleCancelled,
     onOrderPass,
     onRevokePass,
+    onRollbackMeetingResult,
   })
 
   const openMenu = (person, event) => {

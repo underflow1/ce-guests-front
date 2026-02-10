@@ -36,6 +36,7 @@ const PeopleList = ({
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
+  onRollbackMeetingResult,
   onDeleteEntry,
   visitGoals = [],
   showVisitGoals = false,
@@ -46,6 +47,7 @@ const PeopleList = ({
   canUnmarkCancelled = false,
   canMarkPass = false,
   canRevokePass = false,
+  canRollbackMeetingResult = false,
   canMove = false,
 }) => {
   const grouped = useMemo(() => groupPeopleByHour(people), [people])
@@ -128,10 +130,12 @@ const PeopleList = ({
     canUnmarkCancelled,
     canMarkPass,
     canRevokePass,
+    canRollbackMeetingResult,
     onToggleCompleted,
     onToggleCancelled,
     onOrderPass,
     onRevokePass,
+    onRollbackMeetingResult,
   })
 
   const handleBadgeMenuClick = (person, event) => {

@@ -8,10 +8,12 @@ export const buildVisitMenuItems = ({
   canUnmarkCancelled = false,
   canMarkPass = false,
   canRevokePass = false,
+  canRollbackMeetingResult = false,
   onToggleCompleted,
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
+  onRollbackMeetingResult,
 }) => {
   const state = Number(person?.state)
 
@@ -55,5 +57,23 @@ export const buildVisitMenuItems = ({
     },
   }
 
-  return [accept, cancel, pass].filter((item) => item.enabled || item.hint)
+  const canRollbackViaResult = state === 40 || state === 50 || state === 60
+  const shouldShowRollback = canRollbackViaResult
+
+  const rollback = {
+    key: 'rollback',
+    label: 'Откатить',
+    enabled:
+      canRollbackViaResult && (state === 50 || canRollbackMeetingResult),
+    action: () => {
+      if (canRollbackViaResult) onRollbackMeetingResult?.(person.id, dateKey)
+    },
+  }
+
+  const items = [accept, cancel]
+  if (shouldShowRollback) {
+    items.push(rollback)
+  }
+  items.push(pass)
+  return items.filter((item) => item.key === 'rollback' || item.enabled || item.hint)
 }
