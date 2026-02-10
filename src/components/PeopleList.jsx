@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { extractTimeFromDateTime } from '../utils/date'
+import { extractTimeFromDateTime, toDateKey } from '../utils/date'
 import { getMeetingResultIcon, getMeetingResultVariant, getMeetingResultTitle } from '../utils/meetingResult'
 
 const HOURS = Array.from({ length: 10 }, (_, idx) =>
@@ -55,6 +55,7 @@ const PeopleList = ({
   const SINGLE_CLICK_DELAY = 220
   const [visitMenu, setVisitMenu] = useState(null) // { person, x, y }
   const visitMenuRef = useRef(null)
+  const todayKey = toDateKey(new Date())
 
   useEffect(() => {
     return () => {
@@ -115,6 +116,75 @@ const PeopleList = ({
     return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
   }
 
+  const buildVisitMenuItems = (person) => {
+    const s = Number(person?.state)
+
+    const accept = {
+      key: 'accept',
+      label: s === 30 ? 'Снять «гость принят»' : 'Гость принят',
+      enabled: s === 10 ? canMarkCompleted : s === 30 ? canUnmarkCompleted : false,
+      action: () => {
+        if (s === 10) onToggleCompleted?.(person.id, dateKey, true)
+        if (s === 30) onToggleCompleted?.(person.id, dateKey, false)
+      },
+    }
+
+    const cancel = {
+      key: 'cancel',
+      label: s === 20 ? 'Снять отмену' : 'Встреча отменена',
+      enabled: s === 10 ? canMarkCancelled : s === 20 ? canUnmarkCancelled : false,
+      action: () => {
+        if (s === 10) onToggleCancelled?.(person.id, dateKey, true)
+        if (s === 20) onToggleCancelled?.(person.id, dateKey, false)
+      },
+    }
+
+    const passStatus = getPassStatus(person)
+    const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
+    const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
+    const isPassForbiddenByState = s === 20 || s === 40 || s === 60
+    const isPastEntry = Boolean(dateKey && dateKey < todayKey)
+    const isPassOrderingDisabled = passAction === 'order' && isPastEntry
+    const passEnabled = Boolean(
+      canPassAction &&
+      !isPassForbiddenByState &&
+      !isPassOrderingDisabled
+    )
+    const passHint = isPassOrderingDisabled
+      ? 'Заказ пропуска недоступен для прошлых дат'
+      : undefined
+    const pass = {
+      key: 'pass',
+      label: passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск',
+      enabled: passEnabled,
+      hint: passHint,
+      action: () => {
+        if (passAction === 'order') onOrderPass?.(person.id, dateKey)
+        if (passAction === 'revoke') onRevokePass?.(person.id, dateKey)
+      },
+    }
+
+    const result = [accept, cancel, pass]
+    return result.filter((item) => item.enabled || item.hint)
+  }
+
+  const handleBadgeMenuClick = (person, event) => {
+    event.stopPropagation()
+
+    // Если эта запись сейчас редактируется в правой панели — любой клик по ней в списке схлопывает в чтение
+    if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+      onSingleClick?.(person, dateKey)
+    }
+
+    const items = buildVisitMenuItems(person)
+    if (!items.length) return
+
+    setVisitMenu((prev) => {
+      if (prev?.person?.id === person?.id) return null
+      return { person, x: event.clientX + 8, y: event.clientY + 8 }
+    })
+  }
+
   const renderStateBadge = (person, options = {}) => {
     const { interactive = false } = options
     const state = Number(person?.state)
@@ -143,28 +213,11 @@ const PeopleList = ({
       )
     }
 
-    const s = Number(person?.state)
-    const isEditable = s === 10 || s === 20 || s === 30
     const items = buildVisitMenuItems(person)
-    const hasAny = items.some((i) => i.enabled)
+    const hasAny = items.length > 0
 
     const handleStatusClick = (event) => {
-      event.stopPropagation()
-
-      // Если эта запись сейчас редактируется в правой панели — любой клик по ней в списке схлопывает в чтение
-      if (isFormActive && activeEntryId && person?.id === activeEntryId) {
-        onSingleClick?.(person, dateKey)
-      }
-
-      if (!items.length) return
-
-      // Если нет ни одного доступного действия — не показываем меню
-      if (!hasAny) return
-
-      setVisitMenu((prev) => {
-        if (prev?.person?.id === person?.id) return null
-        return { person, x: event.clientX + 8, y: event.clientY + 8 }
-      })
+      handleBadgeMenuClick(person, event)
     }
 
     return (
@@ -172,7 +225,7 @@ const PeopleList = ({
         type="button"
         className={className}
         title={title}
-        onClick={isEditable ? handleStatusClick : undefined}
+        onClick={hasAny ? handleStatusClick : undefined}
         aria-label={title}
         aria-haspopup={hasAny ? 'menu' : undefined}
       >
@@ -200,15 +253,32 @@ const PeopleList = ({
       'list__badge',
       'list__badge--pass',
       `list__badge--state-${state}`,
-      'list__badge--static',
     ]
       .filter(Boolean)
       .join(' ')
 
+    const menuItems = buildVisitMenuItems(person)
+    const hasMenu = menuItems.length > 0
+
+    if (!hasMenu) {
+      return (
+        <span className={`${className} list__badge--static`} title={title} aria-label={title}>
+          <i className="fa-solid fa-id-card-clip" aria-hidden="true" />
+        </span>
+      )
+    }
+
     return (
-      <span className={className} title={title} aria-label={title}>
+      <button
+        type="button"
+        className={`${className} list__badge--clickable`}
+        title={title}
+        aria-label={title}
+        aria-haspopup="menu"
+        onClick={(event) => handleBadgeMenuClick(person, event)}
+      >
         <i className="fa-solid fa-id-card-clip" aria-hidden="true" />
-      </span>
+      </button>
     )
   }
 
@@ -216,32 +286,6 @@ const PeopleList = ({
     const timer = clickTimerRef.current.get(personId)
     if (timer) clearTimeout(timer)
     clickTimerRef.current.delete(personId)
-  }
-
-  const buildVisitMenuItems = (person) => {
-    const s = Number(person?.state)
-
-    const accept = {
-      key: 'accept',
-      label: s === 30 ? 'Снять «гость принят»' : 'Гость принят',
-      enabled: s === 10 ? canMarkCompleted : s === 30 ? canUnmarkCompleted : false,
-      action: () => {
-        if (s === 10) onToggleCompleted?.(person.id, dateKey, true)
-        if (s === 30) onToggleCompleted?.(person.id, dateKey, false)
-      },
-    }
-
-    const cancel = {
-      key: 'cancel',
-      label: s === 20 ? 'Снять отмену' : 'Встреча отменена',
-      enabled: s === 10 ? canMarkCancelled : s === 20 ? canUnmarkCancelled : false,
-      action: () => {
-        if (s === 10) onToggleCancelled?.(person.id, dateKey, true)
-        if (s === 20) onToggleCancelled?.(person.id, dateKey, false)
-      },
-    }
-
-    return [accept, cancel]
   }
 
   return (
@@ -402,14 +446,16 @@ const PeopleList = ({
           role="menu"
         >
           {buildVisitMenuItems(visitMenu.person)
-            .filter((item) => item.enabled)
             .map((item) => (
             <button
               key={item.key}
               type="button"
               className="visit-menu__item"
+              title={item.hint || item.label}
+              disabled={!item.enabled}
               onClick={(e) => {
                 e.stopPropagation()
+                if (!item.enabled) return
                 // После выбора пункта открываем запись справа в режиме чтения
                 onSingleClick?.(visitMenu.person, dateKey)
                 item.action?.()
