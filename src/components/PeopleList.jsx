@@ -115,27 +115,69 @@ const PeopleList = ({
     return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
   }
 
-  const renderMeetingResultBadge = (person) => {
+  const renderStateBadge = (person, options = {}) => {
+    const { interactive = false } = options
     const state = Number(person?.state)
     const variant = getMeetingResultVariant(state)
-    if (!variant) return null
+    if (!variant) {
+      return <span className="list__badge list__badge--static" aria-hidden="true" />
+    }
 
     const iconClass = getMeetingResultIcon(state)
     const title = getMeetingResultTitle(state)
 
     const className = [
       'list__badge',
-      'list__badge--static',
       'list__badge--result',
       `list__badge--result-${variant}`,
+      interactive ? 'list__badge--clickable' : 'list__badge--static',
     ]
       .filter(Boolean)
       .join(' ')
 
+    if (!interactive) {
+      return (
+        <span className={className} title={title} aria-label={title}>
+          <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
+        </span>
+      )
+    }
+
+    const s = Number(person?.state)
+    const isEditable = s === 10 || s === 20 || s === 30
+    const items = buildVisitMenuItems(person)
+    const hasAny = items.some((i) => i.enabled)
+
+    const handleStatusClick = (event) => {
+      event.stopPropagation()
+
+      // Если эта запись сейчас редактируется в правой панели — любой клик по ней в списке схлопывает в чтение
+      if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+        onSingleClick?.(person, dateKey)
+      }
+
+      if (!items.length) return
+
+      // Если нет ни одного доступного действия — не показываем меню
+      if (!hasAny) return
+
+      setVisitMenu((prev) => {
+        if (prev?.person?.id === person?.id) return null
+        return { person, x: event.clientX + 8, y: event.clientY + 8 }
+      })
+    }
+
     return (
-      <span className={className} title={title} aria-label={title}>
+      <button
+        type="button"
+        className={className}
+        title={title}
+        onClick={isEditable ? handleStatusClick : undefined}
+        aria-label={title}
+        aria-haspopup={hasAny ? 'menu' : undefined}
+      >
         <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
-      </span>
+      </button>
     )
   }
 
@@ -200,64 +242,6 @@ const PeopleList = ({
     }
 
     return [accept, cancel]
-  }
-
-  const renderStatusBadge = (person) => {
-    const state = Number(person?.state)
-    const isCancelled = state === 20
-    const isCompleted = state >= 30
-    const items = buildVisitMenuItems(person)
-    const hasAny = items.some((i) => i.enabled)
-    const title = isCancelled
-      ? 'Снять отмену визита'
-      : state === 30
-      ? 'Снять принятие'
-      : isCompleted
-      ? 'Гость принят'
-      : 'Визит не состоялся'
-    const className = [
-      'list__badge',
-      isCancelled ? 'list__badge--cancel' : '',
-      `list__badge--state-${isCancelled || isCompleted ? 'on' : 'off'}`,
-      'list__badge--clickable',
-    ]
-      .filter(Boolean)
-      .join(' ')
-
-    const handleStatusClick = (event) => {
-      event.stopPropagation()
-
-      // Если эта запись сейчас редактируется в правой панели — любой клик по ней в списке схлопывает в чтение
-      if (isFormActive && activeEntryId && person?.id === activeEntryId) {
-        onSingleClick?.(person, dateKey)
-      }
-
-      if (!items.length) return
-
-      // Если нет ни одного доступного действия — не показываем меню
-      if (!hasAny) return
-
-      setVisitMenu((prev) => {
-        if (prev?.person?.id === person?.id) return null
-        return { person, x: event.clientX + 8, y: event.clientY + 8 }
-      })
-    }
-
-    return (
-      <button
-        type="button"
-        className={className}
-        title={title}
-        onClick={handleStatusClick}
-        aria-label={title}
-        aria-haspopup="menu"
-      >
-        <i
-          className={`fa-solid ${isCancelled ? 'fa-person-running' : 'fa-user-check'}`}
-          aria-hidden="true"
-        />
-      </button>
-    )
   }
 
   return (
@@ -338,9 +322,7 @@ const PeopleList = ({
                       {isSimpleVariant ? (
                         <span className={nameClassName}>
                           <span className="list__badges">
-                            {renderMeetingResultBadge(person) ?? (
-                              <span className="list__badge list__badge--static" aria-hidden="true" />
-                            )}
+                            {renderStateBadge(person)}
                           </span>
                           <span className="list__text">{person.name}</span>
                         </span>
@@ -353,10 +335,7 @@ const PeopleList = ({
                             <span className="list__stacked-grid">
                               <span className="list__badges">
                                 {renderPassBadge(person)}
-                                {renderStatusBadge(person)}
-                                {renderMeetingResultBadge(person) ?? (
-                                  <span className="list__badge list__badge--static" aria-hidden="true" />
-                                )}
+                                {renderStateBadge(person, { interactive: true })}
                               </span>
                               <span className="list__primary">
                                 <span className="list__text">{person.name}</span>
@@ -388,10 +367,7 @@ const PeopleList = ({
                             <>
                               <span className="list__badges">
                                 {renderPassBadge(person)}
-                                {renderStatusBadge(person)}
-                                {renderMeetingResultBadge(person) ?? (
-                                  <span className="list__badge list__badge--static" aria-hidden="true" />
-                                )}
+                                {renderStateBadge(person, { interactive: true })}
                               </span>
                               <span className="list__content">
                                 <span className="list__text">{person.name}</span>

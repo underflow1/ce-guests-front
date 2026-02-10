@@ -18,6 +18,7 @@ const UserInterface = ({
   calendarStructure,
   today,
   todayKey,
+  weekOffset,
   todayPeople,
   previousWorkdayPeople,
   nextWorkdayPeople,
@@ -29,6 +30,7 @@ const UserInterface = ({
   setForm,
   isFormActive,
   isSubmitDisabled,
+  isBottomLoading,
   nameInputRef,
   dateInputRef,
   editingEntry,
@@ -59,10 +61,17 @@ const UserInterface = ({
   handleDeleteEntry,
   handleRollbackMeetingResult,
   handleSubmit,
+  goToPreviousWeek,
+  goToNextWeek,
+  resetWeekOffset,
   interfaceType,
   isAdmin,
-}) => (
-  <div className="app__layout">
+}) => {
+  const parsedWeekOffset = Number(weekOffset)
+  const currentWeekOffset = Number.isFinite(parsedWeekOffset) ? parsedWeekOffset : 0
+
+  return (
+    <div className="app__layout">
     <div className="app__top-row">
       {previousWorkday && previousWorkdayKey && (
         <DayPanel
@@ -222,7 +231,7 @@ const UserInterface = ({
       </section>
     </div>
 
-    <div className="app__bottom-row">
+    <div className={`app__bottom-row${isBottomLoading ? ' app__bottom-row--loading' : ''}`}>
       {(() => {
         const saturdayItem = calendarStructure.find(item => item.weekday === 'Saturday')
         const sundayItem = calendarStructure.find(item => item.weekday === 'Sunday')
@@ -298,6 +307,38 @@ const UserInterface = ({
                         typographyVariant="base-light"
                       />
                     </div>
+                    <div className={`week-nav week-nav--embedded${isBottomLoading ? ' week-nav--loading' : ''}`}>
+                      <span className="week-nav__label">Неделя:</span>
+                      <button
+                        type="button"
+                        className="week-nav__control week-nav__arrow"
+                        onClick={goToPreviousWeek}
+                        disabled={isBottomLoading}
+                        aria-label="Предыдущая неделя"
+                      >
+                        ◀
+                      </button>
+                      <button
+                        type="button"
+                        className={`week-nav__control week-nav__center${currentWeekOffset === 0 ? ' week-nav__center--current' : ' week-nav__center--offset'}`}
+                        onClick={resetWeekOffset}
+                        disabled={isBottomLoading || currentWeekOffset === 0}
+                        title={currentWeekOffset === 0 ? 'Текущая неделя' : 'Вернуться к текущей неделе'}
+                      >
+                        {currentWeekOffset === 0
+                          ? 'Тек.'
+                          : (currentWeekOffset > 0 ? `+${currentWeekOffset}` : `${currentWeekOffset}`)}
+                      </button>
+                      <button
+                        type="button"
+                        className="week-nav__control week-nav__arrow"
+                        onClick={goToNextWeek}
+                        disabled={isBottomLoading}
+                        aria-label="Следующая неделя"
+                      >
+                        ▶
+                      </button>
+                    </div>
                   </section>
                 </div>
               )
@@ -343,7 +384,8 @@ const UserInterface = ({
         return bottomRowItems
       })()}
     </div>
-  </div>
-)
+    </div>
+  )
+}
 
 export default UserInterface

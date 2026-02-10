@@ -49,6 +49,7 @@ const App = () => {
 
   const {
     todayKey,
+    weekOffset,
     previousWorkday,
     previousWorkdayKey,
     nextWorkday,
@@ -67,6 +68,7 @@ const App = () => {
     isFormActive,
     isSubmitDisabled,
     loading: entriesLoading,
+    isBottomLoading,
     error: entriesError,
     isWebSocketReady,
     handleDragStart,
@@ -84,6 +86,9 @@ const App = () => {
     handleDeleteEntry,
     handleRollbackMeetingResult,
     getEntryById,
+    goToPreviousWeek,
+    goToNextWeek,
+    resetWeekOffset,
   } = useEntries({
     today,
     nameInputRef,
@@ -95,7 +100,7 @@ const App = () => {
   })
   const editingEntry = form.editingEntryId ? getEntryById(form.editingEntryId) : null
 
-  const isLoading = authLoading || entriesLoading || (isAuthenticated && !isWebSocketReady)
+  const isLoading = authLoading || entriesLoading
   const error = entriesError
   const canDelete = canDeleteUi()
   const canMarkCompleted = canMarkCompletedUi()
@@ -280,6 +285,7 @@ const App = () => {
     calendarStructure,
     today,
     todayKey,
+    weekOffset,
     todayPeople,
     previousWorkdayPeople,
     nextWorkdayPeople,
@@ -291,6 +297,7 @@ const App = () => {
     setForm,
     isFormActive,
     isSubmitDisabled,
+    isBottomLoading,
     nameInputRef,
     dateInputRef,
     editingEntry,
@@ -321,6 +328,9 @@ const App = () => {
     handleDeleteEntry,
     handleRollbackMeetingResult,
     handleSubmit,
+    goToPreviousWeek,
+    goToNextWeek,
+    resetWeekOffset,
     interfaceType: resolvedInterfaceType,
     isAdmin: user?.is_admin || false,
   }
