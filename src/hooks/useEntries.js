@@ -748,6 +748,15 @@ const useEntries = ({
     const entry = sourceList.find((item) => item.id === payload.id)
     if (!entry) return
 
+    if (targetDateKey < todayKey) {
+      pushToast({
+        type: 'error',
+        title: 'Ошибка',
+        message: 'Нельзя переносить запись на прошедшую дату',
+      })
+      return
+    }
+
     const currentDate = parseDateFromKey(targetDateKey)
     const currentTime = entry.datetime ? extractTimeFromDateTime(entry.datetime) : (entry.time || '00:00')
     const newTime = targetHour === null ? currentTime : `${targetHour}:00`
