@@ -1199,6 +1199,14 @@ body.interface-user .time-grid__label {
   animation: list-badge-spin 1s linear infinite;
 }
 
+.list__badge--result-accepted {
+  color: #000000;
+}
+
+.list__badge--result-off {
+  color: rgba(0, 0, 0, 0.1);
+}
+
 .list__badge--result-employed {
   color: #28a745;
 }
