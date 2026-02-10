@@ -24,6 +24,7 @@ const useEntries = ({
   const { pushToast } = useToast()
   const { getActiveGoals } = useVisitGoals()
   const todayKey = toDateKey(today)
+  const [weekOffset, setWeekOffset] = useState(0)
 
   const [previousWorkday, setPreviousWorkday] = useState(null)
   const [nextWorkday, setNextWorkday] = useState(null)
@@ -37,9 +38,11 @@ const useEntries = ({
   const [resultReasons, setResultReasons] = useState([])
   const [resultReasonsLoading, setResultReasonsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [isBottomLoading, setIsBottomLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isWebSocketReady, setIsWebSocketReady] = useState(false)
   const entriesByIdRef = useRef(new Map())
+  const hasLoadedOnceRef = useRef(false)
 
   const previousWorkdayKey = previousWorkday ? toDateKey(previousWorkday) : null
   const nextWorkdayKey = nextWorkday ? toDateKey(nextWorkday) : null
@@ -59,15 +62,20 @@ const useEntries = ({
     // Не загружаем данные если пользователь не авторизован
     if (!isAuthenticated) {
       setLoading(false)
+      setIsBottomLoading(false)
       return
     }
 
     try {
-      setLoading(true)
+      if (hasLoadedOnceRef.current) {
+        setIsBottomLoading(true)
+      } else {
+        setLoading(true)
+      }
       setError(null)
 
-      // Получаем записи за период (текущая неделя + предыдущий рабочий день)
-      const response = await apiGet('/entries')
+      // Верхние панели всегда "от сегодня", нижняя неделя задается week_offset
+      const response = await apiGet(`/entries?week_offset=${encodeURIComponent(weekOffset)}`)
       const entries = response.entries || []
       entriesByIdRef.current = new Map(entries.map((entry) => [entry.id, entry]))
 
@@ -143,9 +151,13 @@ const useEntries = ({
         console.error('Ошибка загрузки записей:', err)
       }
     } finally {
+      if (!hasLoadedOnceRef.current) {
+        hasLoadedOnceRef.current = true
+      }
       setLoading(false)
+      setIsBottomLoading(false)
     }
-  }, [todayKey, isAuthenticated])
+  }, [todayKey, isAuthenticated, weekOffset])
 
   const loadVisitGoals = useCallback(async () => {
     if (!isAuthenticated) {
@@ -274,6 +286,14 @@ const useEntries = ({
   }, [formatChangeValue, formatEntryDateLabel])
 
   // Загрузка записей с API
+  useEffect(() => {
+    if (!isAuthenticated) {
+      hasLoadedOnceRef.current = false
+      setLoading(false)
+      setIsBottomLoading(false)
+    }
+  }, [isAuthenticated])
+
   useEffect(() => {
     loadEntries()
   }, [loadEntries])
@@ -409,7 +429,7 @@ const useEntries = ({
       if (!token) return
 
       const wsBase = API_BASE_URL.replace(/^http/, 'ws').replace(/\/api\/v1\/?$/, '')
-      const wsUrl = `${wsBase}/ws/entries?token=${encodeURIComponent(token)}`
+      const wsUrl = `${wsBase}/ws/entries?token=${encodeURIComponent(token)}&week_offset=${encodeURIComponent(weekOffset)}`
       socket = new WebSocket(wsUrl)
 
       socket.onopen = () => {
@@ -621,7 +641,19 @@ const useEntries = ({
       }
       socket?.close()
     }
-  }, [pushToast, shouldShowToast, isAuthenticated, updateStateFromWebSocketData])
+  }, [pushToast, shouldShowToast, isAuthenticated, updateStateFromWebSocketData, weekOffset])
+
+  const goToPreviousWeek = useCallback(() => {
+    setWeekOffset((prev) => prev - 1)
+  }, [])
+
+  const goToNextWeek = useCallback(() => {
+    setWeekOffset((prev) => prev + 1)
+  }, [])
+
+  const resetWeekOffset = useCallback(() => {
+    setWeekOffset(0)
+  }, [])
 
   const getListForDateKey = (dateKey) => {
     if (dateKey === todayKey) return todayPeople
@@ -1290,6 +1322,7 @@ const useEntries = ({
 
   return {
     todayKey,
+    weekOffset,
     previousWorkday,
     previousWorkdayKey,
     nextWorkday,
@@ -1308,6 +1341,7 @@ const useEntries = ({
     isFormActive: isFormActiveEffective,
     isSubmitDisabled,
     loading,
+    isBottomLoading,
     error,
     isWebSocketReady,
     handleDragStart,
@@ -1325,6 +1359,9 @@ const useEntries = ({
     handleDeleteEntry,
     handleRollbackMeetingResult,
     getEntryById,
+    goToPreviousWeek,
+    goToNextWeek,
+    resetWeekOffset,
   }
 }
 

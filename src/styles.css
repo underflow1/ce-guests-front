@@ -531,6 +531,25 @@ body.interface-user .login__submit {
   gap: var(--space-2);
   flex: 9;
   min-height: 0;
+  position: relative;
+}
+
+.app__bottom-row--loading {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.app__bottom-row--loading::after {
+  content: "Загрузка недели...";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  color: var(--color-text-muted);
+  font-size: var(--text-size-base);
+  font-weight: var(--text-weight-base);
+  pointer-events: none;
 }
 
 /* "Пользователь": бумажный/квадратный вариант интерфейса */
@@ -586,6 +605,87 @@ body.interface-user .weekend-stack {
 body.interface-user .weekend-stack > .panel {
   flex: 1 1 0;
   min-height: 0;
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: var(--space-1);
+  user-select: none;
+  -webkit-user-select: none;
+  font-size: var(--text-size-base);
+  line-height: var(--text-line-height-base);
+  font-weight: var(--text-weight-base);
+}
+
+.week-nav--embedded {
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.week-nav--loading {
+  opacity: 0.6;
+}
+
+.week-nav__arrow {
+  width: 20px;
+  min-width: 20px;
+}
+
+.week-nav__label {
+  color: var(--color-text-muted);
+}
+
+.week-nav__center {
+  min-width: 40px;
+  padding: 0 6px;
+}
+
+.week-nav__control {
+  height: 20px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-base);
+  font-size: var(--text-size-base);
+  line-height: var(--text-line-height-base);
+  font-weight: var(--text-weight-base);
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.week-nav__control:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.week-nav__control:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.week-nav__center--current {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.week-nav__center--current:disabled {
+  opacity: 1;
+  color: #000000;
+  border-color: var(--color-border-strong);
+}
+
+.week-nav__center--offset {
+  border-color: #c62828;
+  color: #c62828;
 }
 
 .panel {
