@@ -31,9 +31,6 @@ export const buildVisitMenuItems = ({
   const transitionTargetsByState = {
     10: [20, 30, 40, 50, 60],
     30: [40, 50, 60],
-    40: [40, 50, 60],
-    50: [40, 50, 60],
-    60: [40, 50, 60],
   }
 
   const canSetResultFromState = (currentState) => {
