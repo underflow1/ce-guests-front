@@ -10,7 +10,6 @@ import {
 import { apiGet, apiPost, apiPut, apiPatch, apiDelete, getAccessToken } from '../utils/api'
 import { API_BASE_URL } from '../config'
 import { useToast } from '../components/ToastProvider'
-import useVisitGoals from './useVisitGoals'
 
 const useEntries = ({
   today,
@@ -21,7 +20,6 @@ const useEntries = ({
   canChangeMeetingResult = false,
 }) => {
   const { pushToast } = useToast()
-  const { getActiveGoals } = useVisitGoals()
   const todayKey = toDateKey(today)
   const [weekOffset, setWeekOffset] = useState(0)
 
@@ -34,7 +32,7 @@ const useEntries = ({
   const [bottomEntries, setBottomEntries] = useState({})
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [visitGoals, setVisitGoals] = useState([])
-  const [resultReasons, setResultReasons] = useState([])
+  const [reasonsByState, setReasonsByState] = useState({})
   const [resultReasonsLoading, setResultReasonsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [isBottomLoading, setIsBottomLoading] = useState(false)
@@ -158,38 +156,24 @@ const useEntries = ({
     }
   }, [todayKey, isAuthenticated, weekOffset])
 
-  const loadVisitGoals = useCallback(async () => {
+  const loadReferenceData = useCallback(async () => {
     if (!isAuthenticated) {
+      setVisitGoals([])
+      setReasonsByState({})
+      setResultReasonsLoading(false)
       return
     }
     try {
-      const goals = await getActiveGoals()
-      setVisitGoals(goals)
+      setResultReasonsLoading(true)
+      const response = await apiGet('/reference-data')
+      setVisitGoals(response?.visit_goals || [])
+      setReasonsByState(response?.reasons_by_state || {})
     } catch (err) {
       setError(err.message)
+    } finally {
+      setResultReasonsLoading(false)
     }
-  }, [isAuthenticated, getActiveGoals])
-
-  const loadResultReasons = useCallback(
-    async (state) => {
-      const s = Number(state)
-      if (!isAuthenticated || ![40, 50].includes(s)) {
-        setResultReasons([])
-        setResultReasonsLoading(false)
-        return
-      }
-      try {
-        setResultReasonsLoading(true)
-        const res = await apiGet(`/states/${s}/reasons`)
-        setResultReasons(res?.reasons || [])
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setResultReasonsLoading(false)
-      }
-    },
-    [isAuthenticated],
-  )
+  }, [isAuthenticated])
 
   const formatEntryDateLabel = useCallback((entry) => {
     const dateKey = entry?.datetime ? extractDateFromDateTime(entry.datetime) : ''
@@ -298,10 +282,8 @@ const useEntries = ({
   }, [loadEntries])
 
   useEffect(() => {
-    loadVisitGoals()
-  }, [loadVisitGoals])
-
-  // Отдельного справочника результатов нет: результат = state
+    loadReferenceData()
+  }, [loadReferenceData])
 
 
   // Функция для обновления локального состояния из данных WebSocket
@@ -684,13 +666,15 @@ const useEntries = ({
   })
   const [isFormActive, setIsFormActive] = useState(interfaceType !== 'user')
 
+  const resultReasons = useMemo(() => {
+    const stateKey = String(Number(form?.resultState || 0))
+    if (!stateKey || stateKey === '0') return []
+    return reasonsByState?.[stateKey] || []
+  }, [form?.resultState, reasonsByState])
+
   useEffect(() => {
     setIsFormActive(interfaceType !== 'user')
   }, [interfaceType])
-
-  useEffect(() => {
-    loadResultReasons(form.resultState)
-  }, [form.resultState, loadResultReasons])
 
   const handleDragStart = (event, entry, sourceDateKey) => {
     // Двигать можно только state=10

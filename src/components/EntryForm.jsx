@@ -67,7 +67,7 @@ const EntryForm = ({
   const isMeetingResultDisabled = !canEditMeetingResult
   const resultRequiresReason =
     isMeetingResultVisible &&
-    [40, 50].includes(Number(form?.resultState)) &&
+    Number(form?.resultState) > 0 &&
     (resultReasons || []).length > 0
   const isSubmitLocked =
     isFormLocked ||
@@ -416,7 +416,7 @@ const EntryForm = ({
           )}
         </div>
 
-        {[40, 50].includes(Number(form?.resultState)) && (resultRequiresReason || resultReasonsLoading) && (
+        {Number(form?.resultState) > 0 && (resultRequiresReason || resultReasonsLoading) && (
           <div className="form__control" style={{ marginTop: 'var(--space-2)' }}>
             {!isMeetingResultDisabled && resultRequiresReason && (
               <div
