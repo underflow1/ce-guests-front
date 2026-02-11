@@ -33,6 +33,7 @@ const useEntries = ({
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [visitGoals, setVisitGoals] = useState([])
   const [passOrderingEnabled, setPassOrderingEnabled] = useState(false)
+  const [productionCalendarFallbackActive, setProductionCalendarFallbackActive] = useState(false)
   const [reasonsByState, setReasonsByState] = useState({})
   const [resultReasonsLoading, setResultReasonsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -170,6 +171,7 @@ const useEntries = ({
       setVisitGoals(response?.visit_goals || [])
       setReasonsByState(response?.reasons_by_state || {})
       setPassOrderingEnabled(Boolean(response?.pass_ordering_enabled))
+      setProductionCalendarFallbackActive(Boolean(response?.production_calendar_fallback_active))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -1446,6 +1448,7 @@ const useEntries = ({
     allResponsibles,
     visitGoals,
     passOrderingEnabled,
+    productionCalendarFallbackActive,
     reasonsByState,
     resultReasons,
     resultReasonsLoading,

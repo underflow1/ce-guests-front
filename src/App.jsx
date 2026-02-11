@@ -46,6 +46,7 @@ const App = () => {
   const isDutyOfficerMobile = isDutyOfficer
   const dropdownRef = useRef(null)
   const lastErrorRef = useRef(null)
+  const fallbackToastShownRef = useRef(false)
 
   const {
     todayKey,
@@ -62,6 +63,7 @@ const App = () => {
     allResponsibles,
     visitGoals,
     passOrderingEnabled,
+    productionCalendarFallbackActive,
     reasonsByState,
     resultReasons,
     resultReasonsLoading,
@@ -145,6 +147,24 @@ const App = () => {
 
     lastErrorRef.current = error
   }, [error, pushToast])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      fallbackToastShownRef.current = false
+      return
+    }
+    if (!productionCalendarFallbackActive) return
+    if (fallbackToastShownRef.current) return
+
+    pushToast({
+      type: 'error',
+      title: 'Производственный календарь не загружен',
+      message:
+        'Производственный календарь включен, но на текущий год не загружен. Используется fallback: выходные — суббота и воскресенье.',
+      duration: 12000,
+    })
+    fallbackToastShownRef.current = true
+  }, [isAuthenticated, productionCalendarFallbackActive, pushToast])
 
   useEffect(() => {
     const now = new Date()
