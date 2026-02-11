@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from 'react'
 import {
   toDateKey,
   parseDateFromKey,
@@ -279,12 +279,18 @@ const useEntries = ({
   }, [formatChangeValue, formatEntryDateLabel])
 
   // Загрузка записей с API
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isAuthenticated) {
       hasLoadedOnceRef.current = false
       setLoading(false)
       setIsBottomLoading(false)
+      return
     }
+
+    // При входе/восстановлении сессии включаем loading до первого paint,
+    // чтобы не было короткой отрисовки интерфейса до старта loadEntries().
+    setLoading(true)
+    setIsBottomLoading(false)
   }, [isAuthenticated])
 
   useEffect(() => {
