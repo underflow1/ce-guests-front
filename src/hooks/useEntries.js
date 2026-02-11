@@ -19,7 +19,6 @@ const useEntries = ({
   isAuthenticated = false,
   canSetMeetingResult = false,
   canChangeMeetingResult = false,
-  canRollbackMeetingResult = false,
 }) => {
   const { pushToast } = useToast()
   const { getActiveGoals } = useVisitGoals()
@@ -500,7 +499,7 @@ const useEntries = ({
               message: buildToastMessage('Результат установлен', entry, details),
             })
           }
-        } else if (payload?.type === 'result_rollback') {
+        } else if (payload?.type === 'entry_rollback' || payload?.type === 'result_rollback' || payload?.type === 'entry_uncompleted' || payload?.type === 'visit_uncancelled') {
           const entry = payload.change?.entry
           if (!entry) return
 
@@ -508,7 +507,7 @@ const useEntries = ({
             pushToast({
               type: 'info',
               title: '',
-              message: buildToastMessage('Результат откатан', entry),
+              message: buildToastMessage('Состояние откатано', entry),
             })
           }
         } else if (payload?.type === 'entry_completed') {
@@ -522,17 +521,6 @@ const useEntries = ({
               message: buildToastMessage('Гость принят', entry),
             })
           }
-        } else if (payload?.type === 'entry_uncompleted') {
-          const entry = payload.change?.entry
-          if (!entry) return
-          
-          if (shouldShowToast(entry)) {
-            pushToast({
-              type: 'info',
-              title: '',
-              message: buildToastMessage('Встреча возвращена', entry),
-            })
-          }
         } else if (payload?.type === 'visit_cancelled') {
           const entry = payload.change?.entry
           if (!entry) return
@@ -542,17 +530,6 @@ const useEntries = ({
               type: 'info',
               title: '',
               message: buildToastMessage('Визит отменён', entry),
-            })
-          }
-        } else if (payload?.type === 'visit_uncancelled') {
-          const entry = payload.change?.entry
-          if (!entry) return
-
-          if (shouldShowToast(entry)) {
-            pushToast({
-              type: 'info',
-              title: '',
-              message: buildToastMessage('Отмена визита снята', entry),
             })
           }
         } else if (payload?.type === 'pass_ordered') {
@@ -797,10 +774,9 @@ const useEntries = ({
 
     try {
       const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
-      // Отдельный PATCH для отметки "пришел" (теперь completed)
-      const updatedEntry = await apiPatch(`/entries/${entryId}/completed`, {
-        completed: Boolean(isCompleted),
-      })
+      const updatedEntry = isCompleted
+        ? await apiPatch(`/entries/${entryId}/completed`, { completed: true })
+        : await apiPatch(`/entries/${entryId}/rollback`, {})
 
       // Обновляем локальное состояние
       const updatedList = list.map((item) =>
@@ -868,9 +844,9 @@ const useEntries = ({
 
     try {
       const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
-      const updatedEntry = await apiPatch(`/entries/${entryId}/cancelled`, {
-        cancelled: Boolean(isCancelled),
-      })
+      const updatedEntry = isCancelled
+        ? await apiPatch(`/entries/${entryId}/cancelled`, { cancelled: true })
+        : await apiPatch(`/entries/${entryId}/rollback`, {})
 
       const updatedList = list.map((item) =>
         item.id === entryId ? updatedEntry : item
@@ -1377,7 +1353,7 @@ const useEntries = ({
 
     try {
       const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
-      const updatedEntry = await apiPatch(`/entries/${entryId}/result/rollback`, {})
+      const updatedEntry = await apiPatch(`/entries/${entryId}/rollback`, {})
 
       const updatedList = list.map((item) =>
         item.id === entryId ? updatedEntry : item
