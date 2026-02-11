@@ -2,13 +2,17 @@ export const buildVisitMenuItems = ({
   person,
   dateKey,
   todayKey,
+  reasonsByState = {},
   canMarkArrived = false,
   canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
+  canSetMeetingResult = false,
+  canChangeMeetingResult = false,
   canMarkPass = false,
   canRevokePass = false,
   canRollbackMeetingResult = false,
+  onSetEntryState,
   onToggleArrived,
   onToggleCancelled,
   onOrderPass,
@@ -16,25 +20,89 @@ export const buildVisitMenuItems = ({
   onRollbackMeetingResult,
 }) => {
   const state = Number(person?.state)
-
-  const accept = {
-    key: 'accept',
-    label: state === 30 ? 'Снять отметку прибытия' : 'Гость прибыл',
-    enabled: state === 10 ? canMarkArrived : state === 30 ? canUnmarkArrived : false,
-    action: () => {
-      if (state === 10) onToggleArrived?.(person.id, dateKey, true, { forceReadOnlyAfterAction: true })
-      if (state === 30) onToggleArrived?.(person.id, dateKey, false, { forceReadOnlyAfterAction: true })
-    },
+  const statusLabels = {
+    20: 'Визит отменен',
+    30: 'Гость прибыл',
+    40: 'Отказ',
+    50: 'Не трудоустроен',
+    60: 'Трудоустроен',
   }
 
-  const cancel = {
-    key: 'cancel',
-    label: state === 20 ? 'Снять отмену' : 'Встреча отменена',
-    enabled: state === 10 ? canMarkCancelled : state === 20 ? canUnmarkCancelled : false,
-    action: () => {
-      if (state === 10) onToggleCancelled?.(person.id, dateKey, true, { forceReadOnlyAfterAction: true })
-      if (state === 20) onToggleCancelled?.(person.id, dateKey, false, { forceReadOnlyAfterAction: true })
-    },
+  const transitionTargetsByState = {
+    10: [30, 20],
+    30: [40, 50, 60],
+    40: [40, 50, 60],
+    50: [40, 50, 60],
+    60: [40, 50, 60],
+  }
+
+  const canSetResultFromState = (currentState) => {
+    if (currentState === 30 || currentState === 50) return canSetMeetingResult
+    if (currentState === 40 || currentState === 60) return canChangeMeetingResult
+    return false
+  }
+
+  const canSetTargetState = (targetState) => {
+    if (state === 10 && targetState === 30) return canMarkArrived
+    if (state === 10 && targetState === 20) return canMarkCancelled
+    if ([30, 40, 50, 60].includes(state) && [40, 50, 60].includes(targetState)) {
+      return canSetResultFromState(state)
+    }
+    return false
+  }
+
+  const buildStatusAction = (targetState, reasonId = null) => () => {
+    if (targetState === 30 && state === 10 && !reasonId) {
+      onToggleArrived?.(person.id, dateKey, true, { forceReadOnlyAfterAction: true })
+      return
+    }
+    if (targetState === 20 && state === 10 && !reasonId) {
+      onToggleCancelled?.(person.id, dateKey, true, { forceReadOnlyAfterAction: true })
+      return
+    }
+    onSetEntryState?.(
+      person.id,
+      dateKey,
+      targetState,
+      reasonId,
+      { forceReadOnlyAfterAction: true },
+    )
+  }
+
+  const statusChildren = (transitionTargetsByState[state] || [])
+    .filter((targetState) => targetState !== state)
+    .map((targetState) => {
+      const enabled = canSetTargetState(targetState)
+      const reasons = reasonsByState?.[String(targetState)] || []
+      const needsReasonSubmenu = enabled && reasons.length > 0
+
+      if (needsReasonSubmenu) {
+        return {
+          key: `status-${targetState}`,
+          label: statusLabels[targetState] || `Статус ${targetState}`,
+          enabled: true,
+          children: reasons.map((reason) => ({
+            key: `status-${targetState}-reason-${reason.id}`,
+            label: reason.name,
+            enabled: true,
+            action: buildStatusAction(targetState, reason.id),
+          })),
+        }
+      }
+
+      return {
+        key: `status-${targetState}`,
+        label: statusLabels[targetState] || `Статус ${targetState}`,
+        enabled,
+        action: buildStatusAction(targetState),
+      }
+    })
+
+  const status = {
+    key: 'status',
+    label: 'Статус',
+    enabled: statusChildren.length > 0,
+    children: statusChildren,
   }
 
   const passStatus = person?.pass_status || null
@@ -57,23 +125,24 @@ export const buildVisitMenuItems = ({
     },
   }
 
-  const canRollbackViaResult = state === 40 || state === 50 || state === 60
-  const shouldShowRollback = canRollbackViaResult
+  const canRollback =
+    (state === 20 && canUnmarkCancelled) ||
+    (state === 30 && canUnmarkArrived) ||
+    (state === 50) ||
+    ((state === 40 || state === 60) && canRollbackMeetingResult)
 
   const rollback = {
     key: 'rollback',
     label: 'Откатить',
-    enabled:
-      canRollbackViaResult && (state === 50 || canRollbackMeetingResult),
+    enabled: canRollback,
     action: () => {
-      if (canRollbackViaResult) onRollbackMeetingResult?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
+      if (state === 20) onToggleCancelled?.(person.id, dateKey, false, { forceReadOnlyAfterAction: true })
+      if (state === 30) onToggleArrived?.(person.id, dateKey, false, { forceReadOnlyAfterAction: true })
+      if (state === 40 || state === 50 || state === 60) {
+        onRollbackMeetingResult?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
+      }
     },
   }
 
-  const items = [accept, cancel]
-  if (shouldShowRollback) {
-    items.push(rollback)
-  }
-  items.push(pass)
-  return items.filter((item) => item.key === 'rollback' || item.enabled || item.hint)
+  return [status, rollback, pass].filter((item) => item.enabled || item.hint)
 }

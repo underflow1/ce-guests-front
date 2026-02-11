@@ -24,6 +24,7 @@ const UserInterface = ({
   nextWorkdayPeople,
   bottomEntries,
   visitGoals,
+  reasonsByState,
   resultReasons,
   resultReasonsLoading,
   form,
@@ -56,6 +57,7 @@ const UserInterface = ({
   handleExitEdit,
   handleToggleArrived,
   handleToggleCancelled,
+  handleSetEntryState,
   handleOrderPass,
   handleRevokePass,
   handleDeleteEntry,
@@ -99,6 +101,7 @@ const UserInterface = ({
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
           onToggleArrived={handleToggleArrived}
           onToggleCancelled={handleToggleCancelled}
+          onSetEntryState={handleSetEntryState}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onRollbackMeetingResult={handleRollbackMeetingResult}
@@ -108,10 +111,13 @@ const UserInterface = ({
           canUnmarkArrived={canUnmarkArrived}
           canMarkCancelled={canMarkCancelled}
           canUnmarkCancelled={canUnmarkCancelled}
+          canSetMeetingResult={canSetMeetingResult}
+          canChangeMeetingResult={canChangeMeetingResult}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
           canRollbackMeetingResult={canRollbackMeetingResult}
           canMove={canMove}
+          reasonsByState={reasonsByState}
         />
       )}
 
@@ -135,6 +141,7 @@ const UserInterface = ({
         onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
         onToggleArrived={handleToggleArrived}
         onToggleCancelled={handleToggleCancelled}
+        onSetEntryState={handleSetEntryState}
         onOrderPass={handleOrderPass}
         onRevokePass={handleRevokePass}
         onRollbackMeetingResult={handleRollbackMeetingResult}
@@ -144,10 +151,13 @@ const UserInterface = ({
         canUnmarkArrived={canUnmarkArrived}
         canMarkCancelled={canMarkCancelled}
         canUnmarkCancelled={canUnmarkCancelled}
+        canSetMeetingResult={canSetMeetingResult}
+        canChangeMeetingResult={canChangeMeetingResult}
         canMarkPass={canMarkPass}
         canRevokePass={canRevokePass}
         canRollbackMeetingResult={canRollbackMeetingResult}
         canMove={canMove}
+        reasonsByState={reasonsByState}
       />
 
       {nextWorkday && nextWorkdayKey && (
@@ -176,6 +186,7 @@ const UserInterface = ({
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
           onToggleArrived={handleToggleArrived}
           onToggleCancelled={handleToggleCancelled}
+          onSetEntryState={handleSetEntryState}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onRollbackMeetingResult={handleRollbackMeetingResult}
@@ -185,10 +196,13 @@ const UserInterface = ({
           canUnmarkArrived={canUnmarkArrived}
           canMarkCancelled={canMarkCancelled}
           canUnmarkCancelled={canUnmarkCancelled}
+          canSetMeetingResult={canSetMeetingResult}
+          canChangeMeetingResult={canChangeMeetingResult}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
           canRollbackMeetingResult={canRollbackMeetingResult}
           canMove={canMove}
+          reasonsByState={reasonsByState}
         />
       )}
 
@@ -266,6 +280,7 @@ const UserInterface = ({
                         onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
                         onToggleArrived={handleToggleArrived}
                         onToggleCancelled={handleToggleCancelled}
+                        onSetEntryState={handleSetEntryState}
                         onOrderPass={handleOrderPass}
                         onRevokePass={handleRevokePass}
                         onRollbackMeetingResult={handleRollbackMeetingResult}
@@ -275,11 +290,14 @@ const UserInterface = ({
                         canUnmarkArrived={canUnmarkArrived}
                         canMarkCancelled={canMarkCancelled}
                         canUnmarkCancelled={canUnmarkCancelled}
+                        canSetMeetingResult={canSetMeetingResult}
+                        canChangeMeetingResult={canChangeMeetingResult}
                         canMarkPass={canMarkPass}
                         canRevokePass={canRevokePass}
                         canRollbackMeetingResult={canRollbackMeetingResult}
                         canMove={canMove}
                         typographyVariant="base-light"
+                        reasonsByState={reasonsByState}
                       />
                     </div>
                   </section>
@@ -301,6 +319,7 @@ const UserInterface = ({
                         onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
                         onToggleArrived={handleToggleArrived}
                         onToggleCancelled={handleToggleCancelled}
+                        onSetEntryState={handleSetEntryState}
                         onOrderPass={handleOrderPass}
                         onRevokePass={handleRevokePass}
                         onRollbackMeetingResult={handleRollbackMeetingResult}
@@ -310,11 +329,14 @@ const UserInterface = ({
                         canUnmarkArrived={canUnmarkArrived}
                         canMarkCancelled={canMarkCancelled}
                         canUnmarkCancelled={canUnmarkCancelled}
+                        canSetMeetingResult={canSetMeetingResult}
+                        canChangeMeetingResult={canChangeMeetingResult}
                         canMarkPass={canMarkPass}
                         canRevokePass={canRevokePass}
                         canRollbackMeetingResult={canRollbackMeetingResult}
                         canMove={canMove}
                         typographyVariant="base-light"
+                        reasonsByState={reasonsByState}
                       />
                     </div>
                     <div className={`week-nav week-nav--embedded${isBottomLoading ? ' week-nav--loading' : ''}`}>
@@ -375,6 +397,7 @@ const UserInterface = ({
               onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
               onToggleArrived={handleToggleArrived}
               onToggleCancelled={handleToggleCancelled}
+              onSetEntryState={handleSetEntryState}
               onOrderPass={handleOrderPass}
               onRevokePass={handleRevokePass}
               onRollbackMeetingResult={handleRollbackMeetingResult}
@@ -384,11 +407,14 @@ const UserInterface = ({
               canUnmarkArrived={canUnmarkArrived}
               canMarkCancelled={canMarkCancelled}
               canUnmarkCancelled={canUnmarkCancelled}
+              canSetMeetingResult={canSetMeetingResult}
+              canChangeMeetingResult={canChangeMeetingResult}
               canMarkPass={canMarkPass}
               canRevokePass={canRevokePass}
               canRollbackMeetingResult={canRollbackMeetingResult}
               canMove={canMove}
               peopleTypographyVariant="base-light"
+              reasonsByState={reasonsByState}
               isAdmin={isAdmin}
             />
           )

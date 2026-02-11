@@ -8,6 +8,7 @@ const DutyOfficerInterface = ({
   todayKey,
   todayPeople,
   visitGoals,
+  reasonsByState,
   handleToggleArrived,
   canMarkArrived,
   canUnmarkArrived,
@@ -17,6 +18,7 @@ const DutyOfficerInterface = ({
   handleDoubleClick,
   handleEmptyRowDoubleClick,
   handleToggleCancelled,
+  handleSetEntryState,
   handleOrderPass,
   handleRevokePass,
   handleRollbackMeetingResult,
@@ -28,6 +30,8 @@ const DutyOfficerInterface = ({
   canRevokePass,
   canRollbackMeetingResult,
   canMove,
+  canSetMeetingResult,
+  canChangeMeetingResult,
 }) => (
   <div className="app__layout">
     {isMobile ? (
@@ -57,6 +61,7 @@ const DutyOfficerInterface = ({
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
           onToggleArrived={handleToggleArrived}
           onToggleCancelled={handleToggleCancelled}
+          onSetEntryState={handleSetEntryState}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onRollbackMeetingResult={handleRollbackMeetingResult}
@@ -66,10 +71,13 @@ const DutyOfficerInterface = ({
           canUnmarkArrived={canUnmarkArrived}
           canMarkCancelled={canMarkCancelled}
           canUnmarkCancelled={canUnmarkCancelled}
+          canSetMeetingResult={canSetMeetingResult}
+          canChangeMeetingResult={canChangeMeetingResult}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
           canRollbackMeetingResult={canRollbackMeetingResult}
           canMove={canMove}
+          reasonsByState={reasonsByState}
         />
       </div>
     )}

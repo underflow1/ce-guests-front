@@ -751,6 +751,50 @@ const useEntries = ({
     }
   }
 
+  const handleSetEntryState = async (entryId, dateKey, nextState, reasonId = null, options = {}) => {
+    const list = getListForDateKey(dateKey)
+    const entry = list.find((item) => item.id === entryId)
+    if (!entry) return
+
+    try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
+      const payload = { state: Number(nextState) }
+      if (reasonId) {
+        payload.reason_id = reasonId
+      }
+      const updatedEntry = await apiPatch(`/entries/${entryId}/result`, payload)
+      const updatedList = list.map((item) =>
+        item.id === entryId ? updatedEntry : item
+      )
+      updateListForDateKey(dateKey, updatedList)
+
+      if (forceReadOnlyAfterAction && interfaceType === 'user' && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(false)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+          resultReasonId: updatedEntry.result_reason_id || null,
+        })
+      }
+    } catch (err) {
+      console.error('Ошибка при установке состояния записи:', err)
+      setError(err.message)
+    }
+  }
+
   const handleToggleArrived = async (entryId, dateKey, isArrived, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
@@ -1392,6 +1436,7 @@ const useEntries = ({
     bottomEntries,
     allResponsibles,
     visitGoals,
+    reasonsByState,
     resultReasons,
     resultReasonsLoading,
     form,
@@ -1410,6 +1455,7 @@ const useEntries = ({
     handleWeekendEmptyRowDoubleClick,
     handleExitEdit,
     handleSubmit,
+    handleSetEntryState,
     handleToggleArrived,
     handleToggleCancelled,
     handleOrderPass,
