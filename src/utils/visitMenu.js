@@ -22,8 +22,8 @@ export const buildVisitMenuItems = ({
     label: state === 30 ? 'Снять «гость принят»' : 'Гость принят',
     enabled: state === 10 ? canMarkCompleted : state === 30 ? canUnmarkCompleted : false,
     action: () => {
-      if (state === 10) onToggleCompleted?.(person.id, dateKey, true)
-      if (state === 30) onToggleCompleted?.(person.id, dateKey, false)
+      if (state === 10) onToggleCompleted?.(person.id, dateKey, true, { forceReadOnlyAfterAction: true })
+      if (state === 30) onToggleCompleted?.(person.id, dateKey, false, { forceReadOnlyAfterAction: true })
     },
   }
 
@@ -32,8 +32,8 @@ export const buildVisitMenuItems = ({
     label: state === 20 ? 'Снять отмену' : 'Встреча отменена',
     enabled: state === 10 ? canMarkCancelled : state === 20 ? canUnmarkCancelled : false,
     action: () => {
-      if (state === 10) onToggleCancelled?.(person.id, dateKey, true)
-      if (state === 20) onToggleCancelled?.(person.id, dateKey, false)
+      if (state === 10) onToggleCancelled?.(person.id, dateKey, true, { forceReadOnlyAfterAction: true })
+      if (state === 20) onToggleCancelled?.(person.id, dateKey, false, { forceReadOnlyAfterAction: true })
     },
   }
 
@@ -52,8 +52,8 @@ export const buildVisitMenuItems = ({
     enabled: passEnabled,
     hint: passHint,
     action: () => {
-      if (passAction === 'order') onOrderPass?.(person.id, dateKey)
-      if (passAction === 'revoke') onRevokePass?.(person.id, dateKey)
+      if (passAction === 'order') onOrderPass?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
+      if (passAction === 'revoke') onRevokePass?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
     },
   }
 
@@ -66,7 +66,7 @@ export const buildVisitMenuItems = ({
     enabled:
       canRollbackViaResult && (state === 50 || canRollbackMeetingResult),
     action: () => {
-      if (canRollbackViaResult) onRollbackMeetingResult?.(person.id, dateKey)
+      if (canRollbackViaResult) onRollbackMeetingResult?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
     },
   }
 

@@ -790,12 +790,13 @@ const useEntries = ({
     }
   }
 
-  const handleToggleCompleted = async (entryId, dateKey, isCompleted) => {
+  const handleToggleCompleted = async (entryId, dateKey, isCompleted, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       // Отдельный PATCH для отметки "пришел" (теперь completed)
       const updatedEntry = await apiPatch(`/entries/${entryId}/completed`, {
         completed: Boolean(isCompleted),
@@ -807,12 +808,32 @@ const useEntries = ({
       )
       updateListForDateKey(dateKey, updatedList)
 
-      // В user UI после "Отката" (30 -> 10) автоматически переходим в режим редактирования
-      if (interfaceType === 'user' && !Boolean(isCompleted) && form.editingEntryId === entryId) {
+      if (interfaceType === 'user' && form.editingEntryId === entryId) {
         const { target, otherDate } = resolveTarget(dateKey)
         const entryTime = updatedEntry.datetime
           ? extractTimeFromDateTime(updatedEntry.datetime)
           : (updatedEntry.time || '00:00')
+
+        if (forceReadOnlyAfterAction) {
+          setIsFormActive(false)
+          setForm({
+            name: updatedEntry.name,
+            responsible: updatedEntry.responsible || '',
+            time: entryTime,
+            target,
+            otherDate,
+            editingEntryId: updatedEntry.id,
+            editingDateKey: dateKey,
+            isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            visitGoalIds: updatedEntry.visit_goal_ids || [],
+            resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+            resultReasonId: updatedEntry.result_reason_id || null,
+          })
+          return
+        }
+
+        // В user UI после "Отката" (30 -> 10) автоматически переходим в режим редактирования
+        if (Boolean(isCompleted)) return
 
         setIsFormActive(true)
         setForm({
@@ -840,12 +861,13 @@ const useEntries = ({
     }
   }
 
-  const handleToggleCancelled = async (entryId, dateKey, isCancelled) => {
+  const handleToggleCancelled = async (entryId, dateKey, isCancelled, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       const updatedEntry = await apiPatch(`/entries/${entryId}/cancelled`, {
         cancelled: Boolean(isCancelled),
       })
@@ -855,12 +877,32 @@ const useEntries = ({
       )
       updateListForDateKey(dateKey, updatedList)
 
-      // В user UI после "Отката" (20 -> 10) автоматически переходим в режим редактирования
-      if (interfaceType === 'user' && !Boolean(isCancelled) && form.editingEntryId === entryId) {
+      if (interfaceType === 'user' && form.editingEntryId === entryId) {
         const { target, otherDate } = resolveTarget(dateKey)
         const entryTime = updatedEntry.datetime
           ? extractTimeFromDateTime(updatedEntry.datetime)
           : (updatedEntry.time || '00:00')
+
+        if (forceReadOnlyAfterAction) {
+          setIsFormActive(false)
+          setForm({
+            name: updatedEntry.name,
+            responsible: updatedEntry.responsible || '',
+            time: entryTime,
+            target,
+            otherDate,
+            editingEntryId: updatedEntry.id,
+            editingDateKey: dateKey,
+            isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            visitGoalIds: updatedEntry.visit_goal_ids || [],
+            resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+            resultReasonId: updatedEntry.result_reason_id || null,
+          })
+          return
+        }
+
+        // В user UI после "Отката" (20 -> 10) автоматически переходим в режим редактирования
+        if (Boolean(isCancelled)) return
 
         setIsFormActive(true)
         setForm({
@@ -888,34 +930,80 @@ const useEntries = ({
     }
   }
 
-  const handleOrderPass = async (entryId, dateKey) => {
+  const handleOrderPass = async (entryId, dateKey, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       const updatedEntry = await apiPut(`/entries/${entryId}/pass`, {})
       const updatedList = list.map((item) =>
         item.id === entryId ? updatedEntry : item
       )
       updateListForDateKey(dateKey, updatedList)
+
+      if (forceReadOnlyAfterAction && interfaceType === 'user' && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(false)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+          resultReasonId: updatedEntry.result_reason_id || null,
+        })
+      }
     } catch (err) {
       console.error('Ошибка при заказе пропуска:', err)
       setError(err.message)
     }
   }
 
-  const handleRevokePass = async (entryId, dateKey) => {
+  const handleRevokePass = async (entryId, dateKey, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       const updatedEntry = await apiDelete(`/entries/${entryId}/pass`)
       const updatedList = list.map((item) =>
         item.id === entryId ? updatedEntry : item
       )
       updateListForDateKey(dateKey, updatedList)
+
+      if (forceReadOnlyAfterAction && interfaceType === 'user' && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(false)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+          resultReasonId: updatedEntry.result_reason_id || null,
+        })
+      }
     } catch (err) {
       console.error('Ошибка при отзыве пропуска:', err)
       setError(err.message)
@@ -1282,12 +1370,13 @@ const useEntries = ({
     }
   }
 
-  const handleRollbackMeetingResult = async (entryId, dateKey) => {
+  const handleRollbackMeetingResult = async (entryId, dateKey, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       const updatedEntry = await apiPatch(`/entries/${entryId}/result/rollback`, {})
 
       const updatedList = list.map((item) =>
@@ -1295,14 +1384,14 @@ const useEntries = ({
       )
       updateListForDateKey(dateKey, updatedList)
 
-      // Если это текущая запись в user UI — после "Отката" переходим в режим редактирования
+      // Если это текущая запись в user UI — после "Отката" управляем режимом формы
       if (interfaceType === 'user' && form.editingEntryId === entryId) {
         const { target, otherDate } = resolveTarget(dateKey)
         const entryTime = updatedEntry.datetime
           ? extractTimeFromDateTime(updatedEntry.datetime)
           : (updatedEntry.time || '00:00')
 
-        setIsFormActive(true)
+        setIsFormActive(!forceReadOnlyAfterAction)
         setForm({
           name: updatedEntry.name,
           responsible: updatedEntry.responsible || '',
