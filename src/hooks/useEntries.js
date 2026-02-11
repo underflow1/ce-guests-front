@@ -1476,6 +1476,7 @@ const useEntries = ({
     goToPreviousWeek,
     goToNextWeek,
     resetWeekOffset,
+    reloadReferenceData: loadReferenceData,
   }
 }
 

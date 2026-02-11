@@ -92,6 +92,7 @@ const App = () => {
     goToPreviousWeek,
     goToNextWeek,
     resetWeekOffset,
+    reloadReferenceData,
   } = useEntries({
     today,
     nameInputRef,
@@ -347,6 +348,10 @@ const App = () => {
 
   const InterfaceComponent = isDutyOfficer ? DutyOfficerInterface : UserInterface
   const interfaceProps = isDutyOfficer ? dutyOfficerProps : userInterfaceProps
+  const handleCloseSettings = async () => {
+    setShowSettings(false)
+    await reloadReferenceData?.()
+  }
 
   return (
     <div
@@ -433,7 +438,7 @@ const App = () => {
       </div>
 
       {showSettings ? (
-        <SettingsPanel onBack={() => setShowSettings(false)} />
+        <SettingsPanel onBack={handleCloseSettings} />
       ) : showMaintenance ? (
         <MaintenancePanel
           today={today}
