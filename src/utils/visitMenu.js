@@ -29,7 +29,7 @@ export const buildVisitMenuItems = ({
   }
 
   const transitionTargetsByState = {
-    10: [30, 20],
+    10: [20, 30, 40, 50, 60],
     30: [40, 50, 60],
     40: [40, 50, 60],
     50: [40, 50, 60],
@@ -45,6 +45,7 @@ export const buildVisitMenuItems = ({
   const canSetTargetState = (targetState) => {
     if (state === 10 && targetState === 30) return canMarkArrived
     if (state === 10 && targetState === 20) return canMarkCancelled
+    if (state === 10 && [40, 50, 60].includes(targetState)) return canSetMeetingResult
     if ([30, 40, 50, 60].includes(state) && [40, 50, 60].includes(targetState)) {
       return canSetResultFromState(state)
     }

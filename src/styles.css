@@ -1341,6 +1341,38 @@ body.interface-user .list__item--cancelled .list__responsible {
   cursor: not-allowed;
 }
 
+.visit-menu__item-wrapper {
+  position: relative;
+}
+
+.visit-menu__flyout {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 180px;
+  padding: var(--space-1);
+  gap: 2px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  margin-left: -1px;
+}
+
+.visit-menu__flyout .visit-menu__item-wrapper {
+  display: block;
+}
+
+.visit-menu__flyout .visit-menu__item {
+  width: 100%;
+}
+
+.visit-menu__arrow--flyout {
+  margin-left: auto;
+}
+
 .form__submit-row {
   display: flex;
   justify-content: flex-end;
