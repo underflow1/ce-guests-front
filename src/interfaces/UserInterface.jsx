@@ -44,6 +44,7 @@ const UserInterface = ({
   canUnmarkCancelled,
   canMarkPass,
   canRevokePass,
+  passOrderingEnabled,
   canMove,
   canSetMeetingResult,
   canChangeMeetingResult,
@@ -115,6 +116,7 @@ const UserInterface = ({
           canChangeMeetingResult={canChangeMeetingResult}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
+          passOrderingEnabled={passOrderingEnabled}
           canRollbackMeetingResult={canRollbackMeetingResult}
           canMove={canMove}
           reasonsByState={reasonsByState}
@@ -155,6 +157,7 @@ const UserInterface = ({
         canChangeMeetingResult={canChangeMeetingResult}
         canMarkPass={canMarkPass}
         canRevokePass={canRevokePass}
+        passOrderingEnabled={passOrderingEnabled}
         canRollbackMeetingResult={canRollbackMeetingResult}
         canMove={canMove}
         reasonsByState={reasonsByState}
@@ -200,6 +203,7 @@ const UserInterface = ({
           canChangeMeetingResult={canChangeMeetingResult}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
+          passOrderingEnabled={passOrderingEnabled}
           canRollbackMeetingResult={canRollbackMeetingResult}
           canMove={canMove}
           reasonsByState={reasonsByState}
@@ -227,6 +231,7 @@ const UserInterface = ({
           canEditEntry={canEditEntry}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
+          passOrderingEnabled={passOrderingEnabled}
           canUnmarkCancelled={canUnmarkCancelled}
           canUnmarkArrived={canUnmarkArrived}
           canDeleteEntry={canDelete}
@@ -294,6 +299,7 @@ const UserInterface = ({
                         canChangeMeetingResult={canChangeMeetingResult}
                         canMarkPass={canMarkPass}
                         canRevokePass={canRevokePass}
+                        passOrderingEnabled={passOrderingEnabled}
                         canRollbackMeetingResult={canRollbackMeetingResult}
                         canMove={canMove}
                         typographyVariant="base-light"
@@ -333,6 +339,7 @@ const UserInterface = ({
                         canChangeMeetingResult={canChangeMeetingResult}
                         canMarkPass={canMarkPass}
                         canRevokePass={canRevokePass}
+                        passOrderingEnabled={passOrderingEnabled}
                         canRollbackMeetingResult={canRollbackMeetingResult}
                         canMove={canMove}
                         typographyVariant="base-light"
@@ -411,6 +418,7 @@ const UserInterface = ({
               canChangeMeetingResult={canChangeMeetingResult}
               canMarkPass={canMarkPass}
               canRevokePass={canRevokePass}
+              passOrderingEnabled={passOrderingEnabled}
               canRollbackMeetingResult={canRollbackMeetingResult}
               canMove={canMove}
               peopleTypographyVariant="base-light"

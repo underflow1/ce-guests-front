@@ -21,6 +21,7 @@ const EntryForm = ({
   resultReasonsLoading = false,
   canMarkPass = false,
   canRevokePass = false,
+  passOrderingEnabled = true,
   canUnmarkCancelled = false,
   canUnmarkArrived = false,
   canSetMeetingResult = false,
@@ -99,6 +100,7 @@ const EntryForm = ({
   const isPassForbiddenByState =
     passAction === 'order' && (entryState === 20 || entryState === 40)
   const passDisabled =
+    !passOrderingEnabled ||
     !isEditingActive ||
     !canPassAction ||
     isPassForbiddenByState ||
@@ -614,20 +616,22 @@ const EntryForm = ({
     )}
 
     <div className="form__bottom-actions">
-      <button
-        type="button"
-        className="button text"
-        title={passButtonTitle}
-        aria-label={passButtonTitle}
-        disabled={passDisabled}
-        onClick={() => {
-          if (passDisabled) return
-          if (passAction === 'order') onOrderPass?.(entry.id, editingDateKey)
-          if (passAction === 'revoke') onRevokePass?.(entry.id, editingDateKey)
-        }}
-      >
-        {passActionTitle}
-      </button>
+      {passOrderingEnabled && (
+        <button
+          type="button"
+          className="button text"
+          title={passButtonTitle}
+          aria-label={passButtonTitle}
+          disabled={passDisabled}
+          onClick={() => {
+            if (passDisabled) return
+            if (passAction === 'order') onOrderPass?.(entry.id, editingDateKey)
+            if (passAction === 'revoke') onRevokePass?.(entry.id, editingDateKey)
+          }}
+        >
+          {passActionTitle}
+        </button>
+      )}
       {isEditingActive && Number(entryState) === 30 && (
         <button
           type="button"

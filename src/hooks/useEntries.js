@@ -32,6 +32,7 @@ const useEntries = ({
   const [bottomEntries, setBottomEntries] = useState({})
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [visitGoals, setVisitGoals] = useState([])
+  const [passOrderingEnabled, setPassOrderingEnabled] = useState(false)
   const [reasonsByState, setReasonsByState] = useState({})
   const [resultReasonsLoading, setResultReasonsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -168,6 +169,7 @@ const useEntries = ({
       const response = await apiGet('/reference-data')
       setVisitGoals(response?.visit_goals || [])
       setReasonsByState(response?.reasons_by_state || {})
+      setPassOrderingEnabled(Boolean(response?.pass_ordering_enabled))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -233,6 +235,12 @@ const useEntries = ({
     if (!title) return ''
     const reasonName = entry?.result_reason_name || ''
     return reasonName ? `${title} / ${reasonName}` : title
+  }, [])
+
+  const buildPassOrderDetails = useCallback((entry) => {
+    const externalId = entry?.pass_external_id
+    if (!externalId) return ''
+    return `Номер пропуска: ${externalId}`
   }, [])
 
   const buildUpdateDetails = useCallback((prevEntry, nextEntry) => {
@@ -519,10 +527,11 @@ const useEntries = ({
           if (!entry) return
 
           if (shouldShowToast(entry)) {
+            const details = buildPassOrderDetails(entry)
             pushToast({
               type: 'info',
               title: '',
-              message: buildToastMessage('Пропуск заказан', entry),
+              message: buildToastMessage('Пропуск заказан', entry, details),
             })
           }
         } else if (payload?.type === 'pass_order_failed') {
@@ -600,7 +609,7 @@ const useEntries = ({
       }
       socket?.close()
     }
-  }, [pushToast, shouldShowToast, isAuthenticated, updateStateFromWebSocketData, weekOffset])
+  }, [buildPassOrderDetails, pushToast, shouldShowToast, isAuthenticated, updateStateFromWebSocketData, weekOffset])
 
   const goToPreviousWeek = useCallback(() => {
     setWeekOffset((prev) => prev - 1)
@@ -1436,6 +1445,7 @@ const useEntries = ({
     bottomEntries,
     allResponsibles,
     visitGoals,
+    passOrderingEnabled,
     reasonsByState,
     resultReasons,
     resultReasonsLoading,
@@ -1466,6 +1476,7 @@ const useEntries = ({
     goToPreviousWeek,
     goToNextWeek,
     resetWeekOffset,
+    reloadReferenceData: loadReferenceData,
   }
 }
 
