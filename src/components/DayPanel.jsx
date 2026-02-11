@@ -20,19 +20,25 @@ const DayPanel = ({
   onDoubleClick,
   onSingleClick,
   onEmptyRowDoubleClick,
-  onToggleCompleted,
+  onToggleArrived,
   onToggleCancelled,
+  onSetEntryState,
   onOrderPass,
   onRevokePass,
+  onRollbackMeetingResult,
   onDeleteEntry,
   canDelete = false,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
+  canSetMeetingResult = false,
+  canChangeMeetingResult = false,
   canMarkPass = false,
   canRevokePass = false,
+  canRollbackMeetingResult = false,
   canMove = false,
+  reasonsByState = {},
 }) => (
   <section className={`panel panel--day ${compact ? 'panel--compact' : ''}`}>
     <header className="panel__header">
@@ -66,19 +72,25 @@ const DayPanel = ({
         onDoubleClick={onDoubleClick}
         onSingleClick={onSingleClick}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
-        onToggleCompleted={onToggleCompleted}
+        onToggleArrived={onToggleArrived}
         onToggleCancelled={onToggleCancelled}
+        onSetEntryState={onSetEntryState}
         onOrderPass={onOrderPass}
         onRevokePass={onRevokePass}
+        onRollbackMeetingResult={onRollbackMeetingResult}
         onDeleteEntry={onDeleteEntry}
         canDelete={canDelete}
-        canMarkCompleted={canMarkCompleted}
-        canUnmarkCompleted={canUnmarkCompleted}
+        canMarkArrived={canMarkArrived}
+        canUnmarkArrived={canUnmarkArrived}
         canMarkCancelled={canMarkCancelled}
         canUnmarkCancelled={canUnmarkCancelled}
+        canSetMeetingResult={canSetMeetingResult}
+        canChangeMeetingResult={canChangeMeetingResult}
         canMarkPass={canMarkPass}
         canRevokePass={canRevokePass}
+        canRollbackMeetingResult={canRollbackMeetingResult}
         canMove={canMove}
+        reasonsByState={reasonsByState}
       />
     </div>
   </section>

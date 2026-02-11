@@ -12,14 +12,14 @@ const WeekendBlock = ({
   onDrop,
   onDoubleClick,
   onEmptyRowDoubleClick,
-  onToggleCompleted,
+  onToggleArrived,
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
   onDeleteEntry,
   canDelete = false,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
   canMarkPass = false,
@@ -41,14 +41,14 @@ const WeekendBlock = ({
         onDrop={onDrop}
         onDoubleClick={(entry) => onDoubleClick?.(entry, saturdayKey)}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
-        onToggleCompleted={onToggleCompleted}
+        onToggleArrived={onToggleArrived}
         onToggleCancelled={onToggleCancelled}
         onOrderPass={onOrderPass}
         onRevokePass={onRevokePass}
         onDeleteEntry={onDeleteEntry}
         canDelete={canDelete}
-        canMarkCompleted={canMarkCompleted}
-        canUnmarkCompleted={canUnmarkCompleted}
+        canMarkArrived={canMarkArrived}
+        canUnmarkArrived={canUnmarkArrived}
         canMarkCancelled={canMarkCancelled}
         canUnmarkCancelled={canUnmarkCancelled}
         canMarkPass={canMarkPass}
@@ -70,14 +70,14 @@ const WeekendBlock = ({
         onDrop={onDrop}
         onDoubleClick={(entry) => onDoubleClick?.(entry, sundayKey)}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
-        onToggleCompleted={onToggleCompleted}
+        onToggleArrived={onToggleArrived}
         onToggleCancelled={onToggleCancelled}
         onOrderPass={onOrderPass}
         onRevokePass={onRevokePass}
         onDeleteEntry={onDeleteEntry}
         canDelete={canDelete}
-        canMarkCompleted={canMarkCompleted}
-        canUnmarkCompleted={canUnmarkCompleted}
+        canMarkArrived={canMarkArrived}
+        canUnmarkArrived={canUnmarkArrived}
         canMarkCancelled={canMarkCancelled}
         canUnmarkCancelled={canUnmarkCancelled}
         canMarkPass={canMarkPass}

@@ -8,24 +8,30 @@ const DutyOfficerInterface = ({
   todayKey,
   todayPeople,
   visitGoals,
-  handleToggleCompleted,
-  canMarkCompleted,
-  canUnmarkCompleted,
+  reasonsByState,
+  handleToggleArrived,
+  canMarkArrived,
+  canUnmarkArrived,
   logout,
   handleDragStart,
   handleDrop,
   handleDoubleClick,
   handleEmptyRowDoubleClick,
   handleToggleCancelled,
+  handleSetEntryState,
   handleOrderPass,
   handleRevokePass,
+  handleRollbackMeetingResult,
   handleDeleteEntry,
   canDelete,
   canMarkCancelled,
   canUnmarkCancelled,
   canMarkPass,
   canRevokePass,
+  canRollbackMeetingResult,
   canMove,
+  canSetMeetingResult,
+  canChangeMeetingResult,
 }) => (
   <div className="app__layout">
     {isMobile ? (
@@ -35,9 +41,9 @@ const DutyOfficerInterface = ({
         people={todayPeople}
         visitGoals={visitGoals}
         dateKey={todayKey}
-        onToggleCompleted={handleToggleCompleted}
-        canMarkCompleted={canMarkCompleted}
-        canUnmarkCompleted={canUnmarkCompleted}
+        onToggleArrived={handleToggleArrived}
+        canMarkArrived={canMarkArrived}
+        canUnmarkArrived={canUnmarkArrived}
         onLogout={logout}
       />
     ) : (
@@ -53,19 +59,25 @@ const DutyOfficerInterface = ({
           onDrop={handleDrop}
           onDoubleClick={handleDoubleClick}
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-          onToggleCompleted={handleToggleCompleted}
+          onToggleArrived={handleToggleArrived}
           onToggleCancelled={handleToggleCancelled}
+          onSetEntryState={handleSetEntryState}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
+          onRollbackMeetingResult={handleRollbackMeetingResult}
           onDeleteEntry={handleDeleteEntry}
           canDelete={canDelete}
-          canMarkCompleted={canMarkCompleted}
-          canUnmarkCompleted={canUnmarkCompleted}
+          canMarkArrived={canMarkArrived}
+          canUnmarkArrived={canUnmarkArrived}
           canMarkCancelled={canMarkCancelled}
           canUnmarkCancelled={canUnmarkCancelled}
+          canSetMeetingResult={canSetMeetingResult}
+          canChangeMeetingResult={canChangeMeetingResult}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
+          canRollbackMeetingResult={canRollbackMeetingResult}
           canMove={canMove}
+          reasonsByState={reasonsByState}
         />
       </div>
     )}

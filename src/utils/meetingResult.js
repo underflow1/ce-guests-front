@@ -43,7 +43,7 @@ export function getMeetingResultTitle(state) {
   const s = Number(state)
   if (s === 10) return 'Визит не состоялся'
   if (s === 20) return 'Визит отменен'
-  if (s === 30) return 'Гость принят'
+  if (s === 30) return 'Гость прибыл'
   if (s === 50) return 'В процессе'
   if (s === 60) return 'Трудоустроен'
   if (s === 40) return 'Отказ'

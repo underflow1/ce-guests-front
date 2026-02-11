@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { extractTimeFromDateTime } from '../utils/date'
+import { extractTimeFromDateTime, toDateKey } from '../utils/date'
 import { getMeetingResultIcon, getMeetingResultVariant, getMeetingResultTitle } from '../utils/meetingResult'
+import { buildVisitMenuItems } from '../utils/visitMenu'
+import VisitContextMenu from './VisitContextMenu'
 
 const HOURS = Array.from({ length: 10 }, (_, idx) =>
   String(9 + idx).padStart(2, '0'),
@@ -30,21 +32,27 @@ const PeopleList = ({
   onDoubleClick,
   onSingleClick,
   onEmptyRowDoubleClick,
-  onToggleCompleted,
+  onToggleArrived,
   onToggleCancelled,
+  onSetEntryState,
   onOrderPass,
   onRevokePass,
+  onRollbackMeetingResult,
   onDeleteEntry,
   visitGoals = [],
   showVisitGoals = false,
   canDelete = false,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
+  canSetMeetingResult = false,
+  canChangeMeetingResult = false,
   canMarkPass = false,
   canRevokePass = false,
+  canRollbackMeetingResult = false,
   canMove = false,
+  reasonsByState = {},
 }) => {
   const grouped = useMemo(() => groupPeopleByHour(people), [people])
   const visitGoalsMap = useMemo(() => {
@@ -55,6 +63,7 @@ const PeopleList = ({
   const SINGLE_CLICK_DELAY = 220
   const [visitMenu, setVisitMenu] = useState(null) // { person, x, y }
   const visitMenuRef = useRef(null)
+  const todayKey = toDateKey(new Date())
 
   useEffect(() => {
     return () => {
@@ -115,6 +124,45 @@ const PeopleList = ({
     return ids.map((id) => visitGoalsMap.get(id)).filter(Boolean)
   }
 
+  const getMenuItems = (person) => buildVisitMenuItems({
+    person,
+    dateKey,
+    todayKey,
+    reasonsByState,
+    canMarkArrived,
+    canUnmarkArrived,
+    canMarkCancelled,
+    canUnmarkCancelled,
+    canSetMeetingResult,
+    canChangeMeetingResult,
+    canMarkPass,
+    canRevokePass,
+    canRollbackMeetingResult,
+    onSetEntryState,
+    onToggleArrived,
+    onToggleCancelled,
+    onOrderPass,
+    onRevokePass,
+    onRollbackMeetingResult,
+  })
+
+  const handleBadgeMenuClick = (person, event) => {
+    event.stopPropagation()
+
+    // Если эта запись сейчас редактируется в правой панели — любой клик по ней в списке схлопывает в чтение
+    if (isFormActive && activeEntryId && person?.id === activeEntryId) {
+      onSingleClick?.(person, dateKey)
+    }
+
+    const items = getMenuItems(person)
+    if (!items.length) return
+
+    setVisitMenu((prev) => {
+      if (prev?.person?.id === person?.id) return null
+      return { person, x: event.clientX + 8, y: event.clientY + 8 }
+    })
+  }
+
   const renderStateBadge = (person, options = {}) => {
     const { interactive = false } = options
     const state = Number(person?.state)
@@ -143,28 +191,11 @@ const PeopleList = ({
       )
     }
 
-    const s = Number(person?.state)
-    const isEditable = s === 10 || s === 20 || s === 30
-    const items = buildVisitMenuItems(person)
-    const hasAny = items.some((i) => i.enabled)
+    const items = getMenuItems(person)
+    const hasAny = items.length > 0
 
     const handleStatusClick = (event) => {
-      event.stopPropagation()
-
-      // Если эта запись сейчас редактируется в правой панели — любой клик по ней в списке схлопывает в чтение
-      if (isFormActive && activeEntryId && person?.id === activeEntryId) {
-        onSingleClick?.(person, dateKey)
-      }
-
-      if (!items.length) return
-
-      // Если нет ни одного доступного действия — не показываем меню
-      if (!hasAny) return
-
-      setVisitMenu((prev) => {
-        if (prev?.person?.id === person?.id) return null
-        return { person, x: event.clientX + 8, y: event.clientY + 8 }
-      })
+      handleBadgeMenuClick(person, event)
     }
 
     return (
@@ -172,7 +203,7 @@ const PeopleList = ({
         type="button"
         className={className}
         title={title}
-        onClick={isEditable ? handleStatusClick : undefined}
+        onClick={hasAny ? handleStatusClick : undefined}
         aria-label={title}
         aria-haspopup={hasAny ? 'menu' : undefined}
       >
@@ -200,15 +231,32 @@ const PeopleList = ({
       'list__badge',
       'list__badge--pass',
       `list__badge--state-${state}`,
-      'list__badge--static',
     ]
       .filter(Boolean)
       .join(' ')
 
+    const menuItems = getMenuItems(person)
+    const hasMenu = menuItems.length > 0
+
+    if (!hasMenu) {
+      return (
+        <span className={`${className} list__badge--static`} title={title} aria-label={title}>
+          <i className="fa-solid fa-id-card-clip" aria-hidden="true" />
+        </span>
+      )
+    }
+
     return (
-      <span className={className} title={title} aria-label={title}>
+      <button
+        type="button"
+        className={`${className} list__badge--clickable`}
+        title={title}
+        aria-label={title}
+        aria-haspopup="menu"
+        onClick={(event) => handleBadgeMenuClick(person, event)}
+      >
         <i className="fa-solid fa-id-card-clip" aria-hidden="true" />
-      </span>
+      </button>
     )
   }
 
@@ -216,32 +264,6 @@ const PeopleList = ({
     const timer = clickTimerRef.current.get(personId)
     if (timer) clearTimeout(timer)
     clickTimerRef.current.delete(personId)
-  }
-
-  const buildVisitMenuItems = (person) => {
-    const s = Number(person?.state)
-
-    const accept = {
-      key: 'accept',
-      label: s === 30 ? 'Снять «гость принят»' : 'Гость принят',
-      enabled: s === 10 ? canMarkCompleted : s === 30 ? canUnmarkCompleted : false,
-      action: () => {
-        if (s === 10) onToggleCompleted?.(person.id, dateKey, true)
-        if (s === 30) onToggleCompleted?.(person.id, dateKey, false)
-      },
-    }
-
-    const cancel = {
-      key: 'cancel',
-      label: s === 20 ? 'Снять отмену' : 'Встреча отменена',
-      enabled: s === 10 ? canMarkCancelled : s === 20 ? canUnmarkCancelled : false,
-      action: () => {
-        if (s === 10) onToggleCancelled?.(person.id, dateKey, true)
-        if (s === 20) onToggleCancelled?.(person.id, dateKey, false)
-      },
-    }
-
-    return [accept, cancel]
   }
 
   return (
@@ -272,7 +294,7 @@ const PeopleList = ({
                 {grouped[hour].map((person) => (
                     <li
                       key={person.id}
-                      className={`list__item ${Number(person?.state) === 30 ? 'list__item--completed' : ''} ${
+                      className={`list__item ${Number(person?.state) === 30 ? 'list__item--arrived' : ''} ${
                         Number(person?.state) === 20 ? 'list__item--cancelled' : ''
                       } ${[40, 60].includes(Number(person?.state)) ? 'list__item--subtle' : ''} ${
                         [20, 40].includes(Number(person?.state)) ? 'list__item--strike' : ''
@@ -322,7 +344,7 @@ const PeopleList = ({
                       {isSimpleVariant ? (
                         <span className={nameClassName}>
                           <span className="list__badges">
-                            {renderStateBadge(person)}
+                            {renderStateBadge(person, { interactive: true })}
                           </span>
                           <span className="list__text">{person.name}</span>
                         </span>
@@ -394,34 +416,17 @@ const PeopleList = ({
         </div>
       ))}
       {!people.length && <div className="list__empty text text--muted">Пока пусто</div>}
-      {visitMenu && (
-        <div
-          ref={visitMenuRef}
-          className="visit-menu"
-          style={{ left: `${visitMenu.x}px`, top: `${visitMenu.y}px` }}
-          role="menu"
-        >
-          {buildVisitMenuItems(visitMenu.person)
-            .filter((item) => item.enabled)
-            .map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className="visit-menu__item"
-              onClick={(e) => {
-                e.stopPropagation()
-                // После выбора пункта открываем запись справа в режиме чтения
-                onSingleClick?.(visitMenu.person, dateKey)
-                item.action?.()
-                setVisitMenu(null)
-              }}
-              role="menuitem"
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <VisitContextMenu
+        menu={visitMenu}
+        menuRef={visitMenuRef}
+        items={visitMenu?.person ? getMenuItems(visitMenu.person) : []}
+        onSelect={(item) => {
+          // После выбора пункта открываем запись справа в режиме чтения
+          onSingleClick?.(visitMenu?.person, dateKey)
+          item.action?.()
+          setVisitMenu(null)
+        }}
+      />
     </div>
   )
 }

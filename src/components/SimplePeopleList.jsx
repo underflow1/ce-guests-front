@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { getMeetingResultIcon, getMeetingResultVariant, getMeetingResultTitle } from '../utils/meetingResult'
+import { toDateKey } from '../utils/date'
+import { buildVisitMenuItems } from '../utils/visitMenu'
+import VisitContextMenu from './VisitContextMenu'
 
 const SimplePeopleList = ({
   people,
@@ -10,25 +13,34 @@ const SimplePeopleList = ({
   onDoubleClick,
   onSingleClick,
   onEmptyRowDoubleClick,
-  onToggleCompleted,
+  onToggleArrived,
   onToggleCancelled,
+  onSetEntryState,
   onOrderPass,
   onRevokePass,
+  onRollbackMeetingResult,
   onDeleteEntry,
   canDelete = false,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
+  canSetMeetingResult = false,
+  canChangeMeetingResult = false,
   canMarkPass = false,
   canRevokePass = false,
+  canRollbackMeetingResult = false,
   canMove = false,
+  reasonsByState = {},
   typographyVariant,
   itemVariant = 'full',
 }) => {
   const [isDragOver, setIsDragOver] = useState(false)
   const clickTimerRef = useRef(new Map())
   const SINGLE_CLICK_DELAY = 220
+  const [visitMenu, setVisitMenu] = useState(null)
+  const visitMenuRef = useRef(null)
+  const todayKey = toDateKey(new Date())
 
   useEffect(() => {
     return () => {
@@ -39,7 +51,62 @@ const SimplePeopleList = ({
     }
   }, [])
 
+  useEffect(() => {
+    if (!visitMenu) return
+
+    const handleDocMouseDown = (event) => {
+      if (visitMenuRef.current && visitMenuRef.current.contains(event.target)) return
+      setVisitMenu(null)
+    }
+
+    const handleDocKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setVisitMenu(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleDocMouseDown)
+    document.addEventListener('keydown', handleDocKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleDocMouseDown)
+      document.removeEventListener('keydown', handleDocKeyDown)
+    }
+  }, [visitMenu])
+
   const getPassStatus = (person) => person?.pass_status || null
+  const getMenuItems = (person) => buildVisitMenuItems({
+    person,
+    dateKey,
+    todayKey,
+    reasonsByState,
+    canMarkArrived,
+    canUnmarkArrived,
+    canMarkCancelled,
+    canUnmarkCancelled,
+    canSetMeetingResult,
+    canChangeMeetingResult,
+    canMarkPass,
+    canRevokePass,
+    canRollbackMeetingResult,
+    onSetEntryState,
+    onToggleArrived,
+    onToggleCancelled,
+    onOrderPass,
+    onRevokePass,
+    onRollbackMeetingResult,
+  })
+
+  const openMenu = (person, event) => {
+    event.stopPropagation()
+    const items = getMenuItems(person)
+    if (!items.length) return
+
+    setVisitMenu((prev) => {
+      if (prev?.person?.id === person?.id) return null
+      return { person, x: event.clientX + 8, y: event.clientY + 8 }
+    })
+  }
 
   const isBase = typographyVariant === 'base'
   const isBaseLight = typographyVariant === 'base-light'
@@ -118,14 +185,14 @@ const SimplePeopleList = ({
 
   const renderAcceptedBadge = (person) => {
     const state = Number(person?.state)
-    const isCompleted = state >= 30
+    const isArrived = state >= 30
     const isCancelled = state === 20
-    const isAllowed = isCancelled ? false : state === 30 ? canUnmarkCompleted : state === 10 ? canMarkCompleted : false
-    const title = isCompleted ? 'Гость принят' : 'Гость не принят'
+    const isAllowed = isCancelled ? false : state === 30 ? canUnmarkArrived : state === 10 ? canMarkArrived : false
+    const title = isArrived ? 'Гость прибыл' : 'Гость не прибыл'
     const className = [
       'list__badge',
       'list__badge--accepted',
-      `list__badge--state-${isCompleted ? 'on' : 'off'}`,
+      `list__badge--state-${isArrived ? 'on' : 'off'}`,
       isAllowed ? 'list__badge--clickable' : '',
     ]
       .filter(Boolean)
@@ -140,12 +207,12 @@ const SimplePeopleList = ({
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={(e) => {
           e.stopPropagation()
-          const nextValue = !isCompleted
-          if (nextValue && canMarkCompleted) {
-            onToggleCompleted?.(person.id, dateKey, true)
+          const nextValue = !isArrived
+          if (nextValue && canMarkArrived) {
+            onToggleArrived?.(person.id, dateKey, true)
           }
-          if (!nextValue && canUnmarkCompleted) {
-            onToggleCompleted?.(person.id, dateKey, false)
+          if (!nextValue && canUnmarkArrived) {
+            onToggleArrived?.(person.id, dateKey, false)
           }
         }}
         aria-label={title}
@@ -165,17 +232,34 @@ const SimplePeopleList = ({
 
     const className = [
       'list__badge',
-      'list__badge--static',
       'list__badge--result',
       `list__badge--result-${variant}`,
     ]
       .filter(Boolean)
       .join(' ')
 
+    const menuItems = getMenuItems(person)
+    const hasMenu = menuItems.length > 0
+
+    if (!hasMenu) {
+      return (
+        <span className={`${className} list__badge--static`} title={title} aria-label={title}>
+          <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
+        </span>
+      )
+    }
+
     return (
-      <span className={className} title={title} aria-label={title}>
+      <button
+        type="button"
+        className={`${className} list__badge--clickable`}
+        title={title}
+        aria-label={title}
+        aria-haspopup="menu"
+        onClick={(event) => openMenu(person, event)}
+      >
         <i className={`fa-solid ${iconClass}`} aria-hidden="true" />
-      </span>
+      </button>
     )
   }
 
@@ -203,7 +287,7 @@ const SimplePeopleList = ({
           {people.map((person) => (
             <li
               key={person.id}
-              className={`list__item ${Number(person?.state) === 30 ? 'list__item--completed' : ''} ${
+              className={`list__item ${Number(person?.state) === 30 ? 'list__item--arrived' : ''} ${
                 Number(person?.state) === 20 ? 'list__item--cancelled' : ''
               } ${[40, 60].includes(Number(person?.state)) ? 'list__item--subtle' : ''} ${
                 [20, 40].includes(Number(person?.state)) ? 'list__item--strike' : ''
@@ -282,6 +366,16 @@ const SimplePeopleList = ({
       <div
         className="simple-list__empty-row"
         onDoubleClick={() => onEmptyRowDoubleClick?.(dateKey)}
+      />
+      <VisitContextMenu
+        menu={visitMenu}
+        menuRef={visitMenuRef}
+        items={visitMenu?.person ? getMenuItems(visitMenu.person) : []}
+        onSelect={(item) => {
+          onSingleClick?.(visitMenu?.person, dateKey)
+          item.action?.()
+          setVisitMenu(null)
+        }}
       />
     </div>
   )

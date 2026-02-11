@@ -10,7 +10,6 @@ import {
 import { apiGet, apiPost, apiPut, apiPatch, apiDelete, getAccessToken } from '../utils/api'
 import { API_BASE_URL } from '../config'
 import { useToast } from '../components/ToastProvider'
-import useVisitGoals from './useVisitGoals'
 
 const useEntries = ({
   today,
@@ -19,10 +18,8 @@ const useEntries = ({
   isAuthenticated = false,
   canSetMeetingResult = false,
   canChangeMeetingResult = false,
-  canRollbackMeetingResult = false,
 }) => {
   const { pushToast } = useToast()
-  const { getActiveGoals } = useVisitGoals()
   const todayKey = toDateKey(today)
   const [weekOffset, setWeekOffset] = useState(0)
 
@@ -35,7 +32,7 @@ const useEntries = ({
   const [bottomEntries, setBottomEntries] = useState({})
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [visitGoals, setVisitGoals] = useState([])
-  const [resultReasons, setResultReasons] = useState([])
+  const [reasonsByState, setReasonsByState] = useState({})
   const [resultReasonsLoading, setResultReasonsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [isBottomLoading, setIsBottomLoading] = useState(false)
@@ -159,38 +156,24 @@ const useEntries = ({
     }
   }, [todayKey, isAuthenticated, weekOffset])
 
-  const loadVisitGoals = useCallback(async () => {
+  const loadReferenceData = useCallback(async () => {
     if (!isAuthenticated) {
+      setVisitGoals([])
+      setReasonsByState({})
+      setResultReasonsLoading(false)
       return
     }
     try {
-      const goals = await getActiveGoals()
-      setVisitGoals(goals)
+      setResultReasonsLoading(true)
+      const response = await apiGet('/reference-data')
+      setVisitGoals(response?.visit_goals || [])
+      setReasonsByState(response?.reasons_by_state || {})
     } catch (err) {
       setError(err.message)
+    } finally {
+      setResultReasonsLoading(false)
     }
-  }, [isAuthenticated, getActiveGoals])
-
-  const loadResultReasons = useCallback(
-    async (state) => {
-      const s = Number(state)
-      if (!isAuthenticated || ![40, 50].includes(s)) {
-        setResultReasons([])
-        setResultReasonsLoading(false)
-        return
-      }
-      try {
-        setResultReasonsLoading(true)
-        const res = await apiGet(`/states/${s}/reasons`)
-        setResultReasons(res?.reasons || [])
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setResultReasonsLoading(false)
-      }
-    },
-    [isAuthenticated],
-  )
+  }, [isAuthenticated])
 
   const formatEntryDateLabel = useCallback((entry) => {
     const dateKey = entry?.datetime ? extractDateFromDateTime(entry.datetime) : ''
@@ -299,10 +282,8 @@ const useEntries = ({
   }, [loadEntries])
 
   useEffect(() => {
-    loadVisitGoals()
-  }, [loadVisitGoals])
-
-  // Отдельного справочника результатов нет: результат = state
+    loadReferenceData()
+  }, [loadReferenceData])
 
 
   // Функция для обновления локального состояния из данных WebSocket
@@ -500,7 +481,7 @@ const useEntries = ({
               message: buildToastMessage('Результат установлен', entry, details),
             })
           }
-        } else if (payload?.type === 'result_rollback') {
+        } else if (payload?.type === 'entry_rollback') {
           const entry = payload.change?.entry
           if (!entry) return
 
@@ -508,10 +489,10 @@ const useEntries = ({
             pushToast({
               type: 'info',
               title: '',
-              message: buildToastMessage('Результат откатан', entry),
+              message: buildToastMessage('Состояние откатано', entry),
             })
           }
-        } else if (payload?.type === 'entry_completed') {
+        } else if (payload?.type === 'entry_arrived') {
           const entry = payload.change?.entry
           if (!entry) return
           
@@ -519,18 +500,7 @@ const useEntries = ({
             pushToast({
               type: 'info',
               title: '',
-              message: buildToastMessage('Гость принят', entry),
-            })
-          }
-        } else if (payload?.type === 'entry_uncompleted') {
-          const entry = payload.change?.entry
-          if (!entry) return
-          
-          if (shouldShowToast(entry)) {
-            pushToast({
-              type: 'info',
-              title: '',
-              message: buildToastMessage('Встреча возвращена', entry),
+              message: buildToastMessage('Гость прибыл', entry),
             })
           }
         } else if (payload?.type === 'visit_cancelled') {
@@ -542,17 +512,6 @@ const useEntries = ({
               type: 'info',
               title: '',
               message: buildToastMessage('Визит отменён', entry),
-            })
-          }
-        } else if (payload?.type === 'visit_uncancelled') {
-          const entry = payload.change?.entry
-          if (!entry) return
-
-          if (shouldShowToast(entry)) {
-            pushToast({
-              type: 'info',
-              title: '',
-              message: buildToastMessage('Отмена визита снята', entry),
             })
           }
         } else if (payload?.type === 'pass_ordered') {
@@ -700,20 +659,22 @@ const useEntries = ({
     otherDate: '',
     editingEntryId: null,
     editingDateKey: null,
-    isCompleted: false,
+    isArrived: false,
     visitGoalIds: [],
     resultState: null, // 40/50/60
     resultReasonId: null,
   })
   const [isFormActive, setIsFormActive] = useState(interfaceType !== 'user')
 
+  const resultReasons = useMemo(() => {
+    const stateKey = String(Number(form?.resultState || 0))
+    if (!stateKey || stateKey === '0') return []
+    return reasonsByState?.[stateKey] || []
+  }, [form?.resultState, reasonsByState])
+
   useEffect(() => {
     setIsFormActive(interfaceType !== 'user')
   }, [interfaceType])
-
-  useEffect(() => {
-    loadResultReasons(form.resultState)
-  }, [form.resultState, loadResultReasons])
 
   const handleDragStart = (event, entry, sourceDateKey) => {
     // Двигать можно только state=10
@@ -790,16 +751,60 @@ const useEntries = ({
     }
   }
 
-  const handleToggleCompleted = async (entryId, dateKey, isCompleted) => {
+  const handleSetEntryState = async (entryId, dateKey, nextState, reasonId = null, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
-      // Отдельный PATCH для отметки "пришел" (теперь completed)
-      const updatedEntry = await apiPatch(`/entries/${entryId}/completed`, {
-        completed: Boolean(isCompleted),
-      })
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
+      const payload = { state: Number(nextState) }
+      if (reasonId) {
+        payload.reason_id = reasonId
+      }
+      const updatedEntry = await apiPatch(`/entries/${entryId}/result`, payload)
+      const updatedList = list.map((item) =>
+        item.id === entryId ? updatedEntry : item
+      )
+      updateListForDateKey(dateKey, updatedList)
+
+      if (forceReadOnlyAfterAction && interfaceType === 'user' && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(false)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+          resultReasonId: updatedEntry.result_reason_id || null,
+        })
+      }
+    } catch (err) {
+      console.error('Ошибка при установке состояния записи:', err)
+      setError(err.message)
+    }
+  }
+
+  const handleToggleArrived = async (entryId, dateKey, isArrived, options = {}) => {
+    const list = getListForDateKey(dateKey)
+    const entry = list.find((item) => item.id === entryId)
+    if (!entry) return
+
+    try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
+      const updatedEntry = isArrived
+        ? await apiPatch(`/entries/${entryId}/result`, { state: 30 })
+        : await apiPatch(`/entries/${entryId}/rollback`, {})
 
       // Обновляем локальное состояние
       const updatedList = list.map((item) =>
@@ -807,12 +812,32 @@ const useEntries = ({
       )
       updateListForDateKey(dateKey, updatedList)
 
-      // В user UI после "Отката" (30 -> 10) автоматически переходим в режим редактирования
-      if (interfaceType === 'user' && !Boolean(isCompleted) && form.editingEntryId === entryId) {
+      if (interfaceType === 'user' && form.editingEntryId === entryId) {
         const { target, otherDate } = resolveTarget(dateKey)
         const entryTime = updatedEntry.datetime
           ? extractTimeFromDateTime(updatedEntry.datetime)
           : (updatedEntry.time || '00:00')
+
+        if (forceReadOnlyAfterAction) {
+          setIsFormActive(false)
+          setForm({
+            name: updatedEntry.name,
+            responsible: updatedEntry.responsible || '',
+            time: entryTime,
+            target,
+            otherDate,
+            editingEntryId: updatedEntry.id,
+            editingDateKey: dateKey,
+            isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            visitGoalIds: updatedEntry.visit_goal_ids || [],
+            resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+            resultReasonId: updatedEntry.result_reason_id || null,
+          })
+          return
+        }
+
+        // В user UI после "Отката" (30 -> 10) автоматически переходим в режим редактирования
+        if (Boolean(isArrived)) return
 
         setIsFormActive(true)
         setForm({
@@ -823,7 +848,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: updatedEntry.id,
           editingDateKey: dateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
           visitGoalIds: updatedEntry.visit_goal_ids || [],
           resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
           resultReasonId: updatedEntry.result_reason_id || null,
@@ -840,27 +865,48 @@ const useEntries = ({
     }
   }
 
-  const handleToggleCancelled = async (entryId, dateKey, isCancelled) => {
+  const handleToggleCancelled = async (entryId, dateKey, isCancelled, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
-      const updatedEntry = await apiPatch(`/entries/${entryId}/cancelled`, {
-        cancelled: Boolean(isCancelled),
-      })
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
+      const updatedEntry = isCancelled
+        ? await apiPatch(`/entries/${entryId}/result`, { state: 20 })
+        : await apiPatch(`/entries/${entryId}/rollback`, {})
 
       const updatedList = list.map((item) =>
         item.id === entryId ? updatedEntry : item
       )
       updateListForDateKey(dateKey, updatedList)
 
-      // В user UI после "Отката" (20 -> 10) автоматически переходим в режим редактирования
-      if (interfaceType === 'user' && !Boolean(isCancelled) && form.editingEntryId === entryId) {
+      if (interfaceType === 'user' && form.editingEntryId === entryId) {
         const { target, otherDate } = resolveTarget(dateKey)
         const entryTime = updatedEntry.datetime
           ? extractTimeFromDateTime(updatedEntry.datetime)
           : (updatedEntry.time || '00:00')
+
+        if (forceReadOnlyAfterAction) {
+          setIsFormActive(false)
+          setForm({
+            name: updatedEntry.name,
+            responsible: updatedEntry.responsible || '',
+            time: entryTime,
+            target,
+            otherDate,
+            editingEntryId: updatedEntry.id,
+            editingDateKey: dateKey,
+            isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            visitGoalIds: updatedEntry.visit_goal_ids || [],
+            resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+            resultReasonId: updatedEntry.result_reason_id || null,
+          })
+          return
+        }
+
+        // В user UI после "Отката" (20 -> 10) автоматически переходим в режим редактирования
+        if (Boolean(isCancelled)) return
 
         setIsFormActive(true)
         setForm({
@@ -871,7 +917,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: updatedEntry.id,
           editingDateKey: dateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
           visitGoalIds: updatedEntry.visit_goal_ids || [],
           resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
           resultReasonId: updatedEntry.result_reason_id || null,
@@ -888,34 +934,80 @@ const useEntries = ({
     }
   }
 
-  const handleOrderPass = async (entryId, dateKey) => {
+  const handleOrderPass = async (entryId, dateKey, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       const updatedEntry = await apiPut(`/entries/${entryId}/pass`, {})
       const updatedList = list.map((item) =>
         item.id === entryId ? updatedEntry : item
       )
       updateListForDateKey(dateKey, updatedList)
+
+      if (forceReadOnlyAfterAction && interfaceType === 'user' && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(false)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+          resultReasonId: updatedEntry.result_reason_id || null,
+        })
+      }
     } catch (err) {
       console.error('Ошибка при заказе пропуска:', err)
       setError(err.message)
     }
   }
 
-  const handleRevokePass = async (entryId, dateKey) => {
+  const handleRevokePass = async (entryId, dateKey, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       const updatedEntry = await apiDelete(`/entries/${entryId}/pass`)
       const updatedList = list.map((item) =>
         item.id === entryId ? updatedEntry : item
       )
       updateListForDateKey(dateKey, updatedList)
+
+      if (forceReadOnlyAfterAction && interfaceType === 'user' && form.editingEntryId === entryId) {
+        const { target, otherDate } = resolveTarget(dateKey)
+        const entryTime = updatedEntry.datetime
+          ? extractTimeFromDateTime(updatedEntry.datetime)
+          : (updatedEntry.time || '00:00')
+
+        setIsFormActive(false)
+        setForm({
+          name: updatedEntry.name,
+          responsible: updatedEntry.responsible || '',
+          time: entryTime,
+          target,
+          otherDate,
+          editingEntryId: updatedEntry.id,
+          editingDateKey: dateKey,
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          visitGoalIds: updatedEntry.visit_goal_ids || [],
+          resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
+          resultReasonId: updatedEntry.result_reason_id || null,
+        })
+      }
     } catch (err) {
       console.error('Ошибка при отзыве пропуска:', err)
       setError(err.message)
@@ -962,7 +1054,7 @@ const useEntries = ({
         otherDate,
         editingEntryId: entry.id,
         editingDateKey: dateKey,
-        isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+        isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
         visitGoalIds: entry.visit_goal_ids || [],
         resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
         resultReasonId: entry.result_reason_id || null,
@@ -984,7 +1076,7 @@ const useEntries = ({
         otherDate,
         editingEntryId: entry.id,
         editingDateKey: dateKey,
-        isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+        isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
         visitGoalIds: entry.visit_goal_ids || [],
         resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
         resultReasonId: entry.result_reason_id || null,
@@ -1004,7 +1096,7 @@ const useEntries = ({
       otherDate,
       editingEntryId: entry.id,
       editingDateKey: dateKey,
-      isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+      isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
       visitGoalIds: entry.visit_goal_ids || [],
       resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
       resultReasonId: entry.result_reason_id || null,
@@ -1028,7 +1120,7 @@ const useEntries = ({
       otherDate,
       editingEntryId: entry.id,
       editingDateKey: dateKey,
-      isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+      isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
       visitGoalIds: entry.visit_goal_ids || [],
       resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
       resultReasonId: entry.result_reason_id || null,
@@ -1054,7 +1146,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: entry.id,
           editingDateKey: form.editingDateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
           visitGoalIds: entry.visit_goal_ids || [],
           resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
           resultReasonId: entry.result_reason_id || null,
@@ -1072,7 +1164,7 @@ const useEntries = ({
       otherDate: '',
       editingEntryId: null,
       editingDateKey: null,
-      isCompleted: false,
+      isArrived: false,
       visitGoalIds: [],
       resultState: null,
       resultReasonId: null,
@@ -1094,7 +1186,7 @@ const useEntries = ({
       otherDate,
       editingEntryId: null,
       editingDateKey: null,
-      isCompleted: false,
+      isArrived: false,
       visitGoalIds: [],
       resultState: null,
       resultReasonId: null,
@@ -1117,7 +1209,7 @@ const useEntries = ({
       otherDate,
       editingEntryId: null,
       editingDateKey: null,
-      isCompleted: false,
+      isArrived: false,
       visitGoalIds: [],
       resultState: null,
       resultReasonId: null,
@@ -1131,14 +1223,14 @@ const useEntries = ({
   const isFormActiveEffective = interfaceType === 'user' ? isFormActive : true
   const resultRequiresReason = Boolean([40, 50].includes(Number(form.resultState)) && resultReasons.length > 0)
   const canEditMeetingResult = canSetMeetingResult || canChangeMeetingResult
-  const isMeetingResultBlocked = form.isCompleted && !canEditMeetingResult
-  const isMeetingResultMissing = form.isCompleted && canEditMeetingResult && !form.resultState
+  const isMeetingResultBlocked = form.isArrived && !canEditMeetingResult
+  const isMeetingResultMissing = form.isArrived && canEditMeetingResult && !form.resultState
   const isMeetingReasonMissing =
-    form.isCompleted &&
+    form.isArrived &&
     canEditMeetingResult &&
     resultRequiresReason &&
     !form.resultReasonId
-  const isMeetingResultLoading = form.isCompleted && canEditMeetingResult && resultReasonsLoading
+  const isMeetingResultLoading = form.isArrived && canEditMeetingResult && resultReasonsLoading
   const isSubmitDisabled =
     !isFormActiveEffective ||
     form.name.trim().length === 0 ||
@@ -1162,8 +1254,8 @@ const useEntries = ({
     try {
       const targetDate = parseDateFromKey(targetDateKey)
       const datetime = formatDateTime(targetDate, form.time.trim())
-      const resultState = form.isCompleted ? Number(form.resultState) || null : null
-      const resultReasonId = form.isCompleted ? form.resultReasonId || null : null
+      const resultState = form.isArrived ? Number(form.resultState) || null : null
+      const resultReasonId = form.isArrived ? form.resultReasonId || null : null
 
       if (isEditing) {
         const entryId = form.editingEntryId
@@ -1215,7 +1307,7 @@ const useEntries = ({
             otherDate,
             editingEntryId: updatedEntry.id,
             editingDateKey: sourceDateKey,
-            isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
             visitGoalIds: updatedEntry.visit_goal_ids || [],
             resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
             resultReasonId: updatedEntry.result_reason_id || null,
@@ -1250,7 +1342,7 @@ const useEntries = ({
             otherDate,
             editingEntryId: newEntry.id,
             editingDateKey: targetDateKey,
-            isCompleted: [30, 40, 50, 60].includes(Number(newEntry?.state)),
+            isArrived: [30, 40, 50, 60].includes(Number(newEntry?.state)),
             visitGoalIds: newEntry.visit_goal_ids || [],
             resultState: [40, 50, 60].includes(Number(newEntry?.state)) ? Number(newEntry.state) : null,
             resultReasonId: newEntry.result_reason_id || null,
@@ -1268,7 +1360,7 @@ const useEntries = ({
         otherDate: '',
         editingEntryId: null,
         editingDateKey: null,
-        isCompleted: false,
+        isArrived: false,
         visitGoalIds: [],
         resultState: null,
         resultReasonId: null,
@@ -1282,27 +1374,28 @@ const useEntries = ({
     }
   }
 
-  const handleRollbackMeetingResult = async (entryId, dateKey) => {
+  const handleRollbackMeetingResult = async (entryId, dateKey, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
-      const updatedEntry = await apiPatch(`/entries/${entryId}/result/rollback`, {})
+      const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
+      const updatedEntry = await apiPatch(`/entries/${entryId}/rollback`, {})
 
       const updatedList = list.map((item) =>
         item.id === entryId ? updatedEntry : item
       )
       updateListForDateKey(dateKey, updatedList)
 
-      // Если это текущая запись в user UI — после "Отката" переходим в режим редактирования
+      // Если это текущая запись в user UI — после "Отката" управляем режимом формы
       if (interfaceType === 'user' && form.editingEntryId === entryId) {
         const { target, otherDate } = resolveTarget(dateKey)
         const entryTime = updatedEntry.datetime
           ? extractTimeFromDateTime(updatedEntry.datetime)
           : (updatedEntry.time || '00:00')
 
-        setIsFormActive(true)
+        setIsFormActive(!forceReadOnlyAfterAction)
         setForm({
           name: updatedEntry.name,
           responsible: updatedEntry.responsible || '',
@@ -1311,7 +1404,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: updatedEntry.id,
           editingDateKey: dateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
           visitGoalIds: updatedEntry.visit_goal_ids || [],
           // после отката результат сбрасывается (state=30)
           resultState: null,
@@ -1343,6 +1436,7 @@ const useEntries = ({
     bottomEntries,
     allResponsibles,
     visitGoals,
+    reasonsByState,
     resultReasons,
     resultReasonsLoading,
     form,
@@ -1361,7 +1455,8 @@ const useEntries = ({
     handleWeekendEmptyRowDoubleClick,
     handleExitEdit,
     handleSubmit,
-    handleToggleCompleted,
+    handleSetEntryState,
+    handleToggleArrived,
     handleToggleCancelled,
     handleOrderPass,
     handleRevokePass,
