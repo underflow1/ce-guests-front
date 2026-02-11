@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import LoginForm from './components/LoginForm'
 import UserManagement from './components/UserManagement'
 import RoleManagement from './components/RoleManagement'
@@ -44,6 +44,9 @@ const App = () => {
   const resolvedInterfaceType = resolveInterfaceType(interfaceType)
   const isDutyOfficer = resolvedInterfaceType === 'duty_officer'
   const isDutyOfficerMobile = isDutyOfficer
+  const appClassName = `app ${isDutyOfficer ? 'app--duty-officer' : ''} ${
+    isDutyOfficerMobile ? 'app--duty-officer-mobile' : ''
+  }`
   const dropdownRef = useRef(null)
   const lastErrorRef = useRef(null)
   const fallbackToastShownRef = useRef(false)
@@ -207,14 +210,14 @@ const App = () => {
     }
   }, [])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.body.classList.toggle('duty-officer-mobile', isDutyOfficerMobile)
     return () => {
       document.body.classList.remove('duty-officer-mobile')
     }
   }, [isDutyOfficerMobile])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const classes = INTERFACE_OPTIONS.map((item) => item.bodyClass)
     classes.forEach((cls) => document.body.classList.remove(cls))
     document.body.classList.add(getInterfaceBodyClass(resolvedInterfaceType))
@@ -245,8 +248,10 @@ const App = () => {
   if (!isAuthenticated) {
     if (authLoading) {
       return (
-        <div className="app">
-          <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>
+        <div className={appClassName}>
+          <div className={`app__layout ${isDutyOfficerMobile ? 'app__layout--duty-officer-mobile' : ''}`}>
+            <div className="app__loading-state">Загрузка...</div>
+          </div>
         </div>
       )
     }
@@ -263,9 +268,9 @@ const App = () => {
   // WebSocket подключается в фоне и не вызывает перерисовку, поэтому ждем только загрузку entries
   if (isLoading) {
     return (
-      <div className="app">
+      <div className={appClassName}>
         <div className={`app__layout ${isDutyOfficerMobile ? 'app__layout--duty-officer-mobile' : ''}`}>
-          <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>
+          <div className="app__loading-state">Загрузка...</div>
         </div>
       </div>
     )
@@ -374,11 +379,7 @@ const App = () => {
   }
 
   return (
-    <div
-      className={`app ${isDutyOfficer ? 'app--duty-officer' : ''} ${
-        isDutyOfficerMobile ? 'app--duty-officer-mobile' : ''
-      }`}
-    >
+    <div className={appClassName}>
       {/* Панель пользователя в правом верхнем углу */}
       <div className={`app__header-bar${isDutyOfficerMobile ? ' app__header-bar--hidden' : ''}`}>
         <div className="app__header-title">Гости</div>
