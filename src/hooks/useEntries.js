@@ -775,7 +775,7 @@ const useEntries = ({
     try {
       const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       const updatedEntry = isCompleted
-        ? await apiPatch(`/entries/${entryId}/completed`, { completed: true })
+        ? await apiPatch(`/entries/${entryId}/result`, { state: 30 })
         : await apiPatch(`/entries/${entryId}/rollback`, {})
 
       // Обновляем локальное состояние
@@ -845,7 +845,7 @@ const useEntries = ({
     try {
       const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
       const updatedEntry = isCancelled
-        ? await apiPatch(`/entries/${entryId}/cancelled`, { cancelled: true })
+        ? await apiPatch(`/entries/${entryId}/result`, { state: 20 })
         : await apiPatch(`/entries/${entryId}/rollback`, {})
 
       const updatedList = list.map((item) =>
