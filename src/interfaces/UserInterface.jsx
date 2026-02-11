@@ -37,8 +37,8 @@ const UserInterface = ({
   allResponsibles,
   canEditEntry,
   canDelete,
-  canMarkCompleted,
-  canUnmarkCompleted,
+  canMarkArrived,
+  canUnmarkArrived,
   canMarkCancelled,
   canUnmarkCancelled,
   canMarkPass,
@@ -54,7 +54,7 @@ const UserInterface = ({
   handleEmptyRowDoubleClick,
   handleWeekendEmptyRowDoubleClick,
   handleExitEdit,
-  handleToggleCompleted,
+  handleToggleArrived,
   handleToggleCancelled,
   handleOrderPass,
   handleRevokePass,
@@ -97,15 +97,15 @@ const UserInterface = ({
           onDoubleClick={handleDoubleClick}
           onSingleClick={handleSingleClick}
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-          onToggleCompleted={handleToggleCompleted}
+          onToggleArrived={handleToggleArrived}
           onToggleCancelled={handleToggleCancelled}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onRollbackMeetingResult={handleRollbackMeetingResult}
           onDeleteEntry={handleDeleteEntry}
           canDelete={canDelete}
-          canMarkCompleted={canMarkCompleted}
-          canUnmarkCompleted={canUnmarkCompleted}
+          canMarkArrived={canMarkArrived}
+          canUnmarkArrived={canUnmarkArrived}
           canMarkCancelled={canMarkCancelled}
           canUnmarkCancelled={canUnmarkCancelled}
           canMarkPass={canMarkPass}
@@ -133,15 +133,15 @@ const UserInterface = ({
         onDoubleClick={handleDoubleClick}
         onSingleClick={handleSingleClick}
         onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-        onToggleCompleted={handleToggleCompleted}
+        onToggleArrived={handleToggleArrived}
         onToggleCancelled={handleToggleCancelled}
         onOrderPass={handleOrderPass}
         onRevokePass={handleRevokePass}
         onRollbackMeetingResult={handleRollbackMeetingResult}
         onDeleteEntry={handleDeleteEntry}
         canDelete={canDelete}
-        canMarkCompleted={canMarkCompleted}
-        canUnmarkCompleted={canUnmarkCompleted}
+        canMarkArrived={canMarkArrived}
+        canUnmarkArrived={canUnmarkArrived}
         canMarkCancelled={canMarkCancelled}
         canUnmarkCancelled={canUnmarkCancelled}
         canMarkPass={canMarkPass}
@@ -174,15 +174,15 @@ const UserInterface = ({
           onDoubleClick={handleDoubleClick}
           onSingleClick={handleSingleClick}
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-          onToggleCompleted={handleToggleCompleted}
+          onToggleArrived={handleToggleArrived}
           onToggleCancelled={handleToggleCancelled}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onRollbackMeetingResult={handleRollbackMeetingResult}
           onDeleteEntry={handleDeleteEntry}
           canDelete={canDelete}
-          canMarkCompleted={canMarkCompleted}
-          canUnmarkCompleted={canUnmarkCompleted}
+          canMarkArrived={canMarkArrived}
+          canUnmarkArrived={canUnmarkArrived}
           canMarkCancelled={canMarkCancelled}
           canUnmarkCancelled={canUnmarkCancelled}
           canMarkPass={canMarkPass}
@@ -214,7 +214,7 @@ const UserInterface = ({
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
           canUnmarkCancelled={canUnmarkCancelled}
-          canUnmarkCompleted={canUnmarkCompleted}
+          canUnmarkArrived={canUnmarkArrived}
           canDeleteEntry={canDelete}
           visitGoals={visitGoals}
           resultReasons={resultReasons}
@@ -229,7 +229,7 @@ const UserInterface = ({
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onToggleCancelled={handleToggleCancelled}
-          onToggleCompleted={handleToggleCompleted}
+          onToggleArrived={handleToggleArrived}
           onDeleteEntry={handleDeleteEntry}
           onRollbackMeetingResult={handleRollbackMeetingResult}
           onExitEdit={handleExitEdit}
@@ -264,15 +264,15 @@ const UserInterface = ({
                         onDoubleClick={(entry) => handleDoubleClick?.(entry, saturdayItem.date)}
                         onSingleClick={(entry) => handleSingleClick?.(entry, saturdayItem.date)}
                         onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
-                        onToggleCompleted={handleToggleCompleted}
+                        onToggleArrived={handleToggleArrived}
                         onToggleCancelled={handleToggleCancelled}
                         onOrderPass={handleOrderPass}
                         onRevokePass={handleRevokePass}
                         onRollbackMeetingResult={handleRollbackMeetingResult}
                         onDeleteEntry={handleDeleteEntry}
                         canDelete={canDelete}
-                        canMarkCompleted={canMarkCompleted}
-                        canUnmarkCompleted={canUnmarkCompleted}
+                        canMarkArrived={canMarkArrived}
+                        canUnmarkArrived={canUnmarkArrived}
                         canMarkCancelled={canMarkCancelled}
                         canUnmarkCancelled={canUnmarkCancelled}
                         canMarkPass={canMarkPass}
@@ -299,15 +299,15 @@ const UserInterface = ({
                         onDoubleClick={(entry) => handleDoubleClick?.(entry, sundayItem.date)}
                         onSingleClick={(entry) => handleSingleClick?.(entry, sundayItem.date)}
                         onEmptyRowDoubleClick={handleWeekendEmptyRowDoubleClick}
-                        onToggleCompleted={handleToggleCompleted}
+                        onToggleArrived={handleToggleArrived}
                         onToggleCancelled={handleToggleCancelled}
                         onOrderPass={handleOrderPass}
                         onRevokePass={handleRevokePass}
                         onRollbackMeetingResult={handleRollbackMeetingResult}
                         onDeleteEntry={handleDeleteEntry}
                         canDelete={canDelete}
-                        canMarkCompleted={canMarkCompleted}
-                        canUnmarkCompleted={canUnmarkCompleted}
+                        canMarkArrived={canMarkArrived}
+                        canUnmarkArrived={canUnmarkArrived}
                         canMarkCancelled={canMarkCancelled}
                         canUnmarkCancelled={canUnmarkCancelled}
                         canMarkPass={canMarkPass}
@@ -373,15 +373,15 @@ const UserInterface = ({
               onDoubleClick={handleDoubleClick}
               onSingleClick={handleSingleClick}
               onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-              onToggleCompleted={handleToggleCompleted}
+              onToggleArrived={handleToggleArrived}
               onToggleCancelled={handleToggleCancelled}
               onOrderPass={handleOrderPass}
               onRevokePass={handleRevokePass}
               onRollbackMeetingResult={handleRollbackMeetingResult}
               onDeleteEntry={handleDeleteEntry}
               canDelete={canDelete}
-              canMarkCompleted={canMarkCompleted}
-              canUnmarkCompleted={canUnmarkCompleted}
+              canMarkArrived={canMarkArrived}
+              canUnmarkArrived={canUnmarkArrived}
               canMarkCancelled={canMarkCancelled}
               canUnmarkCancelled={canUnmarkCancelled}
               canMarkPass={canMarkPass}

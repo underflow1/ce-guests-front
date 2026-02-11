@@ -32,7 +32,7 @@ const PeopleList = ({
   onDoubleClick,
   onSingleClick,
   onEmptyRowDoubleClick,
-  onToggleCompleted,
+  onToggleArrived,
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
@@ -41,8 +41,8 @@ const PeopleList = ({
   visitGoals = [],
   showVisitGoals = false,
   canDelete = false,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
   canMarkPass = false,
@@ -124,14 +124,14 @@ const PeopleList = ({
     person,
     dateKey,
     todayKey,
-    canMarkCompleted,
-    canUnmarkCompleted,
+    canMarkArrived,
+    canUnmarkArrived,
     canMarkCancelled,
     canUnmarkCancelled,
     canMarkPass,
     canRevokePass,
     canRollbackMeetingResult,
-    onToggleCompleted,
+    onToggleArrived,
     onToggleCancelled,
     onOrderPass,
     onRevokePass,
@@ -286,7 +286,7 @@ const PeopleList = ({
                 {grouped[hour].map((person) => (
                     <li
                       key={person.id}
-                      className={`list__item ${Number(person?.state) === 30 ? 'list__item--completed' : ''} ${
+                      className={`list__item ${Number(person?.state) === 30 ? 'list__item--arrived' : ''} ${
                         Number(person?.state) === 20 ? 'list__item--cancelled' : ''
                       } ${[40, 60].includes(Number(person?.state)) ? 'list__item--subtle' : ''} ${
                         [20, 40].includes(Number(person?.state)) ? 'list__item--strike' : ''

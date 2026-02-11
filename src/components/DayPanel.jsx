@@ -20,15 +20,15 @@ const DayPanel = ({
   onDoubleClick,
   onSingleClick,
   onEmptyRowDoubleClick,
-  onToggleCompleted,
+  onToggleArrived,
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
   onRollbackMeetingResult,
   onDeleteEntry,
   canDelete = false,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
   canMarkPass = false,
@@ -68,15 +68,15 @@ const DayPanel = ({
         onDoubleClick={onDoubleClick}
         onSingleClick={onSingleClick}
         onEmptyRowDoubleClick={onEmptyRowDoubleClick}
-        onToggleCompleted={onToggleCompleted}
+        onToggleArrived={onToggleArrived}
         onToggleCancelled={onToggleCancelled}
         onOrderPass={onOrderPass}
         onRevokePass={onRevokePass}
         onRollbackMeetingResult={onRollbackMeetingResult}
         onDeleteEntry={onDeleteEntry}
         canDelete={canDelete}
-        canMarkCompleted={canMarkCompleted}
-        canUnmarkCompleted={canUnmarkCompleted}
+        canMarkArrived={canMarkArrived}
+        canUnmarkArrived={canUnmarkArrived}
         canMarkCancelled={canMarkCancelled}
         canUnmarkCancelled={canUnmarkCancelled}
         canMarkPass={canMarkPass}

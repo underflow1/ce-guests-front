@@ -19,8 +19,8 @@ const usePermissions = (user) => {
       // Админ автоматически получает все UI-права
       return new Set([
         'can_move_ui',
-        'can_mark_completed_ui',
-        'can_unmark_completed_ui',
+        'can_mark_arrived_ui',
+        'can_unmark_arrived_ui',
         'can_mark_cancelled_ui',
         'can_unmark_cancelled_ui',
         'can_mark_pass_ui',
@@ -45,8 +45,8 @@ const usePermissions = (user) => {
 
   // UI-права для управления интерфейсом
   const canMoveUi = () => hasPermission('can_move_ui')
-  const canMarkCompletedUi = () => hasPermission('can_mark_completed_ui')
-  const canUnmarkCompletedUi = () => hasPermission('can_unmark_completed_ui')
+  const canMarkArrivedUi = () => hasPermission('can_mark_arrived_ui')
+  const canUnmarkArrivedUi = () => hasPermission('can_unmark_arrived_ui')
   const canMarkCancelledUi = () => hasPermission('can_mark_cancelled_ui')
   const canUnmarkCancelledUi = () => hasPermission('can_unmark_cancelled_ui')
   const canMarkPassUi = () => hasPermission('can_mark_pass_ui')
@@ -73,8 +73,8 @@ const usePermissions = (user) => {
     permissions,
     hasPermission,
     canMoveUi,
-    canMarkCompletedUi,
-    canUnmarkCompletedUi,
+    canMarkArrivedUi,
+    canUnmarkArrivedUi,
     canMarkCancelledUi,
     canUnmarkCancelledUi,
     canMarkPassUi,

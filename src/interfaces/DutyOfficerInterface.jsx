@@ -8,9 +8,9 @@ const DutyOfficerInterface = ({
   todayKey,
   todayPeople,
   visitGoals,
-  handleToggleCompleted,
-  canMarkCompleted,
-  canUnmarkCompleted,
+  handleToggleArrived,
+  canMarkArrived,
+  canUnmarkArrived,
   logout,
   handleDragStart,
   handleDrop,
@@ -37,9 +37,9 @@ const DutyOfficerInterface = ({
         people={todayPeople}
         visitGoals={visitGoals}
         dateKey={todayKey}
-        onToggleCompleted={handleToggleCompleted}
-        canMarkCompleted={canMarkCompleted}
-        canUnmarkCompleted={canUnmarkCompleted}
+        onToggleArrived={handleToggleArrived}
+        canMarkArrived={canMarkArrived}
+        canUnmarkArrived={canUnmarkArrived}
         onLogout={logout}
       />
     ) : (
@@ -55,15 +55,15 @@ const DutyOfficerInterface = ({
           onDrop={handleDrop}
           onDoubleClick={handleDoubleClick}
           onEmptyRowDoubleClick={handleEmptyRowDoubleClick}
-          onToggleCompleted={handleToggleCompleted}
+          onToggleArrived={handleToggleArrived}
           onToggleCancelled={handleToggleCancelled}
           onOrderPass={handleOrderPass}
           onRevokePass={handleRevokePass}
           onRollbackMeetingResult={handleRollbackMeetingResult}
           onDeleteEntry={handleDeleteEntry}
           canDelete={canDelete}
-          canMarkCompleted={canMarkCompleted}
-          canUnmarkCompleted={canUnmarkCompleted}
+          canMarkArrived={canMarkArrived}
+          canUnmarkArrived={canUnmarkArrived}
           canMarkCancelled={canMarkCancelled}
           canUnmarkCancelled={canUnmarkCancelled}
           canMarkPass={canMarkPass}

@@ -13,15 +13,15 @@ const SimplePeopleList = ({
   onDoubleClick,
   onSingleClick,
   onEmptyRowDoubleClick,
-  onToggleCompleted,
+  onToggleArrived,
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
   onRollbackMeetingResult,
   onDeleteEntry,
   canDelete = false,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
   canMarkPass = false,
@@ -75,14 +75,14 @@ const SimplePeopleList = ({
     person,
     dateKey,
     todayKey,
-    canMarkCompleted,
-    canUnmarkCompleted,
+    canMarkArrived,
+    canUnmarkArrived,
     canMarkCancelled,
     canUnmarkCancelled,
     canMarkPass,
     canRevokePass,
     canRollbackMeetingResult,
-    onToggleCompleted,
+    onToggleArrived,
     onToggleCancelled,
     onOrderPass,
     onRevokePass,
@@ -177,14 +177,14 @@ const SimplePeopleList = ({
 
   const renderAcceptedBadge = (person) => {
     const state = Number(person?.state)
-    const isCompleted = state >= 30
+    const isArrived = state >= 30
     const isCancelled = state === 20
-    const isAllowed = isCancelled ? false : state === 30 ? canUnmarkCompleted : state === 10 ? canMarkCompleted : false
-    const title = isCompleted ? 'Гость принят' : 'Гость не принят'
+    const isAllowed = isCancelled ? false : state === 30 ? canUnmarkArrived : state === 10 ? canMarkArrived : false
+    const title = isArrived ? 'Гость прибыл' : 'Гость не прибыл'
     const className = [
       'list__badge',
       'list__badge--accepted',
-      `list__badge--state-${isCompleted ? 'on' : 'off'}`,
+      `list__badge--state-${isArrived ? 'on' : 'off'}`,
       isAllowed ? 'list__badge--clickable' : '',
     ]
       .filter(Boolean)
@@ -199,12 +199,12 @@ const SimplePeopleList = ({
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={(e) => {
           e.stopPropagation()
-          const nextValue = !isCompleted
-          if (nextValue && canMarkCompleted) {
-            onToggleCompleted?.(person.id, dateKey, true)
+          const nextValue = !isArrived
+          if (nextValue && canMarkArrived) {
+            onToggleArrived?.(person.id, dateKey, true)
           }
-          if (!nextValue && canUnmarkCompleted) {
-            onToggleCompleted?.(person.id, dateKey, false)
+          if (!nextValue && canUnmarkArrived) {
+            onToggleArrived?.(person.id, dateKey, false)
           }
         }}
         aria-label={title}
@@ -279,7 +279,7 @@ const SimplePeopleList = ({
           {people.map((person) => (
             <li
               key={person.id}
-              className={`list__item ${Number(person?.state) === 30 ? 'list__item--completed' : ''} ${
+              className={`list__item ${Number(person?.state) === 30 ? 'list__item--arrived' : ''} ${
                 Number(person?.state) === 20 ? 'list__item--cancelled' : ''
               } ${[40, 60].includes(Number(person?.state)) ? 'list__item--subtle' : ''} ${
                 [20, 40].includes(Number(person?.state)) ? 'list__item--strike' : ''

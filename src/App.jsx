@@ -17,8 +17,8 @@ const App = () => {
   const { user, loading: authLoading, isAuthenticated, login, logout } = useAuth()
   const {
     canDeleteUi,
-    canMarkCompletedUi,
-    canUnmarkCompletedUi,
+    canMarkArrivedUi,
+    canUnmarkArrivedUi,
     canMarkCancelledUi,
     canUnmarkCancelledUi,
     canMarkPassUi,
@@ -79,7 +79,7 @@ const App = () => {
     handleWeekendEmptyRowDoubleClick,
     handleExitEdit,
     handleSubmit,
-    handleToggleCompleted,
+    handleToggleArrived,
     handleToggleCancelled,
     handleOrderPass,
     handleRevokePass,
@@ -103,8 +103,8 @@ const App = () => {
   const isLoading = authLoading || entriesLoading
   const error = entriesError
   const canDelete = canDeleteUi()
-  const canMarkCompleted = canMarkCompletedUi()
-  const canUnmarkCompleted = canUnmarkCompletedUi()
+  const canMarkArrived = canMarkArrivedUi()
+  const canUnmarkArrived = canUnmarkArrivedUi()
   const canMarkCancelled = canMarkCancelledUi()
   const canUnmarkCancelled = canUnmarkCancelledUi()
   const canMarkPass = canMarkPassUi()
@@ -253,9 +253,9 @@ const App = () => {
     todayKey,
     todayPeople,
     visitGoals,
-    handleToggleCompleted,
-    canMarkCompleted,
-    canUnmarkCompleted,
+    handleToggleArrived,
+    canMarkArrived,
+    canUnmarkArrived,
     logout,
     handleDragStart,
     handleDrop,
@@ -304,8 +304,8 @@ const App = () => {
     allResponsibles,
     canEditEntry,
     canDelete,
-    canMarkCompleted,
-    canUnmarkCompleted,
+    canMarkArrived,
+    canUnmarkArrived,
     canMarkCancelled,
     canUnmarkCancelled,
     canMarkPass,
@@ -321,7 +321,7 @@ const App = () => {
     handleEmptyRowDoubleClick,
     handleWeekendEmptyRowDoubleClick,
     handleExitEdit,
-    handleToggleCompleted,
+    handleToggleArrived,
     handleToggleCancelled,
     handleOrderPass,
     handleRevokePass,

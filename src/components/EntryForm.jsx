@@ -22,7 +22,7 @@ const EntryForm = ({
   canMarkPass = false,
   canRevokePass = false,
   canUnmarkCancelled = false,
-  canUnmarkCompleted = false,
+  canUnmarkArrived = false,
   canSetMeetingResult = false,
   canChangeMeetingResult = false,
   canRollbackMeetingResult = false,
@@ -33,7 +33,7 @@ const EntryForm = ({
   onOrderPass,
   onRevokePass,
   onToggleCancelled,
-  onToggleCompleted,
+  onToggleArrived,
   onDeleteEntry,
   onRollbackMeetingResult,
   onExitEdit,
@@ -48,15 +48,15 @@ const EntryForm = ({
   const isEditingActive = Boolean(isEditing && entry && editingDateKey)
   const entryState = entry?.state ?? null
   const isCancelled = Number(entryState) === 20
-  const isCompleted = [30, 40, 50, 60].includes(Number(entryState))
+  const isArrived = [30, 40, 50, 60].includes(Number(entryState))
   const isFormLocked = isUser && !isFormActive
-  const isEntryLocked = isEditingActive && (isCancelled || isCompleted)
+  const isEntryLocked = isEditingActive && (isCancelled || isArrived)
   const isFieldDisabled = isFormLocked || isEntryLocked || (isEditing && !canEditEntry)
   const isVisitGoalsReadOnly =
     isFormLocked ||
     isCancelled ||
     (isEditingActive && [30, 50].includes(Number(entryState)))
-  const isMeetingResultVisible = isEditingActive && isCompleted
+  const isMeetingResultVisible = isEditingActive && isArrived
   const canEditMeetingResultByState =
     entryState === 30 || entryState === 50
       ? canSetMeetingResult
@@ -354,7 +354,7 @@ const EntryForm = ({
               : Number(entryState) === 20
               ? 'Встреча отменена'
               : Number(entryState) === 30
-              ? 'Гость принят'
+              ? 'Гость прибыл'
               : Number(entryState) === 50
               ? `Не оформлен: ${entry?.result_reason_name || '—'}`
               : Number(entryState) === 60
@@ -634,10 +634,10 @@ const EntryForm = ({
           className="button text"
           title="Откатить (вернуть в черновик)"
           aria-label="Откатить (вернуть в черновик)"
-          disabled={!canUnmarkCompleted}
+          disabled={!canUnmarkArrived}
           onClick={() => {
-            if (!canUnmarkCompleted) return
-            onToggleCompleted?.(entry.id, editingDateKey, false)
+            if (!canUnmarkArrived) return
+            onToggleArrived?.(entry.id, editingDateKey, false)
           }}
         >
           Откатить
@@ -647,8 +647,8 @@ const EntryForm = ({
         <button
           type="button"
           className="button text"
-          title="Откатить (вернуть в «Гость принят»)"
-          aria-label="Откатить (вернуть в «Гость принят»)"
+          title="Откатить (вернуть в «Гость прибыл»)"
+          aria-label="Откатить (вернуть в «Гость прибыл»)"
           disabled={!canRollbackFromRefused}
           onClick={() => {
             if (!canRollbackFromRefused) return
@@ -662,8 +662,8 @@ const EntryForm = ({
         <button
           type="button"
           className="button text"
-          title="Откатить (вернуть в «Гость принят»)"
-          aria-label="Откатить (вернуть в «Гость принят»)"
+          title="Откатить (вернуть в «Гость прибыл»)"
+          aria-label="Откатить (вернуть в «Гость прибыл»)"
           onClick={() => {
             onRollbackMeetingResult?.(entry.id, editingDateKey)
           }}
@@ -675,8 +675,8 @@ const EntryForm = ({
         <button
           type="button"
           className="button text"
-          title="Откатить (вернуть в «Гость принят»)"
-          aria-label="Откатить (вернуть в «Гость принят»)"
+          title="Откатить (вернуть в «Гость прибыл»)"
+          aria-label="Откатить (вернуть в «Гость прибыл»)"
           disabled={!canRollbackMeetingResult}
           onClick={() => {
             if (!canRollbackMeetingResult) return

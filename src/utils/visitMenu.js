@@ -2,14 +2,14 @@ export const buildVisitMenuItems = ({
   person,
   dateKey,
   todayKey,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   canMarkCancelled = false,
   canUnmarkCancelled = false,
   canMarkPass = false,
   canRevokePass = false,
   canRollbackMeetingResult = false,
-  onToggleCompleted,
+  onToggleArrived,
   onToggleCancelled,
   onOrderPass,
   onRevokePass,
@@ -19,11 +19,11 @@ export const buildVisitMenuItems = ({
 
   const accept = {
     key: 'accept',
-    label: state === 30 ? 'Снять «гость принят»' : 'Гость принят',
-    enabled: state === 10 ? canMarkCompleted : state === 30 ? canUnmarkCompleted : false,
+    label: state === 30 ? 'Снять отметку прибытия' : 'Гость прибыл',
+    enabled: state === 10 ? canMarkArrived : state === 30 ? canUnmarkArrived : false,
     action: () => {
-      if (state === 10) onToggleCompleted?.(person.id, dateKey, true, { forceReadOnlyAfterAction: true })
-      if (state === 30) onToggleCompleted?.(person.id, dateKey, false, { forceReadOnlyAfterAction: true })
+      if (state === 10) onToggleArrived?.(person.id, dateKey, true, { forceReadOnlyAfterAction: true })
+      if (state === 30) onToggleArrived?.(person.id, dateKey, false, { forceReadOnlyAfterAction: true })
     },
   }
 

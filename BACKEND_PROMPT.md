@@ -135,7 +135,7 @@
       "name": "Иван Иванов",
       "responsible": "Петр Петров",
       "datetime": "2026-01-29T09:00:00",
-      "is_completed": false
+      "is_arrived": false
     }
   ],
   "reference_dates": {

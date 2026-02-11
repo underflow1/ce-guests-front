@@ -499,7 +499,7 @@ const useEntries = ({
               message: buildToastMessage('Результат установлен', entry, details),
             })
           }
-        } else if (payload?.type === 'entry_rollback' || payload?.type === 'result_rollback' || payload?.type === 'entry_uncompleted' || payload?.type === 'visit_uncancelled') {
+        } else if (payload?.type === 'entry_rollback') {
           const entry = payload.change?.entry
           if (!entry) return
 
@@ -510,7 +510,7 @@ const useEntries = ({
               message: buildToastMessage('Состояние откатано', entry),
             })
           }
-        } else if (payload?.type === 'entry_completed') {
+        } else if (payload?.type === 'entry_arrived') {
           const entry = payload.change?.entry
           if (!entry) return
           
@@ -518,7 +518,7 @@ const useEntries = ({
             pushToast({
               type: 'info',
               title: '',
-              message: buildToastMessage('Гость принят', entry),
+              message: buildToastMessage('Гость прибыл', entry),
             })
           }
         } else if (payload?.type === 'visit_cancelled') {
@@ -677,7 +677,7 @@ const useEntries = ({
     otherDate: '',
     editingEntryId: null,
     editingDateKey: null,
-    isCompleted: false,
+    isArrived: false,
     visitGoalIds: [],
     resultState: null, // 40/50/60
     resultReasonId: null,
@@ -767,14 +767,14 @@ const useEntries = ({
     }
   }
 
-  const handleToggleCompleted = async (entryId, dateKey, isCompleted, options = {}) => {
+  const handleToggleArrived = async (entryId, dateKey, isArrived, options = {}) => {
     const list = getListForDateKey(dateKey)
     const entry = list.find((item) => item.id === entryId)
     if (!entry) return
 
     try {
       const forceReadOnlyAfterAction = Boolean(options?.forceReadOnlyAfterAction)
-      const updatedEntry = isCompleted
+      const updatedEntry = isArrived
         ? await apiPatch(`/entries/${entryId}/result`, { state: 30 })
         : await apiPatch(`/entries/${entryId}/rollback`, {})
 
@@ -800,7 +800,7 @@ const useEntries = ({
             otherDate,
             editingEntryId: updatedEntry.id,
             editingDateKey: dateKey,
-            isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
             visitGoalIds: updatedEntry.visit_goal_ids || [],
             resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
             resultReasonId: updatedEntry.result_reason_id || null,
@@ -809,7 +809,7 @@ const useEntries = ({
         }
 
         // В user UI после "Отката" (30 -> 10) автоматически переходим в режим редактирования
-        if (Boolean(isCompleted)) return
+        if (Boolean(isArrived)) return
 
         setIsFormActive(true)
         setForm({
@@ -820,7 +820,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: updatedEntry.id,
           editingDateKey: dateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
           visitGoalIds: updatedEntry.visit_goal_ids || [],
           resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
           resultReasonId: updatedEntry.result_reason_id || null,
@@ -869,7 +869,7 @@ const useEntries = ({
             otherDate,
             editingEntryId: updatedEntry.id,
             editingDateKey: dateKey,
-            isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
             visitGoalIds: updatedEntry.visit_goal_ids || [],
             resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
             resultReasonId: updatedEntry.result_reason_id || null,
@@ -889,7 +889,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: updatedEntry.id,
           editingDateKey: dateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
           visitGoalIds: updatedEntry.visit_goal_ids || [],
           resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
           resultReasonId: updatedEntry.result_reason_id || null,
@@ -934,7 +934,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: updatedEntry.id,
           editingDateKey: dateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
           visitGoalIds: updatedEntry.visit_goal_ids || [],
           resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
           resultReasonId: updatedEntry.result_reason_id || null,
@@ -974,7 +974,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: updatedEntry.id,
           editingDateKey: dateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
           visitGoalIds: updatedEntry.visit_goal_ids || [],
           resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
           resultReasonId: updatedEntry.result_reason_id || null,
@@ -1026,7 +1026,7 @@ const useEntries = ({
         otherDate,
         editingEntryId: entry.id,
         editingDateKey: dateKey,
-        isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+        isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
         visitGoalIds: entry.visit_goal_ids || [],
         resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
         resultReasonId: entry.result_reason_id || null,
@@ -1048,7 +1048,7 @@ const useEntries = ({
         otherDate,
         editingEntryId: entry.id,
         editingDateKey: dateKey,
-        isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+        isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
         visitGoalIds: entry.visit_goal_ids || [],
         resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
         resultReasonId: entry.result_reason_id || null,
@@ -1068,7 +1068,7 @@ const useEntries = ({
       otherDate,
       editingEntryId: entry.id,
       editingDateKey: dateKey,
-      isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+      isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
       visitGoalIds: entry.visit_goal_ids || [],
       resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
       resultReasonId: entry.result_reason_id || null,
@@ -1092,7 +1092,7 @@ const useEntries = ({
       otherDate,
       editingEntryId: entry.id,
       editingDateKey: dateKey,
-      isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+      isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
       visitGoalIds: entry.visit_goal_ids || [],
       resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
       resultReasonId: entry.result_reason_id || null,
@@ -1118,7 +1118,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: entry.id,
           editingDateKey: form.editingDateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(entry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(entry?.state)),
           visitGoalIds: entry.visit_goal_ids || [],
           resultState: [40, 50, 60].includes(Number(entry?.state)) ? Number(entry.state) : null,
           resultReasonId: entry.result_reason_id || null,
@@ -1136,7 +1136,7 @@ const useEntries = ({
       otherDate: '',
       editingEntryId: null,
       editingDateKey: null,
-      isCompleted: false,
+      isArrived: false,
       visitGoalIds: [],
       resultState: null,
       resultReasonId: null,
@@ -1158,7 +1158,7 @@ const useEntries = ({
       otherDate,
       editingEntryId: null,
       editingDateKey: null,
-      isCompleted: false,
+      isArrived: false,
       visitGoalIds: [],
       resultState: null,
       resultReasonId: null,
@@ -1181,7 +1181,7 @@ const useEntries = ({
       otherDate,
       editingEntryId: null,
       editingDateKey: null,
-      isCompleted: false,
+      isArrived: false,
       visitGoalIds: [],
       resultState: null,
       resultReasonId: null,
@@ -1195,14 +1195,14 @@ const useEntries = ({
   const isFormActiveEffective = interfaceType === 'user' ? isFormActive : true
   const resultRequiresReason = Boolean([40, 50].includes(Number(form.resultState)) && resultReasons.length > 0)
   const canEditMeetingResult = canSetMeetingResult || canChangeMeetingResult
-  const isMeetingResultBlocked = form.isCompleted && !canEditMeetingResult
-  const isMeetingResultMissing = form.isCompleted && canEditMeetingResult && !form.resultState
+  const isMeetingResultBlocked = form.isArrived && !canEditMeetingResult
+  const isMeetingResultMissing = form.isArrived && canEditMeetingResult && !form.resultState
   const isMeetingReasonMissing =
-    form.isCompleted &&
+    form.isArrived &&
     canEditMeetingResult &&
     resultRequiresReason &&
     !form.resultReasonId
-  const isMeetingResultLoading = form.isCompleted && canEditMeetingResult && resultReasonsLoading
+  const isMeetingResultLoading = form.isArrived && canEditMeetingResult && resultReasonsLoading
   const isSubmitDisabled =
     !isFormActiveEffective ||
     form.name.trim().length === 0 ||
@@ -1226,8 +1226,8 @@ const useEntries = ({
     try {
       const targetDate = parseDateFromKey(targetDateKey)
       const datetime = formatDateTime(targetDate, form.time.trim())
-      const resultState = form.isCompleted ? Number(form.resultState) || null : null
-      const resultReasonId = form.isCompleted ? form.resultReasonId || null : null
+      const resultState = form.isArrived ? Number(form.resultState) || null : null
+      const resultReasonId = form.isArrived ? form.resultReasonId || null : null
 
       if (isEditing) {
         const entryId = form.editingEntryId
@@ -1279,7 +1279,7 @@ const useEntries = ({
             otherDate,
             editingEntryId: updatedEntry.id,
             editingDateKey: sourceDateKey,
-            isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+            isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
             visitGoalIds: updatedEntry.visit_goal_ids || [],
             resultState: [40, 50, 60].includes(Number(updatedEntry?.state)) ? Number(updatedEntry.state) : null,
             resultReasonId: updatedEntry.result_reason_id || null,
@@ -1314,7 +1314,7 @@ const useEntries = ({
             otherDate,
             editingEntryId: newEntry.id,
             editingDateKey: targetDateKey,
-            isCompleted: [30, 40, 50, 60].includes(Number(newEntry?.state)),
+            isArrived: [30, 40, 50, 60].includes(Number(newEntry?.state)),
             visitGoalIds: newEntry.visit_goal_ids || [],
             resultState: [40, 50, 60].includes(Number(newEntry?.state)) ? Number(newEntry.state) : null,
             resultReasonId: newEntry.result_reason_id || null,
@@ -1332,7 +1332,7 @@ const useEntries = ({
         otherDate: '',
         editingEntryId: null,
         editingDateKey: null,
-        isCompleted: false,
+        isArrived: false,
         visitGoalIds: [],
         resultState: null,
         resultReasonId: null,
@@ -1376,7 +1376,7 @@ const useEntries = ({
           otherDate,
           editingEntryId: updatedEntry.id,
           editingDateKey: dateKey,
-          isCompleted: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
+          isArrived: [30, 40, 50, 60].includes(Number(updatedEntry?.state)),
           visitGoalIds: updatedEntry.visit_goal_ids || [],
           // после отката результат сбрасывается (state=30)
           resultState: null,
@@ -1426,7 +1426,7 @@ const useEntries = ({
     handleWeekendEmptyRowDoubleClick,
     handleExitEdit,
     handleSubmit,
-    handleToggleCompleted,
+    handleToggleArrived,
     handleToggleCancelled,
     handleOrderPass,
     handleRevokePass,

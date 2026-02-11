@@ -17,9 +17,9 @@ const OperatorMobileView = ({
   people,
   visitGoals = [],
   dateKey,
-  onToggleCompleted,
-  canMarkCompleted = false,
-  canUnmarkCompleted = false,
+  onToggleArrived,
+  canMarkArrived = false,
+  canUnmarkArrived = false,
   onLogout,
 }) => {
   const sortedPeople = useMemo(
@@ -118,21 +118,21 @@ const OperatorMobileView = ({
     multiTapRef.current = { id: person.id, count: nextCount, time: now }
 
     const state = Number(person?.state)
-    const isCompleted = state >= 30
+    const isArrived = state >= 30
     const isCancelled = state === 20
 
-    if (nextCount === 2 && !isCompleted && !isCancelled) {
+    if (nextCount === 2 && !isArrived && !isCancelled) {
       multiTapRef.current = { id: null, count: 0, time: 0 }
-      if (canMarkCompleted && state === 10) {
-        onToggleCompleted?.(person.id, dateKey, true)
+      if (canMarkArrived && state === 10) {
+        onToggleArrived?.(person.id, dateKey, true)
       }
       return
     }
 
     if (nextCount === 3) {
       multiTapRef.current = { id: null, count: 0, time: 0 }
-      if (isCompleted && canUnmarkCompleted && state === 30) {
-        onToggleCompleted?.(person.id, dateKey, false)
+      if (isArrived && canUnmarkArrived && state === 30) {
+        onToggleArrived?.(person.id, dateKey, false)
       }
     }
   }
@@ -177,7 +177,7 @@ const OperatorMobileView = ({
                 <li
                   key={person.id}
                   className={`list__item duty-officer-mobile__item ${
-                    state >= 30 ? 'list__item--completed' : ''
+                    state >= 30 ? 'list__item--arrived' : ''
                   } ${state === 20 ? 'list__item--cancelled' : ''} ${
                     isNew ? 'duty-officer-mobile__item--new' : ''
                   }`}
