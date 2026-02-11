@@ -235,6 +235,12 @@ const useEntries = ({
     return reasonName ? `${title} / ${reasonName}` : title
   }, [])
 
+  const buildPassOrderDetails = useCallback((entry) => {
+    const externalId = entry?.pass_external_id
+    if (!externalId) return ''
+    return `Номер пропуска: ${externalId}`
+  }, [])
+
   const buildUpdateDetails = useCallback((prevEntry, nextEntry) => {
     if (!prevEntry || !nextEntry) return ''
     const details = []
@@ -519,10 +525,11 @@ const useEntries = ({
           if (!entry) return
 
           if (shouldShowToast(entry)) {
+            const details = buildPassOrderDetails(entry)
             pushToast({
               type: 'info',
               title: '',
-              message: buildToastMessage('Пропуск заказан', entry),
+              message: buildToastMessage('Пропуск заказан', entry, details),
             })
           }
         } else if (payload?.type === 'pass_order_failed') {
@@ -600,7 +607,7 @@ const useEntries = ({
       }
       socket?.close()
     }
-  }, [pushToast, shouldShowToast, isAuthenticated, updateStateFromWebSocketData, weekOffset])
+  }, [buildPassOrderDetails, pushToast, shouldShowToast, isAuthenticated, updateStateFromWebSocketData, weekOffset])
 
   const goToPreviousWeek = useCallback(() => {
     setWeekOffset((prev) => prev - 1)
