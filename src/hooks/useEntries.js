@@ -32,6 +32,7 @@ const useEntries = ({
   const [bottomEntries, setBottomEntries] = useState({})
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [visitGoals, setVisitGoals] = useState([])
+  const [passOrderingEnabled, setPassOrderingEnabled] = useState(false)
   const [reasonsByState, setReasonsByState] = useState({})
   const [resultReasonsLoading, setResultReasonsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -168,6 +169,7 @@ const useEntries = ({
       const response = await apiGet('/reference-data')
       setVisitGoals(response?.visit_goals || [])
       setReasonsByState(response?.reasons_by_state || {})
+      setPassOrderingEnabled(Boolean(response?.pass_ordering_enabled))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -1443,6 +1445,7 @@ const useEntries = ({
     bottomEntries,
     allResponsibles,
     visitGoals,
+    passOrderingEnabled,
     reasonsByState,
     resultReasons,
     resultReasonsLoading,

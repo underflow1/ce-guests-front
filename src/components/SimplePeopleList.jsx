@@ -29,6 +29,7 @@ const SimplePeopleList = ({
   canChangeMeetingResult = false,
   canMarkPass = false,
   canRevokePass = false,
+  passOrderingEnabled = true,
   canRollbackMeetingResult = false,
   canMove = false,
   reasonsByState = {},
@@ -88,6 +89,7 @@ const SimplePeopleList = ({
     canChangeMeetingResult,
     canMarkPass,
     canRevokePass,
+    passOrderingEnabled,
     canRollbackMeetingResult,
     onSetEntryState,
     onToggleArrived,
@@ -115,6 +117,27 @@ const SimplePeopleList = ({
   const isSimpleVariant = itemVariant === 'simple'
 
   const renderPassBadge = (person) => {
+    if (!passOrderingEnabled) {
+      const className = [
+        'list__badge',
+        'list__badge--pass',
+        'list__badge--state-none',
+        'list__badge--static',
+      ]
+        .filter(Boolean)
+        .join(' ')
+      return (
+        <span
+          className={className}
+          title="Заказ пропусков отключен"
+          aria-label="Заказ пропусков отключен"
+          style={{ opacity: 0.1 }}
+        >
+          <i className="fa-solid fa-skull-crossbones" aria-hidden="true" />
+        </span>
+      )
+    }
+
     const status = getPassStatus(person)
     const state =
       status === 'ordered'

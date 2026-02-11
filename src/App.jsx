@@ -61,6 +61,7 @@ const App = () => {
     bottomEntries,
     allResponsibles,
     visitGoals,
+    passOrderingEnabled,
     reasonsByState,
     resultReasons,
     resultReasonsLoading,
@@ -109,8 +110,8 @@ const App = () => {
   const canUnmarkArrived = canUnmarkArrivedUi()
   const canMarkCancelled = canMarkCancelledUi()
   const canUnmarkCancelled = canUnmarkCancelledUi()
-  const canMarkPass = canMarkPassUi()
-  const canRevokePass = canRevokePassUi()
+  const canMarkPass = canMarkPassUi() && passOrderingEnabled
+  const canRevokePass = canRevokePassUi() && passOrderingEnabled
   const canMove = canMoveUi()
   const canEditEntry = canEditEntryUi()
   const canSetMeetingResult = canSetMeetingResultUi()
@@ -276,6 +277,7 @@ const App = () => {
     canUnmarkCancelled,
     canMarkPass,
     canRevokePass,
+    passOrderingEnabled,
     canMove,
     canSetMeetingResult,
     canChangeMeetingResult,
@@ -316,6 +318,7 @@ const App = () => {
     canUnmarkCancelled,
     canMarkPass,
     canRevokePass,
+    passOrderingEnabled,
     canMove,
     canSetMeetingResult,
     canChangeMeetingResult,

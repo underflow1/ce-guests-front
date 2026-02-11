@@ -11,6 +11,7 @@ export const buildVisitMenuItems = ({
   canChangeMeetingResult = false,
   canMarkPass = false,
   canRevokePass = false,
+  passOrderingEnabled = true,
   canRollbackMeetingResult = false,
   onSetEntryState,
   onToggleArrived,
@@ -103,24 +104,27 @@ export const buildVisitMenuItems = ({
     children: statusChildren,
   }
 
-  const passStatus = person?.pass_status || null
-  const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
-  const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
-  const isPassForbiddenByState = passAction === 'order' && (state === 20 || state === 40)
-  const isPastEntry = Boolean(dateKey && todayKey && dateKey < todayKey)
-  const isPassOrderingDisabled = passAction === 'order' && isPastEntry
-  const passEnabled = Boolean(canPassAction && !isPassForbiddenByState && !isPassOrderingDisabled)
-  const passHint = isPassOrderingDisabled ? 'Заказ пропуска недоступен для прошлых дат' : undefined
+  const passItems = []
+  if (passOrderingEnabled) {
+    const passStatus = person?.pass_status || null
+    const passAction = passStatus === 'ordered' ? 'revoke' : 'order'
+    const canPassAction = passAction === 'order' ? canMarkPass : canRevokePass
+    const isPassForbiddenByState = passAction === 'order' && (state === 20 || state === 40)
+    const isPastEntry = Boolean(dateKey && todayKey && dateKey < todayKey)
+    const isPassOrderingDisabled = passAction === 'order' && isPastEntry
+    const passEnabled = Boolean(canPassAction && !isPassForbiddenByState && !isPassOrderingDisabled)
+    const passHint = isPassOrderingDisabled ? 'Заказ пропуска недоступен для прошлых дат' : undefined
 
-  const pass = {
-    key: 'pass',
-    label: passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск',
-    enabled: passEnabled,
-    hint: passHint,
-    action: () => {
-      if (passAction === 'order') onOrderPass?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
-      if (passAction === 'revoke') onRevokePass?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
-    },
+    passItems.push({
+      key: 'pass',
+      label: passAction === 'order' ? 'Заказать пропуск' : 'Отозвать пропуск',
+      enabled: passEnabled,
+      hint: passHint,
+      action: () => {
+        if (passAction === 'order') onOrderPass?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
+        if (passAction === 'revoke') onRevokePass?.(person.id, dateKey, { forceReadOnlyAfterAction: true })
+      },
+    })
   }
 
   const canRollback =
@@ -142,5 +146,5 @@ export const buildVisitMenuItems = ({
     },
   }
 
-  return [status, rollback, pass].filter((item) => item.enabled || item.hint)
+  return [status, rollback, ...passItems].filter((item) => item.enabled || item.hint)
 }

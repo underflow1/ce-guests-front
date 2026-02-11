@@ -28,6 +28,7 @@ const DutyOfficerInterface = ({
   canUnmarkCancelled,
   canMarkPass,
   canRevokePass,
+  passOrderingEnabled,
   canRollbackMeetingResult,
   canMove,
   canSetMeetingResult,
@@ -75,6 +76,7 @@ const DutyOfficerInterface = ({
           canChangeMeetingResult={canChangeMeetingResult}
           canMarkPass={canMarkPass}
           canRevokePass={canRevokePass}
+          passOrderingEnabled={passOrderingEnabled}
           canRollbackMeetingResult={canRollbackMeetingResult}
           canMove={canMove}
           reasonsByState={reasonsByState}

@@ -69,6 +69,8 @@ const SettingsPanel = ({ onBack }) => {
       base_url: '',
       login: '',
       password: '',
+      object: '',
+      corpa: '',
     },
   })
 
@@ -115,6 +117,8 @@ const SettingsPanel = ({ onBack }) => {
               base_url: passIntegration.base_url || '',
               login: passIntegration.login || '',
               password: passIntegration.password || '',
+              object: passIntegration.object || '',
+              corpa: passIntegration.corpa || '',
             },
           })
         }
@@ -226,6 +230,8 @@ const SettingsPanel = ({ onBack }) => {
       if (!String(passIntegration.base_url || '').trim()) return false
       if (!String(passIntegration.login || '').trim()) return false
       if (!String(passIntegration.password || '').trim()) return false
+      if (!String(passIntegration.object || '').trim()) return false
+      if (!String(passIntegration.corpa || '').trim()) return false
     }
 
     return true
@@ -685,6 +691,52 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="password"
+                  style={{ width: '100%', padding: '4px 6px' }}
+                />
+              </div>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                  Object:
+                </label>
+                <input
+                  type="text"
+                  className="input text text--down"
+                  value={form.pass_integration.object}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        object: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="1"
+                  style={{ width: '100%', padding: '4px 6px' }}
+                />
+              </div>
+
+              <div style={{ marginTop: 'var(--space-3)' }}>
+                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                  Corpa:
+                </label>
+                <input
+                  type="text"
+                  className="input text text--down"
+                  value={form.pass_integration.corpa}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        corpa: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="Название организации"
                   style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
