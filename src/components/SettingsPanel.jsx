@@ -5,7 +5,14 @@ import { apiGet, apiPost, apiPatch, apiPut } from '../utils/api'
 import { useToast } from './ToastProvider'
 
 const SettingsPanel = ({ onBack }) => {
-  const { getSettings, updateSettings, loading, error: apiError } = useSettings()
+  const {
+    getSettings,
+    updateSettings,
+    loadProductionCalendarCurrentYear,
+    clearProductionCalendarCurrentYear,
+    loading,
+    error: apiError,
+  } = useSettings()
   const {
     getAllGoals,
     createGoal,
@@ -15,6 +22,7 @@ const SettingsPanel = ({ onBack }) => {
   } = useVisitGoals()
   const { pushToast } = useToast()
   const [error, setError] = useState(null)
+  const [calendarActionLoading, setCalendarActionLoading] = useState(false)
   const lastErrorRef = useRef(null)
   const [visitGoals, setVisitGoals] = useState([])
   const [newGoalName, setNewGoalName] = useState('')
@@ -23,6 +31,7 @@ const SettingsPanel = ({ onBack }) => {
   const [reasonEdits, setReasonEdits] = useState({})
   const [reasonsLoading, setReasonsLoading] = useState(false)
   const [reasonsError, setReasonsError] = useState(null)
+  const currentYear = new Date().getFullYear()
 
   const [activeReasonState, setActiveReasonState] = useState(50) // 50=Не оформлен, 40=Отказ
   const [allowedReasonIds, setAllowedReasonIds] = useState(new Set())
@@ -72,6 +81,10 @@ const SettingsPanel = ({ onBack }) => {
       object: '',
       corpa: '',
     },
+    production_calendar: {
+      enabled: false,
+      status: null,
+    },
   })
 
   // Загрузить настройки при монтировании
@@ -82,6 +95,7 @@ const SettingsPanel = ({ onBack }) => {
         if (settings) {
           const notifications = settings.notifications || {}
           const passIntegration = settings.pass_integration || {}
+          const productionCalendar = settings.production_calendar || {}
           const providers = notifications.providers || {}
           const maxProvider = providers.max_via_green_api || {}
           const telegramProvider = providers.telegram || {}
@@ -119,6 +133,10 @@ const SettingsPanel = ({ onBack }) => {
               password: passIntegration.password || '',
               object: passIntegration.object || '',
               corpa: passIntegration.corpa || '',
+            },
+            production_calendar: {
+              enabled: !!productionCalendar.enabled,
+              status: productionCalendar.status || null,
             },
           })
         }
@@ -239,6 +257,7 @@ const SettingsPanel = ({ onBack }) => {
 
   // Сохранение настроек
   const handleSave = async () => {
+    if (calendarActionLoading) return
     if (!isFormValid()) {
       setError('Заполните все обязательные поля')
       return
@@ -249,8 +268,20 @@ const SettingsPanel = ({ onBack }) => {
       const settingsData = {
         notifications: form.notifications,
         pass_integration: form.pass_integration,
+        production_calendar: {
+          enabled: !!form.production_calendar?.enabled,
+        },
       }
-      await updateSettings(settingsData)
+      const updatedSettings = await updateSettings(settingsData)
+      if (updatedSettings?.production_calendar) {
+        setForm((prev) => ({
+          ...prev,
+          production_calendar: {
+            enabled: !!updatedSettings.production_calendar.enabled,
+            status: updatedSettings.production_calendar.status || null,
+          },
+        }))
+      }
       pushToast({
         type: 'success',
         title: 'Готово',
@@ -258,6 +289,61 @@ const SettingsPanel = ({ onBack }) => {
       })
     } catch (err) {
       setError(err.message || 'Ошибка при сохранении настроек')
+    }
+  }
+
+  const handleLoadProductionCalendar = async () => {
+    try {
+      setError(null)
+      setCalendarActionLoading(true)
+      const updatedSettings = await loadProductionCalendarCurrentYear()
+      if (updatedSettings?.production_calendar) {
+        setForm((prev) => ({
+          ...prev,
+          production_calendar: {
+            enabled: !!updatedSettings.production_calendar.enabled,
+            status: updatedSettings.production_calendar.status || null,
+          },
+        }))
+      }
+      pushToast({
+        type: 'success',
+        title: 'Готово',
+        message: `Календарь на ${currentYear} год загружен`,
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при загрузке производственного календаря')
+    } finally {
+      setCalendarActionLoading(false)
+    }
+  }
+
+  const handleClearProductionCalendar = async () => {
+    const confirmed = window.confirm(`Очистить производственный календарь за ${currentYear} год?`)
+    if (!confirmed) return
+
+    try {
+      setError(null)
+      setCalendarActionLoading(true)
+      const updatedSettings = await clearProductionCalendarCurrentYear()
+      if (updatedSettings?.production_calendar) {
+        setForm((prev) => ({
+          ...prev,
+          production_calendar: {
+            enabled: !!updatedSettings.production_calendar.enabled,
+            status: updatedSettings.production_calendar.status || null,
+          },
+        }))
+      }
+      pushToast({
+        type: 'warning',
+        title: 'Очищено',
+        message: `Календарь на ${currentYear} год очищен`,
+      })
+    } catch (err) {
+      setError(err.message || 'Ошибка при очистке производственного календаря')
+    } finally {
+      setCalendarActionLoading(false)
     }
   }
 
@@ -430,6 +516,25 @@ const SettingsPanel = ({ onBack }) => {
     }))
   }
 
+  const productionCalendarStatus = form.production_calendar?.status || null
+  const isProductionCalendarLoaded = !!productionCalendarStatus?.is_complete_for_current_year
+  const formatStatusDateTime = (isoValue) => {
+    if (!isoValue) return null
+    const date = new Date(isoValue)
+    if (Number.isNaN(date.getTime())) return null
+    return date.toLocaleString('ru-RU')
+  }
+  const lastLoadedAtText = formatStatusDateTime(productionCalendarStatus?.last_loaded_at)
+  const lastClearedAtText = formatStatusDateTime(productionCalendarStatus?.last_cleared_at)
+  const productionCalendarStatusText = isProductionCalendarLoaded
+    ? `Календарь за ${productionCalendarStatus?.current_year || currentYear} год загружен (${productionCalendarStatus?.loaded_days_count || 0}/${productionCalendarStatus?.expected_days_count || 0} дней).`
+    : `Календарь за ${productionCalendarStatus?.current_year || currentYear} год не загружен полностью (${productionCalendarStatus?.loaded_days_count || 0}/${productionCalendarStatus?.expected_days_count || 0} дней).`
+  const productionCalendarMetaText = lastLoadedAtText
+    ? `Последняя загрузка: ${lastLoadedAtText}`
+    : lastClearedAtText
+      ? `Последняя очистка: ${lastClearedAtText}`
+      : 'Загрузок еще не было'
+
   return (
     <div style={{ padding: 'var(--space-6)' }}>
       <button className="button" onClick={onBack} style={{ marginBottom: '1rem' }}>
@@ -442,12 +547,12 @@ const SettingsPanel = ({ onBack }) => {
           <button
             className="button button--primary button--small"
             onClick={handleSave}
-            disabled={loading || !isFormValid()}
+            disabled={loading || calendarActionLoading || !isFormValid()}
             style={{
               gridColumn: 3,
             }}
           >
-            {loading ? 'Сохранение...' : 'Сохранить'}
+            {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
           </button>
         </header>
 
@@ -590,6 +695,70 @@ const SettingsPanel = ({ onBack }) => {
                   placeholder="chat456"
                   style={{ width: '100%', padding: '4px 6px' }}
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Секция производственного календаря */}
+          <div style={{ marginBottom: 'var(--space-6)' }}>
+            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
+              Производственный календарь
+            </h3>
+
+            <div
+              style={{
+                padding: 'var(--space-4)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-surface-muted)',
+              }}
+            >
+              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={!!form.production_calendar?.enabled}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      production_calendar: {
+                        ...(prev.production_calendar || {}),
+                        enabled: e.target.checked,
+                      },
+                    }))
+                  }
+                  style={{ cursor: 'pointer' }}
+                />
+                <span>Использовать производственный календарь</span>
+              </label>
+
+              <div
+                className="text text--down"
+                style={{
+                  marginTop: 'var(--space-3)',
+                  color: isProductionCalendarLoaded ? '#1d7a35' : '#b42318',
+                }}
+              >
+                {productionCalendarStatusText}
+              </div>
+              <div className="text text--down text--muted" style={{ marginTop: 'var(--space-1)' }}>
+                {productionCalendarMetaText}
+              </div>
+
+              <div style={{ marginTop: 'var(--space-3)', display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                <button
+                  className="button button--small button--primary"
+                  onClick={handleLoadProductionCalendar}
+                  disabled={loading || calendarActionLoading}
+                >
+                  {calendarActionLoading ? 'Выполняется...' : `Загрузить ${currentYear}`}
+                </button>
+                <button
+                  className="button button--small"
+                  onClick={handleClearProductionCalendar}
+                  disabled={loading || calendarActionLoading}
+                >
+                  {calendarActionLoading ? 'Выполняется...' : `Очистить ${currentYear}`}
+                </button>
               </div>
             </div>
           </div>

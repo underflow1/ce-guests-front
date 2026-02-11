@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { apiGet, apiPut } from '../utils/api'
+import { apiDelete, apiGet, apiPost, apiPut } from '../utils/api'
 
 const useSettings = () => {
   const [loading, setLoading] = useState(false)
@@ -35,11 +35,41 @@ const useSettings = () => {
     }
   }
 
+  const loadProductionCalendarCurrentYear = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await apiPost('/settings/production-calendar/load-current-year', {})
+      return response
+    } catch (err) {
+      setError(err.message)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const clearProductionCalendarCurrentYear = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await apiDelete('/settings/production-calendar/current-year')
+      return response
+    } catch (err) {
+      setError(err.message)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     loading,
     error,
     getSettings,
     updateSettings,
+    loadProductionCalendarCurrentYear,
+    clearProductionCalendarCurrentYear,
   }
 }
 

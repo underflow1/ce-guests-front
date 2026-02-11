@@ -480,6 +480,16 @@ body.duty-officer-mobile * {
   padding-top: 0;
 }
 
+.app__loading-state {
+  padding: 2rem;
+  text-align: center;
+  font-family: var(--font-base);
+  font-size: var(--text-size-base);
+  line-height: var(--text-line-height-base);
+  font-weight: var(--text-weight-base);
+  color: var(--color-text-muted);
+}
+
 /* Login screen (user interface) */
 body.interface-user .login {
   min-height: 100svh;

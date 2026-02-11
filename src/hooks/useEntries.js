@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from 'react'
 import {
   toDateKey,
   parseDateFromKey,
@@ -33,6 +33,7 @@ const useEntries = ({
   const [allResponsibles, setAllResponsibles] = useState([]) // Все уникальные ответственные из загруженных записей
   const [visitGoals, setVisitGoals] = useState([])
   const [passOrderingEnabled, setPassOrderingEnabled] = useState(false)
+  const [productionCalendarFallbackActive, setProductionCalendarFallbackActive] = useState(false)
   const [reasonsByState, setReasonsByState] = useState({})
   const [resultReasonsLoading, setResultReasonsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -170,6 +171,7 @@ const useEntries = ({
       setVisitGoals(response?.visit_goals || [])
       setReasonsByState(response?.reasons_by_state || {})
       setPassOrderingEnabled(Boolean(response?.pass_ordering_enabled))
+      setProductionCalendarFallbackActive(Boolean(response?.production_calendar_fallback_active))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -277,12 +279,18 @@ const useEntries = ({
   }, [formatChangeValue, formatEntryDateLabel])
 
   // Загрузка записей с API
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isAuthenticated) {
       hasLoadedOnceRef.current = false
       setLoading(false)
       setIsBottomLoading(false)
+      return
     }
+
+    // При входе/восстановлении сессии включаем loading до первого paint,
+    // чтобы не было короткой отрисовки интерфейса до старта loadEntries().
+    setLoading(true)
+    setIsBottomLoading(false)
   }, [isAuthenticated])
 
   useEffect(() => {
@@ -1446,6 +1454,7 @@ const useEntries = ({
     allResponsibles,
     visitGoals,
     passOrderingEnabled,
+    productionCalendarFallbackActive,
     reasonsByState,
     resultReasons,
     resultReasonsLoading,
