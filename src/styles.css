@@ -438,6 +438,44 @@ body.duty-officer-mobile * {
   flex-wrap: wrap;
 }
 
+.icon-action-button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.icon-action-button:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.icon-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon-action-button--primary {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.icon-action-button--success {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+.icon-action-button--danger {
+  color: #b42318;
+}
+
 .button--small {
   font-size: var(--text-size-down);
   padding: 3px 8px;
@@ -1789,6 +1827,88 @@ body.interface-user .button {
   max-height: 420px;
   overflow: auto;
   padding-right: 6px;
+}
+
+.user-management {
+  font-size: var(--text-size-base);
+}
+
+.user-management .table,
+.user-management .table th,
+.user-management .table td,
+.user-management .input--compact,
+.user-management .select--compact {
+  font-size: var(--text-size-base);
+}
+
+.user-management .table th:nth-child(7) {
+  width: 11%;
+}
+
+.user-management .table th:nth-child(1) {
+  width: 11%;
+}
+
+.user-management .table th:nth-child(2) {
+  width: 14%;
+}
+
+.user-management .table th:nth-child(3) {
+  width: 20%;
+}
+
+.user-management .table th:nth-child(4) {
+  width: 20%;
+}
+
+.user-management .table th:nth-child(6) {
+  width: 4%;
+  text-align: center;
+}
+
+.user-management .table th:nth-child(5) {
+  width: 20%;
+}
+
+.user-management__row--inactive td {
+  color: var(--color-text-subtle);
+}
+
+.user-management__row--inactive .input {
+  color: var(--color-text-subtle);
+  border-color: var(--color-border-subtle);
+}
+
+.user-management__header-icon {
+  color: var(--color-text-muted);
+  font-size: var(--text-size-base);
+}
+
+.user-management__flag-col {
+  text-align: center;
+}
+
+.user-management__status-icon--on {
+  color: var(--color-text);
+}
+
+.user-management__status-icon--off {
+  color: var(--color-text-subtle);
+}
+
+.user-management .table th:nth-child(6),
+.user-management .table td:nth-child(6) {
+  border-right: 1px solid var(--color-border-subtle);
+  padding-right: var(--space-3);
+}
+
+.user-management .table th:nth-child(7),
+.user-management .table td:nth-child(7) {
+  text-align: center;
+}
+
+.user-management .table td:nth-child(7) .table__actions {
+  justify-content: center;
 }
 
 .role-list {
