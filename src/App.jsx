@@ -4,6 +4,7 @@ import UserManagement from './components/UserManagement'
 import RoleManagement from './components/RoleManagement'
 import MaintenancePanel from './components/MaintenancePanel'
 import SettingsPanel from './components/SettingsPanel'
+import SettingsWorkspace from './components/SettingsWorkspace'
 import { useToast } from './components/ToastProvider'
 import useEntries from './hooks/useEntries'
 import useAuth from './hooks/useAuth'
@@ -37,9 +38,6 @@ const App = () => {
   const nameInputRef = useRef(null)
   const dateInputRef = useRef(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [showUserManagement, setShowUserManagement] = useState(false)
-  const [showRoleManagement, setShowRoleManagement] = useState(false)
-  const [showMaintenance, setShowMaintenance] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const resolvedInterfaceType = resolveInterfaceType(interfaceType)
   const isDutyOfficer = resolvedInterfaceType === 'duty_officer'
@@ -393,56 +391,15 @@ const App = () => {
         {isDropdownOpen && (
           <div className="app__user-dropdown">
             {isAdmin && (
-              <>
-                <button
-                  className="app__user-menu-item"
-                  onClick={() => {
-                    setShowUserManagement(true)
-                    setShowRoleManagement(false)
-                    setShowMaintenance(false)
-                    setShowSettings(false)
-                    setIsDropdownOpen(false)
-                  }}
-                >
-                  Пользователи
-                </button>
-                <button
-                  className="app__user-menu-item"
-                  onClick={() => {
-                    setShowRoleManagement(true)
-                    setShowUserManagement(false)
-                    setShowMaintenance(false)
-                    setShowSettings(false)
-                    setIsDropdownOpen(false)
-                  }}
-                >
-                  Роли
-                </button>
-                <button
-                  className="app__user-menu-item"
-                  onClick={() => {
-                    setShowMaintenance(true)
-                    setShowUserManagement(false)
-                    setShowRoleManagement(false)
-                    setShowSettings(false)
-                    setIsDropdownOpen(false)
-                  }}
-                >
-                  Обслуживание
-                </button>
-                <button
-                  className="app__user-menu-item"
-                  onClick={() => {
-                    setShowSettings(true)
-                    setShowUserManagement(false)
-                    setShowRoleManagement(false)
-                    setShowMaintenance(false)
-                    setIsDropdownOpen(false)
-                  }}
-                >
-                  Настройки
-                </button>
-              </>
+              <button
+                className="app__user-menu-item"
+                onClick={() => {
+                  setShowSettings(true)
+                  setIsDropdownOpen(false)
+                }}
+              >
+                Настройки
+              </button>
             )}
             <button
               className="app__user-menu-item"
@@ -459,38 +416,28 @@ const App = () => {
       </div>
 
       {showSettings ? (
-        <SettingsPanel onBack={handleCloseSettings} />
-      ) : showMaintenance ? (
-        <MaintenancePanel
-          today={today}
-          onBack={() => setShowMaintenance(false)}
-          onSuccess={() => {
-            // Перезагружаем страницу для обновления данных
-            window.location.reload()
+        <SettingsWorkspace
+          onBack={handleCloseSettings}
+          sections={{
+            users: <UserManagement embedded />,
+            roles: <RoleManagement embedded />,
+            maintenance: (
+              <div className="settings-stack">
+                <SettingsPanel section="production-calendar" embedded />
+                <MaintenancePanel
+                  today={today}
+                  embedded
+                  onSuccess={() => {
+                    window.location.reload()
+                  }}
+                />
+              </div>
+            ),
+            notifications: <SettingsPanel section="notifications" embedded />,
+            passes: <SettingsPanel section="passes" embedded />,
+            visitDictionaries: <SettingsPanel section="visit-dictionaries" embedded />,
           }}
         />
-      ) : showUserManagement ? (
-        <div style={{ padding: 'var(--space-6)' }}>
-          <button
-            className="button"
-            onClick={() => setShowUserManagement(false)}
-            style={{ marginBottom: '1rem' }}
-          >
-            ← Назад к записям
-          </button>
-          <UserManagement />
-        </div>
-      ) : showRoleManagement ? (
-        <div style={{ padding: 'var(--space-6)' }}>
-          <button
-            className="button"
-            onClick={() => setShowRoleManagement(false)}
-            style={{ marginBottom: '1rem' }}
-          >
-            ← Назад к записям
-          </button>
-          <RoleManagement />
-        </div>
       ) : (
         <InterfaceComponent {...interfaceProps} />
       )}

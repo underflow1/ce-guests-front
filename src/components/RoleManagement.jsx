@@ -3,7 +3,7 @@ import useRoles from '../hooks/useRoles'
 import { DEFAULT_INTERFACE_TYPE, INTERFACE_OPTIONS, resolveInterfaceType, toApiInterfaceType } from '../constants/interfaces'
 import { useToast } from './ToastProvider'
 
-const RoleManagement = () => {
+const RoleManagement = ({ embedded = false }) => {
   const { getRoles, getPermissions, createRole, updateRole, deleteRole, loading, error: apiError } = useRoles()
   const { pushToast } = useToast()
   const [roles, setRoles] = useState([])
@@ -268,7 +268,7 @@ const RoleManagement = () => {
   }, [displayError, pushToast])
 
   return (
-    <div className="panel" style={{ maxWidth: '66.666%', margin: '0 auto' }}>
+    <div className="panel" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
       <header className="panel__header">
         <h2 className="panel__title">Управление ролями</h2>
       </header>

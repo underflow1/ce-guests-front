@@ -4,7 +4,15 @@ import useVisitGoals from '../hooks/useVisitGoals'
 import { apiGet, apiPost, apiPatch, apiPut } from '../utils/api'
 import { useToast } from './ToastProvider'
 
-const SettingsPanel = ({ onBack }) => {
+const SECTION_TITLES = {
+  notifications: 'Уведомления',
+  passes: 'Пропуска',
+  'production-calendar': 'Производственный календарь',
+  'visit-dictionaries': 'Справочники визитов',
+  all: 'Настройки',
+}
+
+const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
   const {
     getSettings,
     updateSettings,
@@ -36,6 +44,7 @@ const SettingsPanel = ({ onBack }) => {
   const [activeReasonState, setActiveReasonState] = useState(50) // 50=Не оформлен, 40=Отказ
   const [allowedReasonIds, setAllowedReasonIds] = useState(new Set())
   const [allowedLoading, setAllowedLoading] = useState(false)
+  const [visitDictionaryTab, setVisitDictionaryTab] = useState('goals')
 
   // Типы уведомлений (fallback, если metadata отсутствует)
   const fallbackNotificationTypes = [
@@ -535,25 +544,35 @@ const SettingsPanel = ({ onBack }) => {
       ? `Последняя очистка: ${lastClearedAtText}`
       : 'Загрузок еще не было'
 
-  return (
-    <div style={{ padding: 'var(--space-6)' }}>
-      <button className="button" onClick={onBack} style={{ marginBottom: '1rem' }}>
-        ← Назад к записям
-      </button>
+  const showNotifications = section === 'all' || section === 'notifications'
+  const showPasses = section === 'all' || section === 'passes'
+  const showCalendar = section === 'all' || section === 'production-calendar'
+  const showVisitDictionaries = section === 'all' || section === 'visit-dictionaries'
+  const canSaveSettings = showNotifications || showPasses || showCalendar
 
-      <div className="panel" style={{ maxWidth: '66.666%', margin: '0 auto' }}>
+  return (
+    <div style={{ padding: embedded ? 0 : 'var(--space-6)' }}>
+      {!embedded && onBack && (
+        <button className="button" onClick={onBack} style={{ marginBottom: '1rem' }}>
+          ← Назад к записям
+        </button>
+      )}
+
+      <div className="panel" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
         <header className="panel__header">
-          <h2 className="panel__title">Настройки</h2>
-          <button
-            className="button button--primary button--small"
-            onClick={handleSave}
-            disabled={loading || calendarActionLoading || !isFormValid()}
-            style={{
-              gridColumn: 3,
-            }}
-          >
-            {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
-          </button>
+          <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
+          {canSaveSettings && (
+            <button
+              className="button button--primary button--small"
+              onClick={handleSave}
+              disabled={loading || calendarActionLoading || !isFormValid()}
+              style={{
+                gridColumn: 3,
+              }}
+            >
+              {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
+            </button>
+          )}
         </header>
 
         <div className="panel__content" style={{ maxHeight: '70vh' }}>
@@ -563,18 +582,16 @@ const SettingsPanel = ({ onBack }) => {
             </div>
           )}
 
-          {/* Секция уведомлений */}
+          {showNotifications && (
           <div style={{ marginBottom: 'var(--space-6)' }}>
             <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
               Уведомления
             </h3>
 
             <div
+              className="settings-subpanel"
               style={{
                 padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
                 marginBottom: 'var(--space-4)',
               }}
             >
@@ -650,11 +667,9 @@ const SettingsPanel = ({ onBack }) => {
             </div>
 
             <div
+              className="settings-subpanel"
               style={{
                 padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
               }}
             >
               <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
@@ -698,19 +713,18 @@ const SettingsPanel = ({ onBack }) => {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Секция производственного календаря */}
+          {showCalendar && (
           <div style={{ marginBottom: 'var(--space-6)' }}>
             <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
               Производственный календарь
             </h3>
 
             <div
+              className="settings-subpanel"
               style={{
                 padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
               }}
             >
               <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
@@ -762,19 +776,18 @@ const SettingsPanel = ({ onBack }) => {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Секция интеграции пропусков */}
+          {showPasses && (
           <div style={{ marginBottom: 'var(--space-6)' }}>
             <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
               Заказ пропусков (интеграция)
             </h3>
 
             <div
+              className="settings-subpanel"
               style={{
                 padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
               }}
             >
               <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
@@ -911,8 +924,9 @@ const SettingsPanel = ({ onBack }) => {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Секция типов уведомлений */}
+          {showNotifications && (
           <div>
             <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
               Типы уведомлений
@@ -939,91 +953,12 @@ const SettingsPanel = ({ onBack }) => {
               ))}
             </div>
           </div>
+          )}
 
-          {/* Секция целей визита */}
+          {showVisitDictionaries && (
           <div style={{ marginTop: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Цели визита
-            </h3>
-
             <div
               style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-                display: 'flex',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-4)',
-                flexWrap: 'wrap',
-              }}
-            >
-              <input
-                type="text"
-                className="input text text--down"
-                value={newGoalName}
-                onChange={(e) => setNewGoalName(e.target.value)}
-                placeholder="Новая цель визита"
-                style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
-              />
-              <button
-                className="button button--primary button--small"
-                onClick={handleCreateGoal}
-                disabled={goalsLoading}
-              >
-                Добавить
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              {visitGoals.length === 0 ? (
-                <div className="text text--muted">Целей визита пока нет</div>
-              ) : (
-                visitGoals.map((goal) => (
-                  <div
-                    key={goal.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 'var(--space-3)',
-                      padding: 'var(--space-2) var(--space-3)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'var(--color-surface)',
-                    }}
-                  >
-                    <div>
-                      <div className="text">{goal.name}</div>
-                      <div className="text text--down text--muted">
-                        {goal.is_active ? 'Активна' : 'Неактивна'}
-                      </div>
-                    </div>
-                    <button
-                      className={`button button--small${goal.is_active ? '' : ' button--primary'}`}
-                      onClick={() => handleToggleGoal(goal.id, !goal.is_active)}
-                      disabled={goalsLoading}
-                    >
-                      {goal.is_active ? 'Скрыть' : 'Восстановить'}
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Секция причин результатов (по state) */}
-          <div style={{ marginTop: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Причины результатов
-            </h3>
-
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
                 display: 'flex',
                 gap: 'var(--space-2)',
                 marginBottom: 'var(--space-4)',
@@ -1031,168 +966,230 @@ const SettingsPanel = ({ onBack }) => {
               }}
             >
               <button
-                className={`button button--small${Number(activeReasonState) === 50 ? ' button--primary' : ''}`}
-                onClick={() => setActiveReasonState(50)}
+                className={`button button--small${visitDictionaryTab === 'goals' ? ' button--primary' : ''}`}
+                onClick={() => setVisitDictionaryTab('goals')}
               >
-                Не оформлен (50)
+                Цели визита
               </button>
               <button
-                className={`button button--small${Number(activeReasonState) === 40 ? ' button--primary' : ''}`}
-                onClick={() => setActiveReasonState(40)}
+                className={`button button--small${visitDictionaryTab === 'reasons' ? ' button--primary' : ''}`}
+                onClick={() => setVisitDictionaryTab('reasons')}
               >
-                Отказ (40)
+                Результаты и причины
               </button>
             </div>
 
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-                display: 'flex',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-4)',
-                flexWrap: 'wrap',
-              }}
-            >
-              <input
-                type="text"
-                className="input text text--down"
-                value={newReasonName}
-                onChange={(e) => setNewReasonName(e.target.value)}
-                placeholder="Новая причина"
-                style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
-              />
-              <button
-                className="button button--primary button--small"
-                onClick={handleCreateReason}
-                disabled={reasonsLoading}
-              >
-                Добавить
-              </button>
-            </div>
-
-            <div style={{ display: 'grid', gap: 'var(--space-4)', gridTemplateColumns: '1fr 1fr' }}>
+            {visitDictionaryTab === 'goals' ? (
               <div>
-                <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
-                  Все причины
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                  {reasonsLoading ? (
-                    <div className="text text--muted">Загрузка...</div>
-                  ) : allReasons.length === 0 ? (
-                    <div className="text text--muted">Причин пока нет</div>
-                  ) : (
-                    allReasons.map((reason) => {
-                      const editValue = reasonEdits[reason.id] ?? reason.name
-                      const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
-                      return (
-                        <div
-                          key={reason.id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 'var(--space-3)',
-                            padding: 'var(--space-2) var(--space-3)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-sm)',
-                            backgroundColor: 'var(--color-surface)',
-                          }}
-                        >
-                          <div style={{ flex: '1 1 auto' }}>
-                            <input
-                              type="text"
-                              className="input text text--down"
-                              value={editValue}
-                              onChange={(e) =>
-                                setReasonEdits((prev) => ({
-                                  ...prev,
-                                  [reason.id]: e.target.value,
-                                }))
-                              }
-                              style={{ width: '100%', padding: '4px 6px' }}
-                            />
-                            <div className="text text--down text--muted" style={{ marginTop: '4px' }}>
-                              {reason.is_active ? 'Активна' : 'Неактивна'}
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                            <button
-                              className="button button--small"
-                              onClick={() => handleUpdateReasonName(reason.id)}
-                              disabled={!isNameChanged}
-                            >
-                              Сохранить
-                            </button>
-                            <button
-                              className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
-                              onClick={() => handleToggleReason(reason.id, !reason.is_active)}
-                              disabled={reasonsLoading}
-                            >
-                              {reason.is_active ? 'Скрыть' : 'Восстановить'}
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    })
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
-                  Разрешены для state={Number(activeReasonState)}
-                </div>
-                <div style={{ marginBottom: 'var(--space-2)' }}>
-                  <button
-                    className="button button--small button--primary"
-                    onClick={handleSaveAllowed}
-                    disabled={allowedLoading}
-                  >
-                    Сохранить список
-                  </button>
-                </div>
                 <div
+                  className="settings-subpanel"
                   style={{
+                    padding: 'var(--space-4)',
                     display: 'flex',
-                    flexDirection: 'column',
                     gap: 'var(--space-2)',
-                    maxHeight: 420,
-                    overflow: 'auto',
-                    paddingRight: 6,
+                    marginBottom: 'var(--space-4)',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  {allowedLoading ? (
-                    <div className="text text--muted">Загрузка...</div>
-                  ) : allReasons.length === 0 ? (
-                    <div className="text text--muted">Сначала добавьте причины</div>
+                  <input
+                    type="text"
+                    className="input text text--down"
+                    value={newGoalName}
+                    onChange={(e) => setNewGoalName(e.target.value)}
+                    placeholder="Новая цель визита"
+                    style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
+                  />
+                  <button
+                    className="button button--primary button--small"
+                    onClick={handleCreateGoal}
+                    disabled={goalsLoading}
+                  >
+                    Добавить
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  {visitGoals.length === 0 ? (
+                    <div className="text text--muted">Целей визита пока нет</div>
                   ) : (
-                    allReasons.map((reason) => {
-                      const checked = allowedReasonIds.has(reason.id)
-                      return (
-                        <label
-                          key={reason.id}
-                          className="text text--down"
-                          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
+                    visitGoals.map((goal) => (
+                      <div
+                        key={goal.id}
+                        className="settings-dict-row"
+                      >
+                        <div>
+                          <div className="text">{goal.name}</div>
+                          <div className="text text--down text--muted">
+                            {goal.is_active ? 'Активна' : 'Неактивна'}
+                          </div>
+                        </div>
+                        <button
+                          className={`button button--small${goal.is_active ? '' : ' button--primary'}`}
+                          onClick={() => handleToggleGoal(goal.id, !goal.is_active)}
+                          disabled={goalsLoading}
                         >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => handleToggleAllowed(reason.id)}
-                          />
-                          <span style={{ opacity: reason.is_active ? 1 : 0.5 }}>
-                            {reason.name}
-                          </span>
-                        </label>
-                      )
-                    })
+                          {goal.is_active ? 'Скрыть' : 'Восстановить'}
+                        </button>
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <div
+                  className="settings-subpanel"
+                  style={{
+                    padding: 'var(--space-4)',
+                    marginBottom: 'var(--space-4)',
+                  }}
+                >
+                  <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
+                    Где используются причины
+                  </div>
+                  <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                    <button
+                      className={`button button--small${Number(activeReasonState) === 50 ? ' button--primary' : ''}`}
+                      onClick={() => setActiveReasonState(50)}
+                    >
+                      Не оформлен (50)
+                    </button>
+                    <button
+                      className={`button button--small${Number(activeReasonState) === 40 ? ' button--primary' : ''}`}
+                      onClick={() => setActiveReasonState(40)}
+                    >
+                      Отказ (40)
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  className="settings-subpanel"
+                  style={{
+                    padding: 'var(--space-4)',
+                    display: 'flex',
+                    gap: 'var(--space-2)',
+                    marginBottom: 'var(--space-4)',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <input
+                    type="text"
+                    className="input text text--down"
+                    value={newReasonName}
+                    onChange={(e) => setNewReasonName(e.target.value)}
+                    placeholder="Новая причина результата"
+                    style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
+                  />
+                  <button
+                    className="button button--primary button--small"
+                    onClick={handleCreateReason}
+                    disabled={reasonsLoading}
+                  >
+                    Добавить
+                  </button>
+                </div>
+
+                <div className="settings-dict-grid">
+                  <div>
+                    <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
+                      Все причины
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                      {reasonsLoading ? (
+                        <div className="text text--muted">Загрузка...</div>
+                      ) : allReasons.length === 0 ? (
+                        <div className="text text--muted">Причин пока нет</div>
+                      ) : (
+                        allReasons.map((reason) => {
+                          const editValue = reasonEdits[reason.id] ?? reason.name
+                          const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
+                          return (
+                            <div key={reason.id} className="settings-dict-row">
+                              <div style={{ flex: '1 1 auto' }}>
+                                <input
+                                  type="text"
+                                  className="input text text--down"
+                                  value={editValue}
+                                  onChange={(e) =>
+                                    setReasonEdits((prev) => ({
+                                      ...prev,
+                                      [reason.id]: e.target.value,
+                                    }))
+                                  }
+                                  style={{ width: '100%', padding: '4px 6px' }}
+                                />
+                                <div className="text text--down text--muted" style={{ marginTop: '4px' }}>
+                                  {reason.is_active ? 'Активна' : 'Неактивна'}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                                <button
+                                  className="button button--small"
+                                  onClick={() => handleUpdateReasonName(reason.id)}
+                                  disabled={!isNameChanged}
+                                >
+                                  Сохранить
+                                </button>
+                                <button
+                                  className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
+                                  onClick={() => handleToggleReason(reason.id, !reason.is_active)}
+                                  disabled={reasonsLoading}
+                                >
+                                  {reason.is_active ? 'Скрыть' : 'Восстановить'}
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
+                      Разрешены для state={Number(activeReasonState)}
+                    </div>
+                    <div style={{ marginBottom: 'var(--space-2)' }}>
+                      <button
+                        className="button button--small button--primary"
+                        onClick={handleSaveAllowed}
+                        disabled={allowedLoading}
+                      >
+                        Сохранить список
+                      </button>
+                    </div>
+                    <div className="settings-dict-allowed-list">
+                      {allowedLoading ? (
+                        <div className="text text--muted">Загрузка...</div>
+                      ) : allReasons.length === 0 ? (
+                        <div className="text text--muted">Сначала добавьте причины</div>
+                      ) : (
+                        allReasons.map((reason) => {
+                          const checked = allowedReasonIds.has(reason.id)
+                          return (
+                            <label
+                              key={reason.id}
+                              className="text text--down"
+                              style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => handleToggleAllowed(reason.id)}
+                              />
+                              <span style={{ opacity: reason.is_active ? 1 : 0.5 }}>{reason.name}</span>
+                            </label>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+          )}
         </div>
       </div>
     </div>

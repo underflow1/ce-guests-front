@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { apiDelete } from '../utils/api'
 import { useToast } from './ToastProvider'
 
-const MaintenancePanel = ({ today, onBack, onSuccess }) => {
+const MaintenancePanel = ({ today, onBack, onSuccess, embedded = false }) => {
   const [loading, setLoading] = useState(false)
   const { pushToast } = useToast()
 
@@ -43,22 +43,24 @@ const MaintenancePanel = ({ today, onBack, onSuccess }) => {
   }
 
   return (
-    <div style={{ padding: 'var(--space-6)' }}>
-      <button
-        className="button"
-        onClick={onBack}
-        style={{ marginBottom: '1rem' }}
-      >
-        ← Назад к записям
-      </button>
+    <div style={{ padding: embedded ? 0 : 'var(--space-6)' }}>
+      {!embedded && onBack && (
+        <button
+          className="button"
+          onClick={onBack}
+          style={{ marginBottom: '1rem' }}
+        >
+          ← Назад к записям
+        </button>
+      )}
 
-      <div className="panel" style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <div className="panel" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
         <header className="panel__header">
           <h2 className="panel__title">Обслуживание</h2>
         </header>
 
         <div className="panel__content">
-          <div>
+          <div className="settings-subpanel" style={{ padding: 'var(--space-4)' }}>
             <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-2)' }}>
               Очистка базы данных от событий
             </h3>

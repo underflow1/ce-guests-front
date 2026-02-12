@@ -3,7 +3,7 @@ import useUsers from '../hooks/useUsers'
 import useRoles from '../hooks/useRoles'
 import { useToast } from './ToastProvider'
 
-const UserManagement = () => {
+const UserManagement = ({ embedded = false }) => {
   const { getUsers, createUser, updateUser, activateUser, deactivateUser, loading, error: apiError } = useUsers()
   const { getRoles, loading: rolesLoading } = useRoles()
   const { pushToast } = useToast()
@@ -254,7 +254,7 @@ const UserManagement = () => {
   }, [editingUser, showCreateForm])
 
   return (
-    <div className="panel" style={{ maxWidth: '66.666%', margin: '0 auto' }}>
+    <div className="panel" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
       <header className="panel__header">
         <h2 className="panel__title">Управление пользователями</h2>
         <button
