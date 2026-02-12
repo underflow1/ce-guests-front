@@ -101,6 +101,15 @@ const SettingsPanel = ({ section = 'all' }) => {
     },
   })
   const [notificationsInitial, setNotificationsInitial] = useState(() => cloneNotifications(createDefaultNotifications()))
+  const createDefaultPassIntegration = () => ({
+    enabled: false,
+    base_url: '',
+    login: '',
+    password: '',
+    object: '',
+    corpa: '',
+  })
+  const [passesInitial, setPassesInitial] = useState(() => createDefaultPassIntegration())
 
   // Загрузить настройки при монтировании
   useEffect(() => {
@@ -157,12 +166,21 @@ const SettingsPanel = ({ section = 'all' }) => {
             },
           })
           setNotificationsInitial(cloneNotifications(loadedNotifications))
+          setPassesInitial({
+            enabled: !!passIntegration.enabled,
+            base_url: passIntegration.base_url || '',
+            login: passIntegration.login || '',
+            password: passIntegration.password || '',
+            object: passIntegration.object || '',
+            corpa: passIntegration.corpa || '',
+          })
           setProductionCalendarInitialEnabled(!!productionCalendar.enabled)
         }
       } catch (err) {
         // Если настройки не найдены, используем значения по умолчанию
         console.log('Настройки не найдены, используем значения по умолчанию')
         setNotificationsInitial(cloneNotifications(createDefaultNotifications()))
+        setPassesInitial(createDefaultPassIntegration())
       }
     }
     loadSettings()
@@ -294,6 +312,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       }
       const updatedSettings = await updateSettings(settingsData)
       setNotificationsInitial(cloneNotifications(settingsData.notifications))
+      setPassesInitial({ ...settingsData.pass_integration })
       if (updatedSettings?.production_calendar) {
         setForm((prev) => ({
           ...prev,
@@ -586,6 +605,14 @@ const SettingsPanel = ({ section = 'all' }) => {
       notifications: cloneNotifications(notificationsInitial),
     }))
   }
+  const isPassesDirty =
+    JSON.stringify(form.pass_integration) !== JSON.stringify(passesInitial)
+  const handleCancelPasses = () => {
+    setForm((prev) => ({
+      ...prev,
+      pass_integration: { ...passesInitial },
+    }))
+  }
 
   if (section === 'notifications') {
     return (
@@ -743,6 +770,148 @@ const SettingsPanel = ({ section = 'all' }) => {
                 </div>
               </div>
             </div>
+      </div>
+    );
+  }
+
+  if (section === 'passes') {
+    return (
+      <div className="section-stack">
+        {error && <div className="error-message section-block-end">{error}</div>}
+        <div className="panel section">
+          <header className="section__header section__header--start">
+            <h3 className="panel__title">Заказ пропусков (интеграция)</h3>
+          </header>
+          <div className="section__body">
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={form.pass_integration.enabled}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      enabled: e.target.checked,
+                    },
+                  }))
+                }
+              />
+              <span className="text">Использовать</span>
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">API URL:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={form.pass_integration.base_url}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      base_url: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="https://example.local/api"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Логин:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={form.pass_integration.login}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      login: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="login"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Пароль:</span>
+              <input
+                type="password"
+                className="input text text--down notify__input"
+                value={form.pass_integration.password}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      password: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="password"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Object:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={form.pass_integration.object}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      object: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="1"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Corpa:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={form.pass_integration.corpa}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      corpa: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="Название организации"
+              />
+            </label>
+          </div>
+          <footer className="section__footer section__footer--end">
+            <button
+              className="button button--small"
+              onClick={handleCancelPasses}
+              disabled={loading || calendarActionLoading || !isPassesDirty}
+            >
+              Отмена
+            </button>
+            <button
+              className="button button--small button--primary"
+              onClick={handleSave}
+              disabled={loading || calendarActionLoading || !isFormValid() || !isPassesDirty}
+            >
+              {loading ? 'Сохранение...' : 'Сохранить'}
+            </button>
+          </footer>
+        </div>
       </div>
     );
   }
@@ -1008,140 +1177,140 @@ const SettingsPanel = ({ section = 'all' }) => {
           )}
 
           {showPasses && (
-          <div className="section-block-end">
-            <h3 className="text text--up text--bold section-title">
-              Заказ пропусков (интеграция)
-            </h3>
-
-            <div className="section-card section-card__body">
-              <label className="text check-inline">
-                <input
-                  type="checkbox"
-                  checked={form.pass_integration.enabled}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      pass_integration: {
-                        ...prev.pass_integration,
-                        enabled: e.target.checked,
-                      },
-                    }))
-                  }
-                />
-                <span>Включить интеграцию</span>
-              </label>
-
-              <div className="field-stack">
-                <label className="text text--muted field-label">
-                  API URL:
+            <div className="panel section section-group__item">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">Заказ пропусков (интеграция)</h3>
+              </header>
+              <div className="section__body">
+                <label className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={form.pass_integration.enabled}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        pass_integration: {
+                          ...prev.pass_integration,
+                          enabled: e.target.checked,
+                        },
+                      }))
+                    }
+                  />
+                  <span className="text">Использовать</span>
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down input--wide"
-                  value={form.pass_integration.base_url}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      pass_integration: {
-                        ...prev.pass_integration,
-                        base_url: e.target.value,
-                      },
-                    }))
-                  }
-                  disabled={!form.pass_integration.enabled}
-                  placeholder="https://example.local/api"
-                />
-              </div>
-
-              <div className="field-stack">
-                <label className="text text--muted field-label">
-                  Логин:
+                <label className="notify__field">
+                  <span className="text text--muted">API URL:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.pass_integration.base_url}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        pass_integration: {
+                          ...prev.pass_integration,
+                          base_url: e.target.value,
+                        },
+                      }))
+                    }
+                    disabled={!form.pass_integration.enabled}
+                    placeholder="https://example.local/api"
+                  />
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down input--wide"
-                  value={form.pass_integration.login}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      pass_integration: {
-                        ...prev.pass_integration,
-                        login: e.target.value,
-                      },
-                    }))
-                  }
-                  disabled={!form.pass_integration.enabled}
-                  placeholder="login"
-                />
-              </div>
-
-              <div className="field-stack">
-                <label className="text text--muted field-label">
-                  Пароль:
+                <label className="notify__field">
+                  <span className="text text--muted">Логин:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.pass_integration.login}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        pass_integration: {
+                          ...prev.pass_integration,
+                          login: e.target.value,
+                        },
+                      }))
+                    }
+                    disabled={!form.pass_integration.enabled}
+                    placeholder="login"
+                  />
                 </label>
-                <input
-                  type="password"
-                  className="input text text--down input--wide"
-                  value={form.pass_integration.password}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      pass_integration: {
-                        ...prev.pass_integration,
-                        password: e.target.value,
-                      },
-                    }))
-                  }
-                  disabled={!form.pass_integration.enabled}
-                  placeholder="password"
-                />
-              </div>
-
-              <div className="field-stack">
-                <label className="text text--muted field-label">
-                  Object:
+                <label className="notify__field">
+                  <span className="text text--muted">Пароль:</span>
+                  <input
+                    type="password"
+                    className="input text text--down notify__input"
+                    value={form.pass_integration.password}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        pass_integration: {
+                          ...prev.pass_integration,
+                          password: e.target.value,
+                        },
+                      }))
+                    }
+                    disabled={!form.pass_integration.enabled}
+                    placeholder="password"
+                  />
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down input--wide"
-                  value={form.pass_integration.object}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      pass_integration: {
-                        ...prev.pass_integration,
-                        object: e.target.value,
-                      },
-                    }))
-                  }
-                  disabled={!form.pass_integration.enabled}
-                  placeholder="1"
-                />
-              </div>
-
-              <div className="field-stack">
-                <label className="text text--muted field-label">
-                  Corpa:
+                <label className="notify__field">
+                  <span className="text text--muted">Object:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.pass_integration.object}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        pass_integration: {
+                          ...prev.pass_integration,
+                          object: e.target.value,
+                        },
+                      }))
+                    }
+                    disabled={!form.pass_integration.enabled}
+                    placeholder="1"
+                  />
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down input--wide"
-                  value={form.pass_integration.corpa}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      pass_integration: {
-                        ...prev.pass_integration,
-                        corpa: e.target.value,
-                      },
-                    }))
-                  }
-                  disabled={!form.pass_integration.enabled}
-                  placeholder="Название организации"
-                />
+                <label className="notify__field">
+                  <span className="text text--muted">Corpa:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.pass_integration.corpa}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        pass_integration: {
+                          ...prev.pass_integration,
+                          corpa: e.target.value,
+                        },
+                      }))
+                    }
+                    disabled={!form.pass_integration.enabled}
+                    placeholder="Название организации"
+                  />
+                </label>
               </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button button--small"
+                  onClick={handleCancelPasses}
+                  disabled={loading || calendarActionLoading || !isPassesDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--small button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isPassesDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
             </div>
-          </div>
           )}
 
           {showVisitDictionaries && (
