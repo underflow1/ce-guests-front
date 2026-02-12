@@ -272,10 +272,10 @@ const RoleManagement = ({ embedded = false }) => {
       className="panel role-management"
       style={embedded ? { width: '100%' } : { maxWidth: '66.666%', margin: '0 auto' }}
     >
-      <header className="panel__header settings-headbar">
+      <header className="panel__header settings-bar">
         <h2 className="panel__title">Управление ролями</h2>
         <button
-          className="button button--primary button--small settings-headbar__action"
+          className="button button--primary button--small"
           onClick={openCreate}
           disabled={loading}
           title="Добавить роль"
@@ -354,13 +354,13 @@ const RoleManagement = ({ embedded = false }) => {
                 aria-modal="true"
                 aria-label={modal.mode === 'create' ? 'Создание роли' : 'Редактирование роли'}
               >
-                <header className="role-modal__header panel__header settings-headbar">
+                <header className="role-modal__header panel__header settings-bar">
                   <h3 className="role-modal__title panel__title">
                     {modal.mode === 'create' ? 'Создать роль' : 'Редактировать роль'}
                   </h3>
                   <button
                     type="button"
-                    className="icon-action-button settings-headbar__action"
+                    className="icon-action-button"
                     onClick={closeModal}
                     title="Закрыть"
                     aria-label="Закрыть"
@@ -414,7 +414,7 @@ const RoleManagement = ({ embedded = false }) => {
                     </section>
 
                     <section className="role-modal__card">
-                      <header className="role-modal__perm-head">
+                      <header className="role-modal__perm-head settings-bar">
                         <div className="text text--bold">UI-права</div>
                         <div className="role-modal__perm-actions">
                           <button
@@ -457,7 +457,7 @@ const RoleManagement = ({ embedded = false }) => {
                     </section>
 
                     <section className="role-modal__card">
-                      <header className="role-modal__perm-head">
+                      <header className="role-modal__perm-head settings-bar">
                         <div className="text text--bold">Backend-права</div>
                         <div className="role-modal__perm-actions">
                           <button
@@ -501,7 +501,7 @@ const RoleManagement = ({ embedded = false }) => {
                   </div>
                 </div>
 
-                <footer className="role-modal__footer settings-bottombar">
+                <footer className="role-modal__footer settings-bar">
                   <button className="button button--small" onClick={closeModal}>
                     Отмена
                   </button>

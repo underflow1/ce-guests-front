@@ -481,14 +481,7 @@ body.duty-officer-mobile * {
 }
 
 .button--small {
-  font-size: var(--text-size-down);
-  height: var(--settings-button-height);
-  min-height: var(--settings-button-height);
-  padding: 2px 6px;
-  line-height: 1.2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  font-size: var(--settings-toolbar-font-size);
 }
 
 .button--danger {
@@ -786,7 +779,7 @@ body.interface-user .panel--inactive {
   gap: var(--space-2);
 }
 
-:is(.settings-headbar, .settings-bottombar) .button {
+.settings-bar .button {
   height: var(--settings-button-height);
   min-height: var(--settings-button-height);
   padding: 0 var(--settings-toolbar-padding-x);
@@ -798,28 +791,37 @@ body.interface-user .panel--inactive {
   align-self: center;
 }
 
-:is(.settings-headbar, .settings-bottombar) .icon-action-button {
+.settings-bar .icon-action-button {
   width: var(--settings-button-height);
   height: var(--settings-button-height);
   min-height: var(--settings-button-height);
   align-self: center;
 }
 
-.settings-headbar__action {
-  grid-column: 3;
-  justify-self: end;
-  align-self: center;
-}
-
-.settings-headbar {
+.settings-bar {
   height: var(--settings-bar-height);
   min-height: var(--settings-bar-height);
   padding: 0 var(--space-3);
+  align-items: center;
   box-sizing: border-box;
 }
 
-body.interface-user .panel__header.settings-headbar {
+.settings-bar:not(.panel__header) {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+body.interface-user .panel__header.settings-bar {
   padding-bottom: 0;
+}
+
+.panel__header.settings-bar > .button:last-child,
+.panel__header.settings-bar > .icon-action-button:last-child {
+  margin-left: auto;
+  grid-column: 3;
+  justify-self: end;
+  align-self: center;
 }
 
 body.interface-user .panel__header {
@@ -1901,31 +1903,13 @@ body.interface-user .button {
 }
 
 .settings-calendar__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
   border-top: 1px solid var(--color-border-subtle);
 }
 
 .settings-section__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
   margin-top: var(--space-3);
-  padding-top: var(--space-3);
+  padding-top: 0;
   border-top: 1px solid var(--color-border-subtle);
-}
-
-.settings-bottombar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--space-2);
-  height: var(--settings-bar-height);
-  min-height: var(--settings-bar-height);
-  padding: 0 var(--space-3);
-  box-sizing: border-box;
 }
 
 .settings-dict-grid {
@@ -2268,20 +2252,12 @@ body.interface-user .button {
 }
 
 .role-modal__header {
-  height: var(--settings-bar-height);
-  min-height: var(--settings-bar-height);
-  padding: 0 var(--space-3);
   border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
-  box-sizing: border-box;
 }
 
 .role-modal__title {
   grid-column: 1;
-}
-
-.role-modal__header .icon-action-button {
-  min-height: var(--settings-button-height);
 }
 
 .role-modal__body {
@@ -2330,16 +2306,9 @@ body.interface-user .button {
 }
 
 .role-modal__perm-head {
-  padding: 0 var(--space-3);
   border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
-  height: var(--settings-bar-height);
-  min-height: var(--settings-bar-height);
-  box-sizing: border-box;
 }
 
 .role-modal__perm-actions {
@@ -2351,11 +2320,7 @@ body.interface-user .button {
 }
 
 .role-modal__perm-actions .button {
-  padding: 2px 6px;
-  font-size: var(--text-size-down);
-  line-height: 1.2;
   white-space: nowrap;
-  align-self: center;
 }
 
 .role-modal__perm-list {
@@ -2402,16 +2367,8 @@ body.interface-user .button {
 }
 
 .role-modal__footer {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--space-2);
-  height: var(--settings-bar-height);
-  min-height: var(--settings-bar-height);
-  padding: 0 var(--space-3);
   border-top: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
-  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {

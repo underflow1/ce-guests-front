@@ -252,10 +252,10 @@ const UserManagement = ({ embedded = false }) => {
 
   return (
     <div className="panel user-management" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
-      <header className="panel__header settings-headbar">
+      <header className="panel__header settings-bar">
         <h2 className="panel__title">Управление пользователями</h2>
         <button
-          className="button button--primary button--small settings-headbar__action"
+          className="button button--primary button--small"
           onClick={() => {
             setShowCreateForm(true)
             setEditingUser(null)
