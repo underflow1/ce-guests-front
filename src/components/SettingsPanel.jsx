@@ -769,6 +769,22 @@ const SettingsPanel = ({ section = 'all' }) => {
                   ))}
                 </div>
               </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button button--small"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--small button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
             </div>
       </div>
     );
@@ -1088,6 +1104,22 @@ const SettingsPanel = ({ section = 'all' }) => {
                   ))}
                 </div>
               </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button button--small"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--small button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
             </div>
           </>
           )}
