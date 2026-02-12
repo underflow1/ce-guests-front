@@ -355,12 +355,10 @@ const RoleManagement = ({ embedded = false }) => {
                 aria-modal="true"
                 aria-label={modal.mode === 'create' ? 'Создание роли' : 'Редактирование роли'}
               >
-                <header className="role-modal__header">
-                  <div className="role-modal__title-wrap">
-                    <h3 className="role-modal__title text text--up text--bold">
-                      {modal.mode === 'create' ? 'Создать роль' : 'Редактировать роль'}
-                    </h3>
-                  </div>
+                <header className="role-modal__header panel__header">
+                  <h3 className="role-modal__title panel__title">
+                    {modal.mode === 'create' ? 'Создать роль' : 'Редактировать роль'}
+                  </h3>
                   <button
                     type="button"
                     className="icon-action-button"

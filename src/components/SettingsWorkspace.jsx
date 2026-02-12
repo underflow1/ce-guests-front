@@ -21,8 +21,8 @@ const SettingsWorkspace = ({ onBack, sections }) => {
   return (
     <div className="settings-workspace">
       <div className="settings-workspace__shell panel">
-        <header className="settings-workspace__shell-header">
-          <h2 className="text text--up text--bold">Настройки</h2>
+        <header className="panel__header settings-workspace__shell-header">
+          <h2 className="panel__title">Настройки</h2>
           <button className="button button--small" onClick={onBack}>
             ← К записям
           </button>
