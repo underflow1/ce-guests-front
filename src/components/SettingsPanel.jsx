@@ -41,9 +41,25 @@ const SettingsPanel = ({ section = 'all' }) => {
   const [reasonsError, setReasonsError] = useState(null)
   const currentYear = new Date().getFullYear()
 
-  const [activeReasonState, setActiveReasonState] = useState(50) // 50=Не оформлен, 40=Отказ
-  const [allowedReasonIds, setAllowedReasonIds] = useState(new Set())
+  const REASON_STATES = [
+    { value: 40, label: 'Отказ' },
+    { value: 50, label: 'Не оформлен' },
+    { value: 60, label: 'Трудоустроен' },
+  ]
+  const [allowedReasonIdsByState, setAllowedReasonIdsByState] = useState(() => ({
+    40: new Set(),
+    50: new Set(),
+    60: new Set(),
+  }))
+  const [allowedReasonIdsByStateInitial, setAllowedReasonIdsByStateInitial] = useState(() => ({
+    40: new Set(),
+    50: new Set(),
+    60: new Set(),
+  }))
   const [allowedLoading, setAllowedLoading] = useState(false)
+  const [editingReasonId, setEditingReasonId] = useState(null)
+  const [editingReasonName, setEditingReasonName] = useState('')
+  const [showAddReasonForm, setShowAddReasonForm] = useState(false)
   const [productionCalendarInitialEnabled, setProductionCalendarInitialEnabled] = useState(false)
   const [editingGoalId, setEditingGoalId] = useState(null)
   const [editingGoalName, setEditingGoalName] = useState('')
@@ -201,20 +217,21 @@ const SettingsPanel = ({ section = 'all' }) => {
     }
   }
 
-  const loadAllowedReasons = async (state) => {
-    const s = Number(state)
-    if (![40, 50].includes(s)) return
+  const loadAllAllowedReasons = async () => {
+    setAllowedLoading(true)
     try {
-      setAllowedLoading(true)
-      const res = await apiGet(`/states/${s}/reasons/all`)
-      const list = res?.reasons || []
-      // Важно: разрешённые причины храним только в allowedReasonIds (галки).
-      // Ранее тут был вызов setAllowedReasons(list), но такого state не существовало,
-      // из-за чего переключение 40/50 ломалось и казалось, что списки "одинаковые".
-      // Защита от гонки: применяем результат только если state не успел смениться.
-      if (Number(activeReasonState) === s) {
-        setAllowedReasonIds(new Set(list.map((r) => r.id)))
+      const [res40, res50, res60] = await Promise.all([
+        apiGet('/states/40/reasons/all'),
+        apiGet('/states/50/reasons/all'),
+        apiGet('/states/60/reasons/all'),
+      ])
+      const next = {
+        40: new Set((res40?.reasons || []).map((r) => r.id)),
+        50: new Set((res50?.reasons || []).map((r) => r.id)),
+        60: new Set((res60?.reasons || []).map((r) => r.id)),
       }
+      setAllowedReasonIdsByState(next)
+      setAllowedReasonIdsByStateInitial(next)
     } catch (err) {
       setReasonsError(err.message || 'Не удалось загрузить список разрешенных причин')
     } finally {
@@ -228,9 +245,9 @@ const SettingsPanel = ({ section = 'all' }) => {
   }, [])
 
   useEffect(() => {
-    loadAllowedReasons(activeReasonState)
+    loadAllAllowedReasons()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeReasonState])
+  }, [])
 
   useEffect(() => {
     const loadGoals = async () => {
@@ -244,10 +261,6 @@ const SettingsPanel = ({ section = 'all' }) => {
     loadGoals()
   }, [])
 
-  useEffect(() => {
-    setReasonEdits({})
-    setNewReasonName('')
-  }, [activeReasonState])
 
   // Обработка ошибок
   const displayError = error || apiError || goalsError || reasonsError
@@ -470,6 +483,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       await apiPost('/reasons', { name })
       await loadAllReasons()
       setNewReasonName('')
+      setShowAddReasonForm(false)
       pushToast({ type: 'success', title: 'Готово', message: 'Причина добавлена' })
     } catch (err) {
       setError(err.message || 'Ошибка при добавлении причины')
@@ -481,8 +495,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       setError(null)
       await apiPatch(`/reasons/${reasonId}`, { is_active: nextActive })
       await loadAllReasons()
-      // если причина сейчас разрешена для выбранного state — просто перезагрузим список
-      await loadAllowedReasons(activeReasonState)
+      await loadAllAllowedReasons()
       pushToast({
         type: 'success',
         title: 'Готово',
@@ -493,49 +506,75 @@ const SettingsPanel = ({ section = 'all' }) => {
     }
   }
 
+  const startEditReason = (reason) => {
+    setEditingReasonId(reason.id)
+    setEditingReasonName(reason.name)
+    setError(null)
+  }
+
+  const cancelEditReason = () => {
+    setEditingReasonId(null)
+    setError(null)
+  }
+
   const handleUpdateReasonName = async (reasonId) => {
-    const original = allReasons.find((item) => item.id === reasonId)
-    const nextName = (reasonEdits[reasonId] ?? original?.name ?? '').trim()
-    if (!nextName) {
+    const name = editingReasonName.trim()
+    if (!name) {
       setError('Название причины не может быть пустым')
       return
     }
-    if (nextName === original?.name) return
-
     try {
       setError(null)
-      await apiPatch(`/reasons/${reasonId}`, { name: nextName })
+      await apiPatch(`/reasons/${reasonId}`, { name })
       await loadAllReasons()
-      await loadAllowedReasons(activeReasonState)
-      setReasonEdits((prev) => {
-        const next = { ...prev }
-        delete next[reasonId]
-        return next
-      })
+      setEditingReasonId(null)
       pushToast({ type: 'success', title: 'Готово', message: 'Причина обновлена' })
     } catch (err) {
       setError(err.message || 'Ошибка при обновлении причины')
     }
   }
 
-  const handleToggleAllowed = (reasonId) => {
-    setAllowedReasonIds((prev) => {
-      const next = new Set(prev)
+  const handleToggleAllowed = (reasonId, state) => {
+    setAllowedReasonIdsByState((prev) => {
+      const next = new Set(prev[state])
       if (next.has(reasonId)) next.delete(reasonId)
       else next.add(reasonId)
-      return next
+      return { ...prev, [state]: next }
     })
+  }
+
+  const isReasonsDirty = [40, 50, 60].some((s) => {
+    const cur = allowedReasonIdsByState[s] || new Set()
+    const init = allowedReasonIdsByStateInitial[s] || new Set()
+    if (cur.size !== init.size) return true
+    for (const id of cur) if (!init.has(id)) return true
+    return false
+  })
+
+  const handleCancelReasons = () => {
+    setAllowedReasonIdsByState({
+      40: new Set(allowedReasonIdsByStateInitial[40]),
+      50: new Set(allowedReasonIdsByStateInitial[50]),
+      60: new Set(allowedReasonIdsByStateInitial[60]),
+    })
+    setError(null)
   }
 
   const handleSaveAllowed = async () => {
     try {
       setError(null)
-      const ids = Array.from(allowedReasonIds)
-      await apiPut(`/states/${Number(activeReasonState)}/reasons`, { reason_ids: ids })
-      await loadAllowedReasons(activeReasonState)
-      pushToast({ type: 'success', title: 'Готово', message: 'Список причин сохранён' })
+      setAllowedLoading(true)
+      await Promise.all([
+        apiPut('/states/40/reasons', { reason_ids: Array.from(allowedReasonIdsByState[40]) }),
+        apiPut('/states/50/reasons', { reason_ids: Array.from(allowedReasonIdsByState[50]) }),
+        apiPut('/states/60/reasons', { reason_ids: Array.from(allowedReasonIdsByState[60]) }),
+      ])
+      await loadAllAllowedReasons()
+      pushToast({ type: 'success', title: 'Готово', message: 'Списки причин сохранены' })
     } catch (err) {
-      setError(err.message || 'Ошибка при сохранении списка причин')
+      setError(err.message || 'Ошибка при сохранении списков причин')
+    } finally {
+      setAllowedLoading(false)
     }
   }
 
@@ -1116,141 +1155,213 @@ const SettingsPanel = ({ section = 'all' }) => {
     </div>
   )
 
+  const cancelAddReasonForm = () => {
+    setShowAddReasonForm(false)
+    setNewReasonName('')
+    setError(null)
+  }
+
   const renderVisitReasonsSection = (wrapItem = false) => (
     <div key="reasons" className={`panel section${wrapItem ? ' section-group__item' : ''}`}>
-      <header className="section__header section__header--start">
+      <header className="section__header section__header--between">
         <h3 className="panel__title">Результаты и причины</h3>
+        <button
+          className={`button button--primary button--small${showAddReasonForm ? ' action--hidden' : ''}`}
+          onClick={() => {
+            setShowAddReasonForm(true)
+            setError(null)
+          }}
+          disabled={reasonsLoading}
+          tabIndex={showAddReasonForm ? -1 : 0}
+          aria-hidden={showAddReasonForm}
+        >
+          + Добавить
+        </button>
       </header>
-      <div className="section__body">
-        <div className="section-card section-card__body section-block-end">
-          <div className="text text--down text--muted section-label">
-            Где используются причины
-          </div>
-          <div className="row-wrap">
-            <button
-              className={`button button--small${Number(activeReasonState) === 50 ? ' button--primary' : ''}`}
-              onClick={() => setActiveReasonState(50)}
-            >
-              Не оформлен (50)
-            </button>
-            <button
-              className={`button button--small${Number(activeReasonState) === 40 ? ' button--primary' : ''}`}
-              onClick={() => setActiveReasonState(40)}
-            >
-              Отказ (40)
-            </button>
-          </div>
-        </div>
-        <div className="row-wrap section-block-end">
-          <input
-            type="text"
-            className="input text text--down input--grow"
-            value={newReasonName}
-            onChange={(e) => setNewReasonName(e.target.value)}
-            placeholder="Новая причина результата"
-          />
-          <button
-            className="button button--primary button--small"
-            onClick={handleCreateReason}
-            disabled={reasonsLoading}
-          >
-            Добавить
-          </button>
-        </div>
-        <div className="list-grid">
-          <div>
-            <div className="text text--down text--muted section-label">
-              Все причины
-            </div>
-            <div className="column-stack">
+      <div className="section__body section__body--scroll-x">
+        <div className="visit-reasons">
+          <table className="table visit-reasons__table">
+            <thead>
+              <tr>
+                <th>Название причины</th>
+                {REASON_STATES.map(({ value, label }) => (
+                  <th key={value} title={label} className="visit-reasons__state-th">{value}</th>
+                ))}
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
               {reasonsLoading ? (
-                <div className="text text--muted">Загрузка...</div>
-              ) : allReasons.length === 0 ? (
-                <div className="text text--muted">Причин пока нет</div>
+                <tr>
+                  <td colSpan={2 + REASON_STATES.length} className="text text--muted">
+                    Загрузка...
+                  </td>
+                </tr>
+              ) : allReasons.length === 0 && !showAddReasonForm ? (
+                <tr>
+                  <td colSpan={2 + REASON_STATES.length} className="text text--muted">
+                    Причин пока нет
+                  </td>
+                </tr>
               ) : (
-                allReasons.map((reason) => {
-                  const editValue = reasonEdits[reason.id] ?? reason.name
-                  const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
-                  return (
-                    <div key={reason.id} className="list-row">
-                      <div className="list-row__main">
+                <>
+                  {allReasons.map((reason) => (
+                    <tr
+                      key={reason.id}
+                      className={!reason.is_active ? 'visit-reasons__row--inactive' : undefined}
+                    >
+                      {editingReasonId === reason.id ? (
+                        <>
+                          <td>
+                            <input
+                              type="text"
+                              className="input input--compact field--full"
+                              value={editingReasonName}
+                              onChange={(e) => setEditingReasonName(e.target.value)}
+                            />
+                          </td>
+                          {REASON_STATES.map(({ value }) => (
+                            <td key={value} className="visit-reasons__check-col">
+                              <input
+                                type="checkbox"
+                                checked={allowedReasonIdsByState[value]?.has(reason.id) ?? false}
+                                onChange={() => handleToggleAllowed(reason.id, value)}
+                                className="visit-reasons__check"
+                              />
+                            </td>
+                          ))}
+                          <td>
+                            <div className="table__actions table__actions--nowrap">
+                              <button
+                                className="icon-action-button icon-action-button--primary"
+                                onClick={() => handleUpdateReasonName(reason.id)}
+                                disabled={reasonsLoading}
+                                title="Сохранить"
+                                aria-label="Сохранить"
+                              >
+                                <i className="fa-solid fa-check" aria-hidden="true" />
+                              </button>
+                              <button
+                                className="icon-action-button"
+                                onClick={cancelEditReason}
+                                title="Отмена"
+                                aria-label="Отмена"
+                              >
+                                <i className="fa-solid fa-xmark" aria-hidden="true" />
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>{reason.name}</td>
+                          {REASON_STATES.map(({ value }) => (
+                            <td key={value} className="visit-reasons__check-col">
+                              <input
+                                type="checkbox"
+                                checked={allowedReasonIdsByState[value]?.has(reason.id) ?? false}
+                                onChange={() => handleToggleAllowed(reason.id, value)}
+                                className="visit-reasons__check"
+                              />
+                            </td>
+                          ))}
+                          <td>
+                            <div className="table__actions table__actions--nowrap">
+                              <button
+                                className="icon-action-button icon-action-button--primary"
+                                onClick={() => startEditReason(reason)}
+                                disabled={!reason.is_active}
+                                title={reason.is_active ? 'Редактировать' : 'Редактирование недоступно'}
+                                aria-label="Редактировать"
+                              >
+                                <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                              </button>
+                              {reason.is_active ? (
+                                <button
+                                  className="icon-action-button icon-action-button--danger"
+                                  onClick={() => handleToggleReason(reason.id, false)}
+                                  disabled={reasonsLoading}
+                                  title="Деактивировать"
+                                  aria-label="Деактивировать"
+                                >
+                                  <i className="fa-solid fa-user-minus" aria-hidden="true" />
+                                </button>
+                              ) : (
+                                <button
+                                  className="icon-action-button icon-action-button--success"
+                                  onClick={() => handleToggleReason(reason.id, true)}
+                                  disabled={reasonsLoading}
+                                  title="Активировать"
+                                  aria-label="Активировать"
+                                >
+                                  <i className="fa-solid fa-user-check" aria-hidden="true" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                  {showAddReasonForm && (
+                    <tr>
+                      <td>
                         <input
                           type="text"
-                          className="input text text--down input--wide"
-                          value={editValue}
-                          onChange={(e) =>
-                            setReasonEdits((prev) => ({
-                              ...prev,
-                              [reason.id]: e.target.value,
-                            }))
-                          }
+                          className="input input--compact field--full"
+                          placeholder="Новая причина результата"
+                          value={newReasonName}
+                          onChange={(e) => setNewReasonName(e.target.value)}
                         />
-                        <div className="text text--down text--muted list-row__meta">
-                          {reason.is_active ? 'Активна' : 'Неактивна'}
+                      </td>
+                      {REASON_STATES.map(({ value }) => (
+                        <td key={value} className="visit-reasons__check-col" />
+                      ))}
+                      <td>
+                        <div className="table__actions table__actions--nowrap">
+                          <button
+                            className="icon-action-button icon-action-button--primary"
+                            onClick={handleCreateReason}
+                            disabled={reasonsLoading || !newReasonName.trim()}
+                            title="Сохранить"
+                            aria-label="Сохранить"
+                          >
+                            <i className="fa-solid fa-check" aria-hidden="true" />
+                          </button>
+                          <button
+                            className="icon-action-button"
+                            onClick={cancelAddReasonForm}
+                            title="Отмена"
+                            aria-label="Отмена"
+                          >
+                            <i className="fa-solid fa-xmark" aria-hidden="true" />
+                          </button>
                         </div>
-                      </div>
-                      <div className="column-stack">
-                        <button
-                          className="button button--small"
-                          onClick={() => handleUpdateReasonName(reason.id)}
-                          disabled={!isNameChanged}
-                        >
-                          Сохранить
-                        </button>
-                        <button
-                          className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
-                          onClick={() => handleToggleReason(reason.id, !reason.is_active)}
-                          disabled={reasonsLoading}
-                        >
-                          {reason.is_active ? 'Скрыть' : 'Восстановить'}
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
-            </div>
-          </div>
-          <div>
-            <div className="text text--down text--muted section-label">
-              Разрешены для state={Number(activeReasonState)}
-            </div>
-            <div className="section-label">
-              <button
-                className="button button--small button--primary"
-                onClick={handleSaveAllowed}
-                disabled={allowedLoading}
-              >
-                Сохранить список
-              </button>
-            </div>
-            <div className="list-checklist">
-              {allowedLoading ? (
-                <div className="text text--muted">Загрузка...</div>
-              ) : allReasons.length === 0 ? (
-                <div className="text text--muted">Сначала добавьте причины</div>
-              ) : (
-                allReasons.map((reason) => {
-                  const checked = allowedReasonIds.has(reason.id)
-                  return (
-                    <label
-                      key={reason.id}
-                      className="text text--down check-inline"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => handleToggleAllowed(reason.id)}
-                      />
-                      <span className={reason.is_active ? '' : 'item--inactive'}>{reason.name}</span>
-                    </label>
-                  )
-                })
-              )}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
+      <footer className="section__footer section__footer--end">
+        <button
+          className="button button--small"
+          onClick={handleCancelReasons}
+          disabled={allowedLoading || !isReasonsDirty}
+        >
+          Отмена
+        </button>
+        <button
+          className="button button--small button--primary"
+          onClick={handleSaveAllowed}
+          disabled={allowedLoading || !isReasonsDirty}
+        >
+          {allowedLoading ? 'Сохранение...' : 'Сохранить'}
+        </button>
+      </footer>
     </div>
   )
 
