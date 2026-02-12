@@ -591,7 +591,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
 
         <div
           className="panel__content"
-          style={{ maxHeight: '70vh', marginTop: section === 'production-calendar' ? 'var(--space-2)' : undefined }}
+          style={{ maxHeight: '70vh', marginTop: section === 'production-calendar' ? 0 : undefined }}
         >
           {error && (
             <div className="error-message" style={{ marginBottom: 'var(--space-4)' }}>

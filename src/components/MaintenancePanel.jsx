@@ -59,12 +59,12 @@ const MaintenancePanel = ({ today, onBack, onSuccess, embedded = false }) => {
           <h2 className="panel__title">Очистка базы данных от событий</h2>
         </header>
 
-        <div className="panel__content">
-          <div className="settings-section settings-section--compact">
-            <p className="text text--muted" style={{ marginBottom: 'var(--space-2)' }}>
-              Жесткое удаление всех событий из базы данных. Это действие необратимо и отменить его невозможно!
-            </p>
-            <div className="settings-section__footer settings-bar">
+        <div className="panel__content" style={{ marginTop: 0 }}>
+          <div className="settings-section">
+            <div className="settings-calendar__body">
+              <p className="text" style={{ margin: '0 0 var(--space-2) 0' }}>
+                Жесткое удаление всех событий из базы данных. Это действие необратимо и отменить его невозможно!
+              </p>
               <button
                 className="button button--danger"
                 onClick={handleClearDatabase}
