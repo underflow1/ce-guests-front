@@ -252,10 +252,10 @@ const UserManagement = ({ embedded = false }) => {
 
   return (
     <div className="panel user-management" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
-      <header className="panel__header">
+      <header className="panel__header settings-headbar">
         <h2 className="panel__title">Управление пользователями</h2>
         <button
-          className="button button--primary button--small"
+          className="button button--primary button--small settings-headbar__action"
           onClick={() => {
             setShowCreateForm(true)
             setEditingUser(null)
@@ -265,7 +265,6 @@ const UserManagement = ({ embedded = false }) => {
           tabIndex={showCreateForm ? -1 : 0}
           aria-hidden={showCreateForm}
           style={{
-            gridColumn: 3,
             visibility: showCreateForm ? 'hidden' : 'visible',
             pointerEvents: showCreateForm ? 'none' : 'auto',
           }}

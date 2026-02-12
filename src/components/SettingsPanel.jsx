@@ -576,16 +576,13 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
       )}
 
       <div className="panel" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
-        <header className="panel__header">
+        <header className="panel__header settings-headbar">
           <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
           {canSaveSettings && (
             <button
-              className="button button--primary button--small"
+              className="button button--primary button--small settings-headbar__action"
               onClick={handleSave}
               disabled={loading || calendarActionLoading || !isFormValid()}
-              style={{
-                gridColumn: 3,
-              }}
             >
               {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
             </button>
@@ -793,7 +790,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
               </div>
 
               {section === 'production-calendar' && (
-                <div className="settings-calendar__footer">
+                <div className="settings-calendar__footer settings-bottombar">
                   <button
                     className="button button--small"
                     onClick={handleCancelProductionCalendar}

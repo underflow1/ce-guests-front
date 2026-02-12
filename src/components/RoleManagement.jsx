@@ -272,15 +272,14 @@ const RoleManagement = ({ embedded = false }) => {
       className="panel role-management"
       style={embedded ? { width: '100%' } : { maxWidth: '66.666%', margin: '0 auto' }}
     >
-      <header className="panel__header">
+      <header className="panel__header settings-headbar">
         <h2 className="panel__title">Управление ролями</h2>
         <button
-          className="button button--primary button--small"
+          className="button button--primary button--small settings-headbar__action"
           onClick={openCreate}
           disabled={loading}
           title="Добавить роль"
           aria-label="Добавить роль"
-          style={{ gridColumn: 3 }}
         >
           + Добавить роль
         </button>
@@ -355,13 +354,13 @@ const RoleManagement = ({ embedded = false }) => {
                 aria-modal="true"
                 aria-label={modal.mode === 'create' ? 'Создание роли' : 'Редактирование роли'}
               >
-                <header className="role-modal__header panel__header">
+                <header className="role-modal__header panel__header settings-headbar">
                   <h3 className="role-modal__title panel__title">
                     {modal.mode === 'create' ? 'Создать роль' : 'Редактировать роль'}
                   </h3>
                   <button
                     type="button"
-                    className="icon-action-button"
+                    className="icon-action-button settings-headbar__action"
                     onClick={closeModal}
                     title="Закрыть"
                     aria-label="Закрыть"
@@ -502,7 +501,7 @@ const RoleManagement = ({ embedded = false }) => {
                   </div>
                 </div>
 
-                <footer className="role-modal__footer">
+                <footer className="role-modal__footer settings-bottombar">
                   <button className="button button--small" onClick={closeModal}>
                     Отмена
                   </button>

@@ -25,6 +25,10 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --settings-bar-height: 36px;
+  --settings-button-height: 20px;
+  --settings-toolbar-padding-x: 6px;
+  --settings-toolbar-font-size: var(--text-size-down);
 }
 
 * {
@@ -439,8 +443,8 @@ body.duty-officer-mobile * {
 }
 
 .icon-action-button {
-  width: 28px;
-  height: 28px;
+  width: var(--settings-button-height);
+  height: var(--settings-button-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -478,8 +482,13 @@ body.duty-officer-mobile * {
 
 .button--small {
   font-size: var(--text-size-down);
-  padding: 3px 8px;
-  line-height: 1.3;
+  height: var(--settings-button-height);
+  min-height: var(--settings-button-height);
+  padding: 2px 6px;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .button--danger {
@@ -775,6 +784,42 @@ body.interface-user .panel--inactive {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: var(--space-2);
+}
+
+:is(.settings-headbar, .settings-bottombar) .button {
+  height: var(--settings-button-height);
+  min-height: var(--settings-button-height);
+  padding: 0 var(--settings-toolbar-padding-x);
+  font-size: var(--settings-toolbar-font-size);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+:is(.settings-headbar, .settings-bottombar) .icon-action-button {
+  width: var(--settings-button-height);
+  height: var(--settings-button-height);
+  min-height: var(--settings-button-height);
+  align-self: center;
+}
+
+.settings-headbar__action {
+  grid-column: 3;
+  justify-self: end;
+  align-self: center;
+}
+
+.settings-headbar {
+  height: var(--settings-bar-height);
+  min-height: var(--settings-bar-height);
+  padding: 0 var(--space-3);
+  box-sizing: border-box;
+}
+
+body.interface-user .panel__header.settings-headbar {
+  padding-bottom: 0;
 }
 
 body.interface-user .panel__header {
@@ -1666,7 +1711,9 @@ body.interface-user .select--compact {
 }
 
 .button {
-  padding: 4px 8px;
+  height: var(--settings-button-height);
+  min-height: var(--settings-button-height);
+  padding: 0 var(--settings-toolbar-padding-x);
   /* Активная кнопка — "полный" контур */
   border: 1px solid var(--color-accent);
   background: var(--color-surface);
@@ -1675,7 +1722,10 @@ body.interface-user .select--compact {
   transition: background 0.2s ease, border-color 0.2s ease;
   font-size: 12px;
   border-radius: var(--radius-sm);
-  line-height: 1.4;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 body.interface-user .button {
@@ -1728,12 +1778,6 @@ body.interface-user .button {
   padding-bottom: var(--space-1);
   border-bottom: 1px solid var(--color-border-subtle);
   flex-shrink: 0;
-}
-
-.settings-workspace__shell-header .button {
-  grid-column: 3;
-  justify-self: end;
-  align-self: center;
 }
 
 .settings-workspace__shell-body {
@@ -1871,6 +1915,17 @@ body.interface-user .button {
   margin-top: var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border-subtle);
+}
+
+.settings-bottombar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--settings-bar-height);
+  min-height: var(--settings-bar-height);
+  padding: 0 var(--space-3);
+  box-sizing: border-box;
 }
 
 .settings-dict-grid {
@@ -2213,9 +2268,12 @@ body.interface-user .button {
 }
 
 .role-modal__header {
-  padding: var(--space-2) var(--space-3);
+  height: var(--settings-bar-height);
+  min-height: var(--settings-bar-height);
+  padding: 0 var(--space-3);
   border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
+  box-sizing: border-box;
 }
 
 .role-modal__title {
@@ -2223,8 +2281,7 @@ body.interface-user .button {
 }
 
 .role-modal__header .icon-action-button {
-  grid-column: 3;
-  justify-self: end;
+  min-height: var(--settings-button-height);
 }
 
 .role-modal__body {
@@ -2280,7 +2337,8 @@ body.interface-user .button {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  height: 36px;
+  height: var(--settings-bar-height);
+  min-height: var(--settings-bar-height);
   box-sizing: border-box;
 }
 
@@ -2346,10 +2404,14 @@ body.interface-user .button {
 .role-modal__footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: var(--space-2);
-  padding: var(--space-3);
+  height: var(--settings-bar-height);
+  min-height: var(--settings-bar-height);
+  padding: 0 var(--space-3);
   border-top: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
+  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
