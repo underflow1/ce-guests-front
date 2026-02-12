@@ -12,7 +12,7 @@ const SECTION_TITLES = {
   all: 'Настройки',
 }
 
-const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
+const SettingsPanel = ({ section = 'all' }) => {
   const {
     getSettings,
     updateSettings,
@@ -578,7 +578,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
   const canSaveSettings = showNotifications || showPasses
   const showHeaderSave = canSaveSettings && !showNotifications
   const hidePanelHeader = section === 'notifications'
-  const panelClassName = hidePanelHeader ? 'settings-panel-frameless' : 'panel'
+  const panelClassName = hidePanelHeader ? 'section-frameless' : 'panel'
   const isNotificationsDirty =
     JSON.stringify(form.notifications) !== JSON.stringify(notificationsInitial)
   const handleCancelNotifications = () => {
@@ -589,16 +589,10 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
   }
 
   return (
-    <div style={{ padding: embedded ? 0 : 'var(--space-6)' }}>
-      {!embedded && onBack && (
-        <button className="button" onClick={onBack} style={{ marginBottom: '1rem' }}>
-          ← Назад к записям
-        </button>
-      )}
-
-      <div className={panelClassName} style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
+    <div>
+      <div className={`${panelClassName} section`}>
         {!hidePanelHeader && (
-          <header className="panel__header settings-bar">
+          <header className="panel__header section__header section__header--between">
             <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
             {showHeaderSave && (
               <button
@@ -612,27 +606,17 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
           </header>
         )}
 
-        <div
-          className={`panel__content settings-panel__content${
-            section === 'production-calendar' || section === 'notifications'
-              ? ' panel__content--flush-top'
-              : ''
-          }`}
-        >
-          {error && (
-            <div className="error-message" style={{ marginBottom: 'var(--space-4)' }}>
-              {error}
-            </div>
-          )}
+        <div className="section__body section-content">
+          {error && <div className="error-message section-block-end">{error}</div>}
 
           {showNotifications && (
           <>
-            <div className="settings-section-shell settings-section-group__item">
-              <header className="settings-section-shell__header settings-bar">
+            <div className="section section-group__item">
+              <header className="section__header section__header--start">
                 <div className="text text--bold">MAX</div>
               </header>
-              <div className="settings-section-shell__body settings-notify__body">
-                <label className="settings-calendar__toggle">
+              <div className="section__body notify__body">
+                <label className="check-row">
                   <input
                     type="checkbox"
                     checked={form.notifications.providers.max_via_green_api.enabled}
@@ -640,44 +624,44 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   />
                   <span className="text">Использовать</span>
                 </label>
-                <label className="settings-notify__field">
+                <label className="notify__field">
                   <span className="text text--muted">Базовый URL:</span>
                   <input
                     type="text"
-                    className="input text text--down settings-notify__input"
+                    className="input text text--down notify__input"
                     value={form.notifications.providers.max_via_green_api.base_url}
                     onChange={(e) => updateProviderConfig('max_via_green_api', 'base_url', e.target.value)}
                     disabled={!form.notifications.providers.max_via_green_api.enabled}
                     placeholder="https://3100.api.green-api.com/v3"
                   />
                 </label>
-                <label className="settings-notify__field">
+                <label className="notify__field">
                   <span className="text text--muted">Instance ID:</span>
                   <input
                     type="text"
-                    className="input text text--down settings-notify__input"
+                    className="input text text--down notify__input"
                     value={form.notifications.providers.max_via_green_api.instance_id}
                     onChange={(e) => updateProviderConfig('max_via_green_api', 'instance_id', e.target.value)}
                     disabled={!form.notifications.providers.max_via_green_api.enabled}
                     placeholder="110000"
                   />
                 </label>
-                <label className="settings-notify__field">
+                <label className="notify__field">
                   <span className="text text--muted">API Token:</span>
                   <input
                     type="password"
-                    className="input text text--down settings-notify__input"
+                    className="input text text--down notify__input"
                     value={form.notifications.providers.max_via_green_api.api_token}
                     onChange={(e) => updateProviderConfig('max_via_green_api', 'api_token', e.target.value)}
                     disabled={!form.notifications.providers.max_via_green_api.enabled}
                     placeholder="token123"
                   />
                 </label>
-                <label className="settings-notify__field">
+                <label className="notify__field">
                   <span className="text text--muted">Chat ID:</span>
                   <input
                     type="text"
-                    className="input text text--down settings-notify__input"
+                    className="input text text--down notify__input"
                     value={form.notifications.providers.max_via_green_api.chat_id}
                     onChange={(e) => updateProviderConfig('max_via_green_api', 'chat_id', e.target.value)}
                     disabled={!form.notifications.providers.max_via_green_api.enabled}
@@ -685,7 +669,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   />
                 </label>
               </div>
-              <footer className="settings-section-shell__footer settings-bar">
+              <footer className="section__footer section__footer--end">
                 <button
                   className="button button--small"
                   onClick={handleCancelNotifications}
@@ -703,12 +687,12 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
               </footer>
             </div>
 
-            <div className="settings-section-shell settings-section-group__item">
-              <header className="settings-section-shell__header settings-bar">
+            <div className="section section-group__item">
+              <header className="section__header section__header--start">
                 <div className="text text--bold">Telegram</div>
               </header>
-              <div className="settings-section-shell__body settings-notify__body">
-                <label className="settings-calendar__toggle">
+              <div className="section__body notify__body">
+                <label className="check-row">
                   <input
                     type="checkbox"
                     checked={form.notifications.providers.telegram.enabled}
@@ -716,22 +700,22 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   />
                   <span className="text">Использовать</span>
                 </label>
-                <label className="settings-notify__field">
+                <label className="notify__field">
                   <span className="text text--muted">Bot Token:</span>
                   <input
                     type="password"
-                    className="input text text--down settings-notify__input"
+                    className="input text text--down notify__input"
                     value={form.notifications.providers.telegram.bot_token}
                     onChange={(e) => updateProviderConfig('telegram', 'bot_token', e.target.value)}
                     disabled={!form.notifications.providers.telegram.enabled}
                     placeholder="token123"
                   />
                 </label>
-                <label className="settings-notify__field">
+                <label className="notify__field">
                   <span className="text text--muted">Chat ID:</span>
                   <input
                     type="text"
-                    className="input text text--down settings-notify__input"
+                    className="input text text--down notify__input"
                     value={form.notifications.providers.telegram.chat_id}
                     onChange={(e) => updateProviderConfig('telegram', 'chat_id', e.target.value)}
                     disabled={!form.notifications.providers.telegram.enabled}
@@ -739,7 +723,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   />
                 </label>
               </div>
-              <footer className="settings-section-shell__footer settings-bar">
+              <footer className="section__footer section__footer--end">
                 <button
                   className="button button--small"
                   onClick={handleCancelNotifications}
@@ -757,16 +741,16 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
               </footer>
             </div>
 
-            <div className="settings-section-shell settings-section-group__item">
-              <header className="settings-section-shell__header settings-bar">
+            <div className="section section-group__item">
+              <header className="section__header section__header--start">
                 <div className="text text--bold">Типы уведомлений</div>
               </header>
-              <div className="settings-section-shell__body settings-notify__body">
-                <div className="settings-notify__types">
+              <div className="section__body notify__body">
+                <div className="notify__types">
                   {availableTypes.map((type) => (
                     <label
                       key={type.code}
-                      className="settings-notify__type-item"
+                      className="notify__type-item"
                     >
                       <input
                         type="checkbox"
@@ -784,19 +768,19 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
 
           {showCalendar && (
           <div
-            className={`settings-section-group${
-              section === 'production-calendar' ? ' settings-section-group--compact-bottom' : ''
+            className={`section-group${
+              section === 'production-calendar' ? ' section-group--compact-bottom' : ''
             }`}
           >
             {section === 'all' && (
-              <h3 className="text text--up text--bold settings-section-group__title">
+              <h3 className="text text--up text--bold section-group__title">
                 Производственный календарь
               </h3>
             )}
 
-            <div className="settings-section-shell settings-calendar">
-              <div className="settings-section-shell__body">
-                <label className="settings-calendar__toggle">
+            <div className="section calendar">
+              <div className="section__body">
+                <label className="check-row">
                 <input
                   type="checkbox"
                   checked={!!form.production_calendar?.enabled}
@@ -814,19 +798,19 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                 </label>
 
                 <div
-                  className={`text text--down settings-calendar__status${
+                  className={`text text--down calendar__status${
                     isProductionCalendarLoaded
-                      ? ' settings-calendar__status--loaded'
-                      : ' settings-calendar__status--missing'
+                      ? ' calendar__status--loaded'
+                      : ' calendar__status--missing'
                   }`}
                 >
                   {productionCalendarStatusText}
                 </div>
-                <div className="text text--down text--muted settings-calendar__meta">
+                <div className="text text--down text--muted calendar__meta">
                   {productionCalendarMetaText}
                 </div>
 
-                <div className="settings-calendar__actions">
+                <div className="calendar__actions">
                   <button
                     className="button button--small button--primary"
                     onClick={handleLoadProductionCalendar}
@@ -845,7 +829,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
               </div>
 
               {section === 'production-calendar' && (
-                <div className="settings-section-shell__footer settings-calendar__footer settings-bar">
+                <div className="calendar__footer section__footer section__footer--end">
                   <button
                     className="button button--small"
                     onClick={handleCancelProductionCalendar}
@@ -867,18 +851,13 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
           )}
 
           {showPasses && (
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
+          <div className="section-block-end">
+            <h3 className="text text--up text--bold section-title">
               Заказ пропусков (интеграция)
             </h3>
 
-            <div
-              className="settings-subpanel"
-              style={{
-                padding: 'var(--space-4)',
-              }}
-            >
-              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
+            <div className="section-card section-card__body">
+              <label className="text check-inline">
                 <input
                   type="checkbox"
                   checked={form.pass_integration.enabled}
@@ -891,18 +870,17 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                       },
                     }))
                   }
-                  style={{ cursor: 'pointer' }}
                 />
                 <span>Включить интеграцию</span>
               </label>
 
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+              <div className="field-stack">
+                <label className="text text--muted field-label">
                   API URL:
                 </label>
                 <input
                   type="text"
-                  className="input text text--down"
+                  className="input text text--down input--wide"
                   value={form.pass_integration.base_url}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -915,17 +893,16 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="https://example.local/api"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+              <div className="field-stack">
+                <label className="text text--muted field-label">
                   Логин:
                 </label>
                 <input
                   type="text"
-                  className="input text text--down"
+                  className="input text text--down input--wide"
                   value={form.pass_integration.login}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -938,17 +915,16 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="login"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+              <div className="field-stack">
+                <label className="text text--muted field-label">
                   Пароль:
                 </label>
                 <input
                   type="password"
-                  className="input text text--down"
+                  className="input text text--down input--wide"
                   value={form.pass_integration.password}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -961,17 +937,16 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="password"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+              <div className="field-stack">
+                <label className="text text--muted field-label">
                   Object:
                 </label>
                 <input
                   type="text"
-                  className="input text text--down"
+                  className="input text text--down input--wide"
                   value={form.pass_integration.object}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -984,17 +959,16 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="1"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
 
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+              <div className="field-stack">
+                <label className="text text--muted field-label">
                   Corpa:
                 </label>
                 <input
                   type="text"
-                  className="input text text--down"
+                  className="input text text--down input--wide"
                   value={form.pass_integration.corpa}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -1007,7 +981,6 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="Название организации"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
             </div>
@@ -1015,15 +988,8 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
           )}
 
           {showVisitDictionaries && (
-          <div style={{ marginTop: 'var(--space-6)' }}>
-            <div
-              style={{
-                display: 'flex',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-4)',
-                flexWrap: 'wrap',
-              }}
-            >
+          <div className="section-block-start">
+            <div className="row-wrap section-block-end">
               <button
                 className={`button button--small${visitDictionaryTab === 'goals' ? ' button--primary' : ''}`}
                 onClick={() => setVisitDictionaryTab('goals')}
@@ -1040,23 +1006,13 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
 
             {visitDictionaryTab === 'goals' ? (
               <div>
-                <div
-                  className="settings-subpanel"
-                  style={{
-                    padding: 'var(--space-4)',
-                    display: 'flex',
-                    gap: 'var(--space-2)',
-                    marginBottom: 'var(--space-4)',
-                    flexWrap: 'wrap',
-                  }}
-                >
+                <div className="section-card section-card__body row-wrap section-block-end">
                   <input
                     type="text"
-                    className="input text text--down"
+                    className="input text text--down input--grow"
                     value={newGoalName}
                     onChange={(e) => setNewGoalName(e.target.value)}
                     placeholder="Новая цель визита"
-                    style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
                   />
                   <button
                     className="button button--primary button--small"
@@ -1067,14 +1023,14 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                <div className="column-stack">
                   {visitGoals.length === 0 ? (
                     <div className="text text--muted">Целей визита пока нет</div>
                   ) : (
                     visitGoals.map((goal) => (
                       <div
                         key={goal.id}
-                        className="settings-dict-row"
+                        className="list-row"
                       >
                         <div>
                           <div className="text">{goal.name}</div>
@@ -1096,17 +1052,11 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
               </div>
             ) : (
               <div>
-                <div
-                  className="settings-subpanel"
-                  style={{
-                    padding: 'var(--space-4)',
-                    marginBottom: 'var(--space-4)',
-                  }}
-                >
-                  <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
+                <div className="section-card section-card__body section-block-end">
+                  <div className="text text--down text--muted section-label">
                     Где используются причины
                   </div>
-                  <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                  <div className="row-wrap">
                     <button
                       className={`button button--small${Number(activeReasonState) === 50 ? ' button--primary' : ''}`}
                       onClick={() => setActiveReasonState(50)}
@@ -1122,23 +1072,13 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   </div>
                 </div>
 
-                <div
-                  className="settings-subpanel"
-                  style={{
-                    padding: 'var(--space-4)',
-                    display: 'flex',
-                    gap: 'var(--space-2)',
-                    marginBottom: 'var(--space-4)',
-                    flexWrap: 'wrap',
-                  }}
-                >
+                <div className="section-card section-card__body row-wrap section-block-end">
                   <input
                     type="text"
-                    className="input text text--down"
+                    className="input text text--down input--grow"
                     value={newReasonName}
                     onChange={(e) => setNewReasonName(e.target.value)}
                     placeholder="Новая причина результата"
-                    style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
                   />
                   <button
                     className="button button--primary button--small"
@@ -1149,12 +1089,12 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   </button>
                 </div>
 
-                <div className="settings-dict-grid">
+                <div className="list-grid">
                   <div>
-                    <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
+                    <div className="text text--down text--muted section-label">
                       Все причины
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                    <div className="column-stack">
                       {reasonsLoading ? (
                         <div className="text text--muted">Загрузка...</div>
                       ) : allReasons.length === 0 ? (
@@ -1164,11 +1104,11 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                           const editValue = reasonEdits[reason.id] ?? reason.name
                           const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
                           return (
-                            <div key={reason.id} className="settings-dict-row">
-                              <div style={{ flex: '1 1 auto' }}>
+                            <div key={reason.id} className="list-row">
+                              <div className="list-row__main">
                                 <input
                                   type="text"
-                                  className="input text text--down"
+                                  className="input text text--down input--wide"
                                   value={editValue}
                                   onChange={(e) =>
                                     setReasonEdits((prev) => ({
@@ -1176,13 +1116,12 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                                       [reason.id]: e.target.value,
                                     }))
                                   }
-                                  style={{ width: '100%', padding: '4px 6px' }}
                                 />
-                                <div className="text text--down text--muted" style={{ marginTop: '4px' }}>
+                                <div className="text text--down text--muted list-row__meta">
                                   {reason.is_active ? 'Активна' : 'Неактивна'}
                                 </div>
                               </div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                              <div className="column-stack">
                                 <button
                                   className="button button--small"
                                   onClick={() => handleUpdateReasonName(reason.id)}
@@ -1206,10 +1145,10 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   </div>
 
                   <div>
-                    <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
+                    <div className="text text--down text--muted section-label">
                       Разрешены для state={Number(activeReasonState)}
                     </div>
-                    <div style={{ marginBottom: 'var(--space-2)' }}>
+                    <div className="section-label">
                       <button
                         className="button button--small button--primary"
                         onClick={handleSaveAllowed}
@@ -1218,7 +1157,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                         Сохранить список
                       </button>
                     </div>
-                    <div className="settings-dict-allowed-list">
+                    <div className="list-checklist">
                       {allowedLoading ? (
                         <div className="text text--muted">Загрузка...</div>
                       ) : allReasons.length === 0 ? (
@@ -1229,15 +1168,14 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                           return (
                             <label
                               key={reason.id}
-                              className="text text--down"
-                              style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
+                              className="text text--down check-inline"
                             >
                               <input
                                 type="checkbox"
                                 checked={checked}
                                 onChange={() => handleToggleAllowed(reason.id)}
                               />
-                              <span style={{ opacity: reason.is_active ? 1 : 0.5 }}>{reason.name}</span>
+                              <span className={reason.is_active ? '' : 'item--inactive'}>{reason.name}</span>
                             </label>
                           )
                         })

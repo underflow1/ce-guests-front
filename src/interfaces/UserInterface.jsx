@@ -346,7 +346,7 @@ const UserInterface = ({
                         reasonsByState={reasonsByState}
                       />
                     </div>
-                    <div className={`week-nav week-nav--embedded${isBottomLoading ? ' week-nav--loading' : ''}`}>
+                    <div className={`week-nav week-nav--separated${isBottomLoading ? ' week-nav--loading' : ''}`}>
                       <span className="week-nav__label">Неделя:</span>
                       <button
                         type="button"

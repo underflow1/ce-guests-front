@@ -19,23 +19,23 @@ const SettingsWorkspace = ({ onBack, sections }) => {
   const currentSection = sections[activeSection] || null
 
   return (
-    <div className="settings-workspace">
-      <div className="settings-workspace__shell panel">
-        <header className="panel__header settings-workspace__shell-header settings-bar">
+    <div className="layout">
+      <div className="layout__shell panel section">
+        <header className="panel__header layout__header section__header section__header--between">
           <h2 className="panel__title">Настройки</h2>
           <button className="button button--small" onClick={onBack}>
             ← К записям
           </button>
         </header>
 
-        <div className="settings-workspace__shell-body">
-          <aside className="settings-workspace__nav">
-            <div className="settings-workspace__nav-list">
+        <div className="layout__body">
+          <aside className="layout__nav">
+            <div className="layout__list">
               {NAV_ITEMS.filter((item) => sections[item.key]).map((item) => (
                 <button
                   key={item.key}
-                  className={`settings-workspace__nav-item${
-                    activeSection === item.key ? ' settings-workspace__nav-item--active' : ''
+                  className={`layout__item${
+                    activeSection === item.key ? ' layout__item--active' : ''
                   }`}
                   onClick={() => setActiveSection(item.key)}
                 >
@@ -45,7 +45,7 @@ const SettingsWorkspace = ({ onBack, sections }) => {
             </div>
           </aside>
 
-          <section className="settings-workspace__content">{currentSection}</section>
+          <section className="layout__content">{currentSection}</section>
         </div>
       </div>
     </div>

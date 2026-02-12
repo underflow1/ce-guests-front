@@ -3,7 +3,7 @@ import useUsers from '../hooks/useUsers'
 import useRoles from '../hooks/useRoles'
 import { useToast } from './ToastProvider'
 
-const UserManagement = ({ embedded = false }) => {
+const UserManagement = () => {
   const { getUsers, createUser, updateUser, activateUser, deactivateUser, loading, error: apiError } = useUsers()
   const { getRoles, loading: rolesLoading } = useRoles()
   const { pushToast } = useToast()
@@ -251,11 +251,11 @@ const UserManagement = ({ embedded = false }) => {
   }, [editingUser, showCreateForm])
 
   return (
-    <div className="panel user-management" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
-      <header className="panel__header settings-bar">
+    <div className="panel section user-management">
+      <header className="panel__header section__header section__header--between">
         <h2 className="panel__title">Управление пользователями</h2>
         <button
-          className="button button--primary button--small"
+          className={`button button--primary button--small${showCreateForm ? ' action--hidden' : ''}`}
           onClick={() => {
             setShowCreateForm(true)
             setEditingUser(null)
@@ -264,19 +264,15 @@ const UserManagement = ({ embedded = false }) => {
           disabled={loading}
           tabIndex={showCreateForm ? -1 : 0}
           aria-hidden={showCreateForm}
-          style={{
-            visibility: showCreateForm ? 'hidden' : 'visible',
-            pointerEvents: showCreateForm ? 'none' : 'auto',
-          }}
         >
           + Добавить пользователя
         </button>
       </header>
 
       {loadingUsers ? (
-        <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>
+        <div className="section-loading">Загрузка...</div>
       ) : (
-        <div className="panel__content" style={{ overflowX: 'auto' }}>
+        <div className="section__body section__body--scroll-x">
           <table className="table user-management__table">
             <thead>
               <tr>
@@ -299,38 +295,34 @@ const UserManagement = ({ embedded = false }) => {
                       <td>
                         <input
                           type="text"
-                          className="input input--compact"
+                          className="input input--compact field--full"
                           value={editForm.username}
                           onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                          style={{ width: '100%' }}
                         />
                       </td>
                       <td>
                         <input
                           type="password"
-                          className="input input--compact"
+                          className="input input--compact field--full"
                           placeholder="Новый пароль"
                           value={editForm.password}
                           onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                          style={{ width: '100%' }}
                         />
                       </td>
                       <td>
                         <input
                           type="email"
-                          className="input input--compact"
+                          className="input input--compact field--full"
                           value={editForm.email}
                           onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                          style={{ width: '100%' }}
                         />
                       </td>
                       <td>
                         <input
                           type="text"
-                          className="input input--compact"
+                          className="input input--compact field--full"
                           value={editForm.full_name}
                           onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
-                          style={{ width: '100%' }}
                         />
                       </td>
                       <td>
@@ -338,10 +330,9 @@ const UserManagement = ({ embedded = false }) => {
                           <span className="text text--muted">-</span>
                         ) : (
                           <select
-                            className="select select--compact"
+                            className="select select--compact field--full"
                             value={editForm.role_id}
                             onChange={(e) => setEditForm({ ...editForm, role_id: e.target.value })}
-                            style={{ width: '100%' }}
                             required={!editForm.is_admin}
                           >
                             <option value="" disabled hidden>
@@ -366,7 +357,7 @@ const UserManagement = ({ embedded = false }) => {
                         />
                       </td>
                       <td>
-                        <div className="table__actions" style={{ flexWrap: 'nowrap', alignItems: 'center', gap: 'var(--space-1)' }}>
+                        <div className="table__actions table__actions--nowrap">
                           <button
                             className="icon-action-button icon-action-button--primary"
                             onClick={() => handleUpdate(user.id)}
@@ -408,7 +399,7 @@ const UserManagement = ({ embedded = false }) => {
                         )}
                       </td>
                       <td>
-                        <div className="table__actions" style={{ flexWrap: 'nowrap', alignItems: 'center', gap: 'var(--space-1)' }}>
+                        <div className="table__actions table__actions--nowrap">
                           <button
                             className="icon-action-button icon-action-button--primary"
                             onClick={() => startEdit(user)}
@@ -450,22 +441,20 @@ const UserManagement = ({ embedded = false }) => {
                   <td>
                     <input
                       type="text"
-                      className="input input--compact"
+                      className="input input--compact field--full"
                       placeholder="Логин *"
                       value={createForm.username}
                       onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })}
-                      style={{ width: '100%' }}
                       required
                     />
                   </td>
                   <td>
                     <input
                       type="password"
-                      className="input input--compact"
+                      className="input input--compact field--full"
                       placeholder="Пароль *"
                       value={createForm.password}
                       onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                      style={{ width: '100%' }}
                       required
                       minLength={6}
                     />
@@ -473,21 +462,19 @@ const UserManagement = ({ embedded = false }) => {
                   <td>
                     <input
                       type="email"
-                      className="input input--compact"
+                      className="input input--compact field--full"
                       placeholder="Email"
                       value={createForm.email}
                       onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                      style={{ width: '100%' }}
                     />
                   </td>
                   <td>
                     <input
                       type="text"
-                      className="input input--compact"
+                      className="input input--compact field--full"
                       placeholder="Фамилия Имя"
                       value={createForm.full_name}
                       onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })}
-                      style={{ width: '100%' }}
                     />
                   </td>
                   <td>
@@ -495,10 +482,9 @@ const UserManagement = ({ embedded = false }) => {
                       <span className="text text--muted">-</span>
                     ) : (
                       <select
-                        className="select select--compact"
+                        className="select select--compact field--full"
                         value={createForm.role_id}
                         onChange={(e) => setCreateForm({ ...createForm, role_id: e.target.value })}
-                        style={{ width: '100%' }}
                         required={!createForm.is_admin}
                       >
                         <option value="" disabled hidden>
@@ -523,21 +509,19 @@ const UserManagement = ({ embedded = false }) => {
                     />
                   </td>
                   <td>
-                    <div className="table__actions" style={{ flexWrap: 'nowrap', alignItems: 'center', gap: 'var(--space-1)' }}>
+                    <div className="table__actions table__actions--nowrap">
                       <button
                         type="button"
-                        className="button button--primary button--small"
+                        className="button button--primary button--small button--nowrap"
                         onClick={handleCreate}
                         disabled={loading || !createForm.username.trim() || !createForm.password.trim()}
-                        style={{ whiteSpace: 'nowrap', width: '100px' }}
                       >
                         {loading ? '...' : 'Создать'}
                       </button>
                       <button
                         type="button"
-                        className="button button--small"
+                        className="button button--small button--nowrap"
                         onClick={cancelCreate}
-                        style={{ whiteSpace: 'nowrap', width: '110px' }}
                       >
                         Отмена
                       </button>

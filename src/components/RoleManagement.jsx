@@ -3,7 +3,7 @@ import useRoles from '../hooks/useRoles'
 import { DEFAULT_INTERFACE_TYPE, INTERFACE_OPTIONS, resolveInterfaceType, toApiInterfaceType } from '../constants/interfaces'
 import { useToast } from './ToastProvider'
 
-const RoleManagement = ({ embedded = false }) => {
+const RoleManagement = () => {
   const { getRoles, getPermissions, createRole, updateRole, deleteRole, loading, error: apiError } = useRoles()
   const { pushToast } = useToast()
   const [roles, setRoles] = useState([])
@@ -268,11 +268,8 @@ const RoleManagement = ({ embedded = false }) => {
   }, [displayError, pushToast])
 
   return (
-    <div
-      className="panel role-management"
-      style={embedded ? { width: '100%' } : { maxWidth: '66.666%', margin: '0 auto' }}
-    >
-      <header className="panel__header settings-bar">
+    <div className="panel section role-management">
+      <header className="panel__header section__header section__header--between">
         <h2 className="panel__title">Управление ролями</h2>
         <button
           className="button button--primary button--small"
@@ -286,9 +283,9 @@ const RoleManagement = ({ embedded = false }) => {
       </header>
 
       {loadingRoles ? (
-        <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>
+        <div className="section-loading">Загрузка...</div>
       ) : (
-        <div className="panel__content" style={{ overflowX: 'auto' }}>
+        <div className="section__body section__body--scroll-x">
           <div className="role-list">
             {roles.length === 0 ? (
               <div className="role-list__empty">Роли не найдены</div>
@@ -354,7 +351,7 @@ const RoleManagement = ({ embedded = false }) => {
                 aria-modal="true"
                 aria-label={modal.mode === 'create' ? 'Создание роли' : 'Редактирование роли'}
               >
-                <header className="role-modal__header panel__header settings-bar">
+                <header className="role-modal__header panel__header section__header section__header--between">
                   <h3 className="role-modal__title panel__title">
                     {modal.mode === 'create' ? 'Создать роль' : 'Редактировать роль'}
                   </h3>
@@ -380,7 +377,7 @@ const RoleManagement = ({ embedded = false }) => {
                           <span className="role-modal__label text">Название *</span>
                           <input
                             type="text"
-                            className="input text"
+                            className="input input--compact text field--full"
                             value={form.name}
                             onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                           />
@@ -389,7 +386,7 @@ const RoleManagement = ({ embedded = false }) => {
                         <label className="role-modal__field">
                           <span className="role-modal__label text">Описание</span>
                           <textarea
-                            className="input text"
+                            className="input input--compact text field--full"
                             rows={3}
                             value={form.description}
                             onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
@@ -399,7 +396,7 @@ const RoleManagement = ({ embedded = false }) => {
                         <label className="role-modal__field">
                           <span className="role-modal__label text">Интерфейс</span>
                           <select
-                            className="input text"
+                            className="input input--compact text field--full"
                             value={form.interface_type}
                             onChange={(e) => setForm((p) => ({ ...p, interface_type: e.target.value }))}
                           >
@@ -414,7 +411,7 @@ const RoleManagement = ({ embedded = false }) => {
                     </section>
 
                     <section className="role-modal__card">
-                      <header className="role-modal__perm-head settings-bar">
+                      <header className="role-modal__perm-head section__header section__header--between">
                         <div className="text text--bold">UI-права</div>
                         <div className="role-modal__perm-actions">
                           <button
@@ -457,7 +454,7 @@ const RoleManagement = ({ embedded = false }) => {
                     </section>
 
                     <section className="role-modal__card">
-                      <header className="role-modal__perm-head settings-bar">
+                      <header className="role-modal__perm-head section__header section__header--between">
                         <div className="text text--bold">Backend-права</div>
                         <div className="role-modal__perm-actions">
                           <button
@@ -501,7 +498,7 @@ const RoleManagement = ({ embedded = false }) => {
                   </div>
                 </div>
 
-                <footer className="role-modal__footer settings-bar">
+                <footer className="role-modal__footer section__footer section__footer--end">
                   <button className="button button--small" onClick={closeModal}>
                     Отмена
                   </button>

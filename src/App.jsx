@@ -419,23 +419,22 @@ const App = () => {
         <SettingsWorkspace
           onBack={handleCloseSettings}
           sections={{
-            users: <UserManagement embedded />,
-            roles: <RoleManagement embedded />,
+            users: <UserManagement />,
+            roles: <RoleManagement />,
             maintenance: (
-              <div className="settings-stack">
-                <SettingsPanel section="production-calendar" embedded />
+              <div className="section-stack">
+                <SettingsPanel section="production-calendar" />
                 <MaintenancePanel
                   today={today}
-                  embedded
                   onSuccess={() => {
                     window.location.reload()
                   }}
                 />
               </div>
             ),
-            notifications: <SettingsPanel section="notifications" embedded />,
-            passes: <SettingsPanel section="passes" embedded />,
-            visitDictionaries: <SettingsPanel section="visit-dictionaries" embedded />,
+            notifications: <SettingsPanel section="notifications" />,
+            passes: <SettingsPanel section="passes" />,
+            visitDictionaries: <SettingsPanel section="visit-dictionaries" />,
           }}
         />
       ) : (
