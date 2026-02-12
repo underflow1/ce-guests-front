@@ -30,7 +30,6 @@ const SettingsWorkspace = ({ onBack, sections }) => {
 
         <div className="settings-workspace__shell-body">
           <aside className="settings-workspace__nav">
-            <div className="settings-workspace__nav-title text text--up text--bold">Разделы</div>
             <div className="settings-workspace__nav-list">
               {NAV_ITEMS.filter((item) => sections[item.key]).map((item) => (
                 <button

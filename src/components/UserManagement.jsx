@@ -392,23 +392,21 @@ const UserManagement = ({ embedded = false }) => {
                     <>
                       <td>{user.username}</td>
                       <td>
-                        <input
-                          type="password"
-                          className="input input--compact"
-                          value="••••••••"
-                          disabled
-                          style={{ width: '100%' }}
-                        />
+                        <span aria-label="Пароль скрыт">••••••••</span>
                       </td>
                       <td>{user.email || '-'}</td>
                       <td>{user.full_name || '-'}</td>
                       <td>{user.role ? user.role.name : '-'}</td>
                       <td className="user-management__flag-col">
-                        <i
-                          className={`fa-solid ${user.is_admin ? 'fa-check user-management__status-icon--on' : 'fa-minus user-management__status-icon--off'}`}
-                          aria-hidden="true"
-                          title={user.is_admin ? 'Администратор' : 'Не администратор'}
-                        />
+                        {user.is_admin ? (
+                          <i
+                            className="fa-solid fa-check user-management__status-icon--on"
+                            aria-hidden="true"
+                            title="Администратор"
+                          />
+                        ) : (
+                          <span className="user-management__dash" title="Не администратор">-</span>
+                        )}
                       </td>
                       <td>
                         <div className="table__actions" style={{ flexWrap: 'nowrap', alignItems: 'center', gap: 'var(--space-1)' }}>

@@ -1729,19 +1729,28 @@ body.interface-user .button {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding-bottom: var(--space-2);
+  padding-bottom: var(--space-1);
   border-bottom: 1px solid var(--color-border-subtle);
   flex-shrink: 0;
+}
+
+.settings-workspace__shell-header .text {
+  line-height: 1;
+}
+
+.settings-workspace__shell-header .button {
+  align-self: center;
 }
 
 .settings-workspace__shell-body {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 0;
   min-height: 0;
   flex: 1;
   overflow: hidden;
-  padding-top: var(--space-2);
+  padding-top: var(--space-1);
 }
 
 .settings-workspace__nav {
@@ -1749,14 +1758,6 @@ body.interface-user .button {
   overflow-y: auto;
   border-right: 1px solid var(--color-border-subtle);
   padding-right: var(--space-3);
-}
-
-.settings-workspace__nav-title {
-  margin-bottom: var(--space-2);
-  position: sticky;
-  top: 0;
-  background: var(--color-surface);
-  padding: 2px 0;
 }
 
 .settings-workspace__nav-list {
@@ -1789,6 +1790,13 @@ body.interface-user .button {
   min-height: 0;
   overflow-y: auto;
   padding-left: var(--space-3);
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-workspace__content > .panel {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .settings-stack {
@@ -1894,6 +1902,11 @@ body.interface-user .button {
 
 .user-management__status-icon--off {
   color: var(--color-text-subtle);
+}
+
+.user-management__dash {
+  color: var(--color-text);
+  font-weight: var(--text-weight-base);
 }
 
 .user-management .table th:nth-child(6),
