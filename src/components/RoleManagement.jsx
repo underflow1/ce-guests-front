@@ -348,60 +348,78 @@ const RoleManagement = ({ embedded = false }) => {
           </div>
 
           {modal.open && (
-            <div className="modal-overlay" aria-hidden="true">
-              <div className="modal" role="dialog" aria-modal="true" aria-label="Редактирование роли">
-                <div className="modal__header">
-                  <div className="modal__title">
-                    {modal.mode === 'create' ? 'Создать роль' : 'Редактировать роль'}
+            <div className="role-modal-overlay" aria-hidden="true">
+              <section
+                className="role-modal text"
+                role="dialog"
+                aria-modal="true"
+                aria-label={modal.mode === 'create' ? 'Создание роли' : 'Редактирование роли'}
+              >
+                <header className="role-modal__header">
+                  <div className="role-modal__title-wrap">
+                    <h3 className="role-modal__title text text--up text--bold">
+                      {modal.mode === 'create' ? 'Создать роль' : 'Редактировать роль'}
+                    </h3>
                   </div>
-                </div>
+                  <button
+                    type="button"
+                    className="icon-action-button"
+                    onClick={closeModal}
+                    title="Закрыть"
+                    aria-label="Закрыть"
+                  >
+                    <i className="fa-solid fa-xmark" aria-hidden="true" />
+                  </button>
+                </header>
 
-                <div className="modal__body">
-                  <div className="modal__grid">
-                    <label className="modal__field modal__field--name">
-                      <div className="modal__label">Название *</div>
-                      <input
-                        type="text"
-                        className="input"
-                        value={form.name}
-                        onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                      />
-                    </label>
-
-                    <label className="modal__field modal__field--interface">
-                      <div className="modal__label">Интерфейс</div>
-                      <select
-                        className="input"
-                        value={form.interface_type}
-                        onChange={(e) => setForm((p) => ({ ...p, interface_type: e.target.value }))}
-                      >
-                        {INTERFACE_OPTIONS.map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="text text--down text--muted">
-                        Пользователь — полный интерфейс. Оперативный дежурный — только текущий день.
+                <div className="role-modal__body">
+                  <div className="role-modal__layout">
+                    <section className="role-modal__card">
+                      <div className="role-modal__card-title text text--bold">
+                        Параметры роли
                       </div>
-                    </label>
+                      <div className="role-modal__fields">
+                        <label className="role-modal__field">
+                          <span className="role-modal__label text">Название *</span>
+                          <input
+                            type="text"
+                            className="input text"
+                            value={form.name}
+                            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                          />
+                        </label>
 
-                    <label className="modal__field modal__field--description">
-                      <div className="modal__label">Описание</div>
-                      <input
-                        type="text"
-                        className="input"
-                        value={form.description}
-                        onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                      />
-                    </label>
-                  </div>
+                        <label className="role-modal__field">
+                          <span className="role-modal__label text">Описание</span>
+                          <textarea
+                            className="input text"
+                            rows={3}
+                            value={form.description}
+                            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                          />
+                        </label>
 
-                  <div className="perm-sections">
-                    <div className="perm-section">
-                      <div className="perm-section__header">
-                        <div className="perm-section__title">UI‑права</div>
-                        <div className="perm-section__actions">
+                        <label className="role-modal__field">
+                          <span className="role-modal__label text">Интерфейс</span>
+                          <select
+                            className="input text"
+                            value={form.interface_type}
+                            onChange={(e) => setForm((p) => ({ ...p, interface_type: e.target.value }))}
+                          >
+                            {INTERFACE_OPTIONS.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                    </section>
+
+                    <section className="role-modal__card">
+                      <header className="role-modal__perm-head">
+                        <div className="text text--bold">UI-права</div>
+                        <div className="role-modal__perm-actions">
                           <button
                             type="button"
                             className="button button--small"
@@ -419,33 +437,32 @@ const RoleManagement = ({ embedded = false }) => {
                             Снять все
                           </button>
                         </div>
-                      </div>
-
-                      <div className="perm-section__list">
+                      </header>
+                      <div className="role-modal__perm-list">
                         {permissionGroups.ui.length === 0 ? (
-                          <div className="perm-section__empty">UI‑прав нет</div>
+                          <div className="text text--down text--muted">UI-прав нет</div>
                         ) : (
                           permissionGroups.ui.map((perm) => (
-                            <label className="perm-item" key={perm.id}>
+                            <label className="role-modal__perm-item" key={perm.id}>
                               <input
                                 type="checkbox"
                                 checked={selectedPermissionSet.has(perm.id)}
                                 onChange={() => togglePermission(perm.id)}
                               />
-                              <span className="perm-item__text">
-                                <span className="perm-item__name">{perm.name}</span>
-                                <span className="perm-item__code">{perm.code}</span>
+                              <span className="role-modal__perm-text">
+                                <span className="text">{perm.name}</span>
+                                <span className="text text--down text--subtle">{perm.code}</span>
                               </span>
                             </label>
                           ))
                         )}
                       </div>
-                    </div>
+                    </section>
 
-                    <div className="perm-section">
-                      <div className="perm-section__header">
-                      <div className="perm-section__title">Backend‑права</div>
-                        <div className="perm-section__actions">
+                    <section className="role-modal__card">
+                      <header className="role-modal__perm-head">
+                        <div className="text text--bold">Backend-права</div>
+                        <div className="role-modal__perm-actions">
                           <button
                             type="button"
                             className="button button--small"
@@ -463,32 +480,34 @@ const RoleManagement = ({ embedded = false }) => {
                             Снять все
                           </button>
                         </div>
-                      </div>
-
-                      <div className="perm-section__list">
+                      </header>
+                      <div className="role-modal__perm-list">
                         {permissionGroups.other.length === 0 ? (
-                          <div className="perm-section__empty">Прав нет</div>
+                          <div className="text text--down text--muted">Прав нет</div>
                         ) : (
                           permissionGroups.other.map((perm) => (
-                            <label className="perm-item" key={perm.id}>
+                            <label className="role-modal__perm-item" key={perm.id}>
                               <input
                                 type="checkbox"
                                 checked={selectedPermissionSet.has(perm.id)}
                                 onChange={() => togglePermission(perm.id)}
                               />
-                              <span className="perm-item__text">
-                                <span className="perm-item__name">{perm.name}</span>
-                                <span className="perm-item__code">{perm.code}</span>
+                              <span className="role-modal__perm-text">
+                                <span className="text">{perm.name}</span>
+                                <span className="text text--down text--subtle">{perm.code}</span>
                               </span>
                             </label>
                           ))
                         )}
                       </div>
-                    </div>
+                    </section>
                   </div>
                 </div>
 
-                <div className="modal__footer">
+                <footer className="role-modal__footer">
+                  <button className="button button--small" onClick={closeModal}>
+                    Отмена
+                  </button>
                   <button
                     className="button button--primary button--small"
                     onClick={handleSubmit}
@@ -496,11 +515,8 @@ const RoleManagement = ({ embedded = false }) => {
                   >
                     {loading ? '...' : modal.mode === 'create' ? 'Создать' : 'Сохранить'}
                   </button>
-                  <button className="button button--small" onClick={closeModal}>
-                    Отмена
-                  </button>
-                </div>
-              </div>
+                </footer>
+              </section>
             </div>
           )}
         </div>

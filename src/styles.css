@@ -1929,7 +1929,8 @@ body.interface-user .button {
 }
 
 .user-management .table tbody tr:hover td {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-muted);
+  box-shadow: inset 0 1px 0 var(--color-border), inset 0 -1px 0 var(--color-border);
 }
 
 .role-list {
@@ -1984,7 +1985,8 @@ body.interface-user .button {
 }
 
 .role-management .table tbody tr:hover td {
-  background: var(--color-surface-hover);
+  background: var(--color-surface-muted);
+  box-shadow: inset 0 1px 0 var(--color-border), inset 0 -1px 0 var(--color-border);
 }
 
 .role-list__empty {
@@ -2095,170 +2097,158 @@ body.interface-user .button {
   box-sizing: border-box;
 }
 
-.modal-overlay {
+.role-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 3000;
+  padding: var(--space-3);
 }
 
-.modal {
-  width: min(920px, calc(100vw - 32px));
-  height: min(80vh, 760px);
+.role-modal {
+  width: min(1080px, calc(100vw - 24px));
+  max-height: min(88vh, 820px);
+  border: 1px solid var(--color-border-strong);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.modal__header {
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-
-.modal__title {
-  font-size: var(--text-size-up);
-  font-weight: var(--text-weight-bold);
-}
-
-.modal__body {
-  padding: var(--space-4);
-  overflow: auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.modal__grid {
+.role-modal__header {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
 }
 
-.modal__field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+.role-modal__title-wrap {
   min-width: 0;
 }
 
-.modal__field--name {
-  grid-column: 1;
+.role-modal__title {
+  margin: 0;
+  line-height: 1.2;
 }
 
-.modal__field--interface {
-  grid-column: 3;
+.role-modal__subtitle {
+  margin-top: 2px;
 }
 
-.modal__field--description {
-  grid-column: 1 / -1;
+.role-modal__body {
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space-2);
 }
 
-.modal__label {
-  font-size: var(--text-size-down);
-  color: var(--color-text-muted);
-}
-
-.modal__footer {
-  padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-border-subtle);
-  display: flex;
+.role-modal__layout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-2);
-  justify-content: flex-end;
+  min-height: 0;
+}
+
+.role-modal__card {
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  min-height: 0;
+}
+
+.role-modal__card-title {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
 }
 
-.perm-sections {
+.role-modal__fields {
+  padding: var(--space-3);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
-  min-height: 0;
 }
 
-.perm-section {
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+.role-modal__field {
+  display: grid;
+  gap: var(--space-1);
 }
 
-.perm-section__header {
+.role-modal__label {
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.role-modal__perm-head {
   padding: var(--space-2) var(--space-3);
-  background: var(--color-surface-muted);
   border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
 }
 
-.perm-section__title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.perm-section__actions {
+.role-modal__perm-actions {
   display: flex;
   gap: var(--space-2);
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-wrap: nowrap;
+  margin-left: auto;
 }
 
-.perm-section__list {
+.role-modal__perm-list {
   padding: var(--space-2) var(--space-3);
   overflow: auto;
-  max-height: 360px;
+  max-height: 52vh;
+  min-height: 0;
 }
 
-.perm-section__empty {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  padding: var(--space-2) 0;
-}
-
-.perm-item {
+.role-modal__perm-item {
   display: grid;
-  grid-template-columns: 16px 1fr;
+  grid-template-columns: 16px minmax(0, 1fr);
   gap: var(--space-2);
   align-items: start;
-  padding: 4px 0;
-  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
-.perm-item__text {
-  display: flex;
-  flex-direction: column;
+.role-modal__perm-item:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+}
+
+.role-modal__perm-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #000000;
+}
+
+.role-modal__perm-text {
+  display: grid;
   gap: 1px;
   min-width: 0;
 }
 
-.perm-item__name {
-  color: var(--color-text);
-  line-height: 1.2;
-}
-
-.perm-item__code {
-  font-size: var(--text-size-down);
-  color: var(--color-text-subtle);
+.role-modal__perm-text > span:last-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.role-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
 }
 
 @media (max-width: 900px) {
@@ -2297,11 +2287,16 @@ body.interface-user .button {
     grid-template-columns: 1fr;
   }
 
-  .modal__grid {
-    grid-template-columns: 1fr;
+  .role-modal-overlay {
+    padding: var(--space-2);
   }
 
-  .perm-sections {
+  .role-modal {
+    width: calc(100vw - 12px);
+    max-height: calc(100vh - 12px);
+  }
+
+  .role-modal__layout {
     grid-template-columns: 1fr;
   }
 
