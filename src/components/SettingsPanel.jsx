@@ -44,7 +44,6 @@ const SettingsPanel = ({ section = 'all' }) => {
   const [activeReasonState, setActiveReasonState] = useState(50) // 50=Не оформлен, 40=Отказ
   const [allowedReasonIds, setAllowedReasonIds] = useState(new Set())
   const [allowedLoading, setAllowedLoading] = useState(false)
-  const [visitDictionaryTab, setVisitDictionaryTab] = useState('goals')
   const [productionCalendarInitialEnabled, setProductionCalendarInitialEnabled] = useState(false)
 
   // Типы уведомлений (fallback, если metadata отсутствует)
@@ -932,6 +931,203 @@ const SettingsPanel = ({ section = 'all' }) => {
     );
   }
 
+  const renderVisitGoalsSection = (wrapItem = false) => (
+    <div key="goals" className={`panel section${wrapItem ? ' section-group__item' : ''}`}>
+      <header className="section__header section__header--start">
+        <h3 className="panel__title">Цели визита</h3>
+      </header>
+      <div className="section__body">
+        <div className="row-wrap section-block-end">
+          <input
+            type="text"
+            className="input text text--down input--grow"
+            value={newGoalName}
+            onChange={(e) => setNewGoalName(e.target.value)}
+            placeholder="Новая цель визита"
+          />
+          <button
+            className="button button--primary button--small"
+            onClick={handleCreateGoal}
+            disabled={goalsLoading}
+          >
+            Добавить
+          </button>
+        </div>
+        <div className="column-stack">
+          {visitGoals.length === 0 ? (
+            <div className="text text--muted">Целей визита пока нет</div>
+          ) : (
+            visitGoals.map((goal) => (
+              <div key={goal.id} className="list-row">
+                <div>
+                  <div className="text">{goal.name}</div>
+                  <div className="text text--down text--muted">
+                    {goal.is_active ? 'Активна' : 'Неактивна'}
+                  </div>
+                </div>
+                <button
+                  className={`button button--small${goal.is_active ? '' : ' button--primary'}`}
+                  onClick={() => handleToggleGoal(goal.id, !goal.is_active)}
+                  disabled={goalsLoading}
+                >
+                  {goal.is_active ? 'Скрыть' : 'Восстановить'}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderVisitReasonsSection = (wrapItem = false) => (
+    <div key="reasons" className={`panel section${wrapItem ? ' section-group__item' : ''}`}>
+      <header className="section__header section__header--start">
+        <h3 className="panel__title">Результаты и причины</h3>
+      </header>
+      <div className="section__body">
+        <div className="section-card section-card__body section-block-end">
+          <div className="text text--down text--muted section-label">
+            Где используются причины
+          </div>
+          <div className="row-wrap">
+            <button
+              className={`button button--small${Number(activeReasonState) === 50 ? ' button--primary' : ''}`}
+              onClick={() => setActiveReasonState(50)}
+            >
+              Не оформлен (50)
+            </button>
+            <button
+              className={`button button--small${Number(activeReasonState) === 40 ? ' button--primary' : ''}`}
+              onClick={() => setActiveReasonState(40)}
+            >
+              Отказ (40)
+            </button>
+          </div>
+        </div>
+        <div className="row-wrap section-block-end">
+          <input
+            type="text"
+            className="input text text--down input--grow"
+            value={newReasonName}
+            onChange={(e) => setNewReasonName(e.target.value)}
+            placeholder="Новая причина результата"
+          />
+          <button
+            className="button button--primary button--small"
+            onClick={handleCreateReason}
+            disabled={reasonsLoading}
+          >
+            Добавить
+          </button>
+        </div>
+        <div className="list-grid">
+          <div>
+            <div className="text text--down text--muted section-label">
+              Все причины
+            </div>
+            <div className="column-stack">
+              {reasonsLoading ? (
+                <div className="text text--muted">Загрузка...</div>
+              ) : allReasons.length === 0 ? (
+                <div className="text text--muted">Причин пока нет</div>
+              ) : (
+                allReasons.map((reason) => {
+                  const editValue = reasonEdits[reason.id] ?? reason.name
+                  const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
+                  return (
+                    <div key={reason.id} className="list-row">
+                      <div className="list-row__main">
+                        <input
+                          type="text"
+                          className="input text text--down input--wide"
+                          value={editValue}
+                          onChange={(e) =>
+                            setReasonEdits((prev) => ({
+                              ...prev,
+                              [reason.id]: e.target.value,
+                            }))
+                          }
+                        />
+                        <div className="text text--down text--muted list-row__meta">
+                          {reason.is_active ? 'Активна' : 'Неактивна'}
+                        </div>
+                      </div>
+                      <div className="column-stack">
+                        <button
+                          className="button button--small"
+                          onClick={() => handleUpdateReasonName(reason.id)}
+                          disabled={!isNameChanged}
+                        >
+                          Сохранить
+                        </button>
+                        <button
+                          className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
+                          onClick={() => handleToggleReason(reason.id, !reason.is_active)}
+                          disabled={reasonsLoading}
+                        >
+                          {reason.is_active ? 'Скрыть' : 'Восстановить'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+          <div>
+            <div className="text text--down text--muted section-label">
+              Разрешены для state={Number(activeReasonState)}
+            </div>
+            <div className="section-label">
+              <button
+                className="button button--small button--primary"
+                onClick={handleSaveAllowed}
+                disabled={allowedLoading}
+              >
+                Сохранить список
+              </button>
+            </div>
+            <div className="list-checklist">
+              {allowedLoading ? (
+                <div className="text text--muted">Загрузка...</div>
+              ) : allReasons.length === 0 ? (
+                <div className="text text--muted">Сначала добавьте причины</div>
+              ) : (
+                allReasons.map((reason) => {
+                  const checked = allowedReasonIds.has(reason.id)
+                  return (
+                    <label
+                      key={reason.id}
+                      className="text text--down check-inline"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => handleToggleAllowed(reason.id)}
+                      />
+                      <span className={reason.is_active ? '' : 'item--inactive'}>{reason.name}</span>
+                    </label>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (section === 'visit-dictionaries') {
+    return (
+      <div className="section-stack">
+        {error && <div className="error-message section-block-end">{error}</div>}
+        {renderVisitGoalsSection(false)}
+        {renderVisitReasonsSection(false)}
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className={`${panelClassName} section`}>
@@ -1346,204 +1542,10 @@ const SettingsPanel = ({ section = 'all' }) => {
           )}
 
           {showVisitDictionaries && (
-          <div className="section-block-start">
-            <div className="row-wrap section-block-end">
-              <button
-                className={`button button--small${visitDictionaryTab === 'goals' ? ' button--primary' : ''}`}
-                onClick={() => setVisitDictionaryTab('goals')}
-              >
-                Цели визита
-              </button>
-              <button
-                className={`button button--small${visitDictionaryTab === 'reasons' ? ' button--primary' : ''}`}
-                onClick={() => setVisitDictionaryTab('reasons')}
-              >
-                Результаты и причины
-              </button>
-            </div>
-
-            {visitDictionaryTab === 'goals' ? (
-              <div>
-                <div className="section-card section-card__body row-wrap section-block-end">
-                  <input
-                    type="text"
-                    className="input text text--down input--grow"
-                    value={newGoalName}
-                    onChange={(e) => setNewGoalName(e.target.value)}
-                    placeholder="Новая цель визита"
-                  />
-                  <button
-                    className="button button--primary button--small"
-                    onClick={handleCreateGoal}
-                    disabled={goalsLoading}
-                  >
-                    Добавить
-                  </button>
-                </div>
-
-                <div className="column-stack">
-                  {visitGoals.length === 0 ? (
-                    <div className="text text--muted">Целей визита пока нет</div>
-                  ) : (
-                    visitGoals.map((goal) => (
-                      <div
-                        key={goal.id}
-                        className="list-row"
-                      >
-                        <div>
-                          <div className="text">{goal.name}</div>
-                          <div className="text text--down text--muted">
-                            {goal.is_active ? 'Активна' : 'Неактивна'}
-                          </div>
-                        </div>
-                        <button
-                          className={`button button--small${goal.is_active ? '' : ' button--primary'}`}
-                          onClick={() => handleToggleGoal(goal.id, !goal.is_active)}
-                          disabled={goalsLoading}
-                        >
-                          {goal.is_active ? 'Скрыть' : 'Восстановить'}
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div className="section-card section-card__body section-block-end">
-                  <div className="text text--down text--muted section-label">
-                    Где используются причины
-                  </div>
-                  <div className="row-wrap">
-                    <button
-                      className={`button button--small${Number(activeReasonState) === 50 ? ' button--primary' : ''}`}
-                      onClick={() => setActiveReasonState(50)}
-                    >
-                      Не оформлен (50)
-                    </button>
-                    <button
-                      className={`button button--small${Number(activeReasonState) === 40 ? ' button--primary' : ''}`}
-                      onClick={() => setActiveReasonState(40)}
-                    >
-                      Отказ (40)
-                    </button>
-                  </div>
-                </div>
-
-                <div className="section-card section-card__body row-wrap section-block-end">
-                  <input
-                    type="text"
-                    className="input text text--down input--grow"
-                    value={newReasonName}
-                    onChange={(e) => setNewReasonName(e.target.value)}
-                    placeholder="Новая причина результата"
-                  />
-                  <button
-                    className="button button--primary button--small"
-                    onClick={handleCreateReason}
-                    disabled={reasonsLoading}
-                  >
-                    Добавить
-                  </button>
-                </div>
-
-                <div className="list-grid">
-                  <div>
-                    <div className="text text--down text--muted section-label">
-                      Все причины
-                    </div>
-                    <div className="column-stack">
-                      {reasonsLoading ? (
-                        <div className="text text--muted">Загрузка...</div>
-                      ) : allReasons.length === 0 ? (
-                        <div className="text text--muted">Причин пока нет</div>
-                      ) : (
-                        allReasons.map((reason) => {
-                          const editValue = reasonEdits[reason.id] ?? reason.name
-                          const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
-                          return (
-                            <div key={reason.id} className="list-row">
-                              <div className="list-row__main">
-                                <input
-                                  type="text"
-                                  className="input text text--down input--wide"
-                                  value={editValue}
-                                  onChange={(e) =>
-                                    setReasonEdits((prev) => ({
-                                      ...prev,
-                                      [reason.id]: e.target.value,
-                                    }))
-                                  }
-                                />
-                                <div className="text text--down text--muted list-row__meta">
-                                  {reason.is_active ? 'Активна' : 'Неактивна'}
-                                </div>
-                              </div>
-                              <div className="column-stack">
-                                <button
-                                  className="button button--small"
-                                  onClick={() => handleUpdateReasonName(reason.id)}
-                                  disabled={!isNameChanged}
-                                >
-                                  Сохранить
-                                </button>
-                                <button
-                                  className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
-                                  onClick={() => handleToggleReason(reason.id, !reason.is_active)}
-                                  disabled={reasonsLoading}
-                                >
-                                  {reason.is_active ? 'Скрыть' : 'Восстановить'}
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        })
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text text--down text--muted section-label">
-                      Разрешены для state={Number(activeReasonState)}
-                    </div>
-                    <div className="section-label">
-                      <button
-                        className="button button--small button--primary"
-                        onClick={handleSaveAllowed}
-                        disabled={allowedLoading}
-                      >
-                        Сохранить список
-                      </button>
-                    </div>
-                    <div className="list-checklist">
-                      {allowedLoading ? (
-                        <div className="text text--muted">Загрузка...</div>
-                      ) : allReasons.length === 0 ? (
-                        <div className="text text--muted">Сначала добавьте причины</div>
-                      ) : (
-                        allReasons.map((reason) => {
-                          const checked = allowedReasonIds.has(reason.id)
-                          return (
-                            <label
-                              key={reason.id}
-                              className="text text--down check-inline"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => handleToggleAllowed(reason.id)}
-                              />
-                              <span className={reason.is_active ? '' : 'item--inactive'}>{reason.name}</span>
-                            </label>
-                          )
-                        })
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            <>
+              {renderVisitGoalsSection(true)}
+              {renderVisitReasonsSection(true)}
+            </>
           )}
         </div>
       </div>
