@@ -1843,6 +1843,12 @@ body.interface-user .button {
   font-size: var(--text-size-base);
 }
 
+.user-management .table,
+.role-management .table {
+  border-collapse: separate;
+  border-spacing: 0 2px;
+}
+
 .user-management .table th:nth-child(7) {
   width: 11%;
 }
@@ -1914,17 +1920,51 @@ body.interface-user .button {
   text-align: center;
 }
 
+.user-management .table td {
+  border-bottom: none;
+}
+
 .user-management .table td:nth-child(7) .table__actions {
   justify-content: center;
 }
 
-.user-management .table tbody tr td {
+.user-management .table tbody tr td,
+.role-management .table tbody tr td {
+  background: var(--color-surface);
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
   transition: background-color 0.15s ease;
 }
 
-.user-management .table tbody tr:hover td {
+.user-management .table tbody tr td:first-child,
+.role-management .table tbody tr td:first-child {
+  border-left: 1px solid transparent;
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.user-management .table tbody tr td:last-child,
+.role-management .table tbody tr td:last-child {
+  border-right: 1px solid transparent;
+  border-top-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.user-management .table tbody tr:hover td,
+.role-management .table tbody tr:hover td {
   background: var(--color-surface-muted);
-  box-shadow: inset 0 1px 0 var(--color-border), inset 0 -1px 0 var(--color-border);
+  border-top-color: var(--color-border);
+  border-bottom-color: var(--color-border);
+}
+
+.user-management .table tbody tr:hover td:first-child,
+.role-management .table tbody tr:hover td:first-child {
+  border-left-color: var(--color-border);
+}
+
+.user-management .table tbody tr:hover td:last-child,
+.role-management .table tbody tr:hover td:last-child {
+  border-right-color: var(--color-border);
 }
 
 .role-list {
@@ -1968,19 +2008,11 @@ body.interface-user .button {
 
 .role-management .table td {
   white-space: nowrap;
+  border-bottom: none;
 }
 
 .role-management .table td:nth-child(4) .table__actions {
   justify-content: center;
-}
-
-.role-management .table tbody tr td {
-  transition: background-color 0.15s ease;
-}
-
-.role-management .table tbody tr:hover td {
-  background: var(--color-surface-muted);
-  box-shadow: inset 0 1px 0 var(--color-border), inset 0 -1px 0 var(--color-border);
 }
 
 .role-list__empty {
@@ -2147,9 +2179,13 @@ body.interface-user .button {
 }
 
 .role-modal__card-title {
-  padding: var(--space-2) var(--space-3);
+  padding: 0 var(--space-3);
   border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
+  height: 36px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
 .role-modal__fields {
@@ -2169,13 +2205,15 @@ body.interface-user .button {
 }
 
 .role-modal__perm-head {
-  padding: var(--space-2) var(--space-3);
+  padding: 0 var(--space-3);
   border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  height: 36px;
+  box-sizing: border-box;
 }
 
 .role-modal__perm-actions {
@@ -2191,6 +2229,7 @@ body.interface-user .button {
   font-size: var(--text-size-down);
   line-height: 1.2;
   white-space: nowrap;
+  align-self: center;
 }
 
 .role-modal__perm-list {
