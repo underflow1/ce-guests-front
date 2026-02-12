@@ -268,9 +268,19 @@ const RoleManagement = ({ embedded = false }) => {
   }, [displayError, pushToast])
 
   return (
-    <div className="panel" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
+    <div className="panel role-management" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
       <header className="panel__header">
         <h2 className="panel__title">Управление ролями</h2>
+        <button
+          className="icon-action-button icon-action-button--primary"
+          onClick={openCreate}
+          disabled={loading}
+          title="Добавить роль"
+          aria-label="Добавить роль"
+          style={{ gridColumn: 3 }}
+        >
+          <i className="fa-solid fa-plus" aria-hidden="true" />
+        </button>
       </header>
 
       {loadingRoles ? (
@@ -305,27 +315,28 @@ const RoleManagement = ({ embedded = false }) => {
                     </div>
 
                     <div className="role-row__actions">
-                      <button className="button button--primary button--small" onClick={() => openEdit(role)}>
-                        Редактировать
+                      <button
+                        className="icon-action-button icon-action-button--primary"
+                        onClick={() => openEdit(role)}
+                        title="Редактировать роль"
+                        aria-label="Редактировать роль"
+                      >
+                        <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
                       </button>
                       <button
-                        className="button button--small button--danger"
+                        className="icon-action-button icon-action-button--danger"
                         onClick={() => handleDelete(role.id)}
                         disabled={loading}
+                        title="Удалить роль"
+                        aria-label="Удалить роль"
                       >
-                        Удалить
+                        <i className="fa-solid fa-trash" aria-hidden="true" />
                       </button>
                     </div>
                   </div>
                 )
               })
             )}
-          </div>
-
-          <div style={{ marginTop: 'var(--space-3)' }}>
-            <button className="button button--primary button--small" onClick={openCreate} disabled={loading}>
-              + Добавить роль
-            </button>
           </div>
 
           {modal.open && (
