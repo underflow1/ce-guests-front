@@ -45,6 +45,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
   const [allowedReasonIds, setAllowedReasonIds] = useState(new Set())
   const [allowedLoading, setAllowedLoading] = useState(false)
   const [visitDictionaryTab, setVisitDictionaryTab] = useState('goals')
+  const [productionCalendarInitialEnabled, setProductionCalendarInitialEnabled] = useState(false)
 
   // Типы уведомлений (fallback, если metadata отсутствует)
   const fallbackNotificationTypes = [
@@ -148,6 +149,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
               status: productionCalendar.status || null,
             },
           })
+          setProductionCalendarInitialEnabled(!!productionCalendar.enabled)
         }
       } catch (err) {
         // Если настройки не найдены, используем значения по умолчанию
@@ -290,6 +292,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
             status: updatedSettings.production_calendar.status || null,
           },
         }))
+        setProductionCalendarInitialEnabled(!!updatedSettings.production_calendar.enabled)
       }
       pushToast({
         type: 'success',
@@ -543,12 +546,26 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
     : lastClearedAtText
       ? `Последняя очистка: ${lastClearedAtText}`
       : 'Загрузок еще не было'
+  const isCalendarDirty =
+    !!form.production_calendar &&
+    !!(section === 'production-calendar') &&
+    !!(form.production_calendar.enabled !== productionCalendarInitialEnabled)
+
+  const handleCancelProductionCalendar = () => {
+    setForm((prev) => ({
+      ...prev,
+      production_calendar: {
+        ...(prev.production_calendar || {}),
+        enabled: productionCalendarInitialEnabled,
+      },
+    }))
+  }
 
   const showNotifications = section === 'all' || section === 'notifications'
   const showPasses = section === 'all' || section === 'passes'
   const showCalendar = section === 'all' || section === 'production-calendar'
   const showVisitDictionaries = section === 'all' || section === 'visit-dictionaries'
-  const canSaveSettings = showNotifications || showPasses || showCalendar
+  const canSaveSettings = showNotifications || showPasses
 
   return (
     <div style={{ padding: embedded ? 0 : 'var(--space-6)' }}>
@@ -575,7 +592,10 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
           )}
         </header>
 
-        <div className="panel__content" style={{ maxHeight: '70vh' }}>
+        <div
+          className="panel__content"
+          style={{ maxHeight: '70vh', marginTop: section === 'production-calendar' ? 'var(--space-2)' : undefined }}
+        >
           {error && (
             <div className="error-message" style={{ marginBottom: 'var(--space-4)' }}>
               {error}
@@ -716,18 +736,16 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
           )}
 
           {showCalendar && (
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Производственный календарь
-            </h3>
+          <div style={{ marginBottom: section === 'production-calendar' ? 0 : 'var(--space-4)' }}>
+            {section === 'all' && (
+              <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
+                Производственный календарь
+              </h3>
+            )}
 
-            <div
-              className="settings-subpanel"
-              style={{
-                padding: 'var(--space-4)',
-              }}
-            >
-              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
+            <div className="settings-section settings-calendar">
+              <div className="settings-calendar__body">
+                <label className="settings-calendar__toggle">
                 <input
                   type="checkbox"
                   checked={!!form.production_calendar?.enabled}
@@ -740,40 +758,58 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                       },
                     }))
                   }
-                  style={{ cursor: 'pointer' }}
                 />
-                <span>Использовать производственный календарь</span>
-              </label>
+                  <span className="text">Использовать производственный календарь</span>
+                </label>
 
-              <div
-                className="text text--down"
-                style={{
-                  marginTop: 'var(--space-3)',
-                  color: isProductionCalendarLoaded ? '#1d7a35' : '#b42318',
-                }}
-              >
-                {productionCalendarStatusText}
-              </div>
-              <div className="text text--down text--muted" style={{ marginTop: 'var(--space-1)' }}>
-                {productionCalendarMetaText}
+                <div
+                  className="text text--down settings-calendar__status"
+                  style={{
+                    color: isProductionCalendarLoaded ? '#1d7a35' : '#b42318',
+                  }}
+                >
+                  {productionCalendarStatusText}
+                </div>
+                <div className="text text--down text--muted settings-calendar__meta">
+                  {productionCalendarMetaText}
+                </div>
+
+                <div className="settings-calendar__actions">
+                  <button
+                    className="button button--small button--primary"
+                    onClick={handleLoadProductionCalendar}
+                    disabled={loading || calendarActionLoading}
+                  >
+                    {calendarActionLoading ? 'Выполняется...' : `Загрузить ${currentYear}`}
+                  </button>
+                  <button
+                    className="button button--small"
+                    onClick={handleClearProductionCalendar}
+                    disabled={loading || calendarActionLoading}
+                  >
+                    {calendarActionLoading ? 'Выполняется...' : `Очистить ${currentYear}`}
+                  </button>
+                </div>
               </div>
 
-              <div style={{ marginTop: 'var(--space-3)', display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-                <button
-                  className="button button--small button--primary"
-                  onClick={handleLoadProductionCalendar}
-                  disabled={loading || calendarActionLoading}
-                >
-                  {calendarActionLoading ? 'Выполняется...' : `Загрузить ${currentYear}`}
-                </button>
-                <button
-                  className="button button--small"
-                  onClick={handleClearProductionCalendar}
-                  disabled={loading || calendarActionLoading}
-                >
-                  {calendarActionLoading ? 'Выполняется...' : `Очистить ${currentYear}`}
-                </button>
-              </div>
+              {section === 'production-calendar' && (
+                <div className="settings-calendar__footer">
+                  <button
+                    className="button button--small"
+                    onClick={handleCancelProductionCalendar}
+                    disabled={loading || calendarActionLoading || !isCalendarDirty}
+                  >
+                    Отменить
+                  </button>
+                  <button
+                    className="button button--primary button--small"
+                    onClick={handleSave}
+                    disabled={loading || calendarActionLoading || !isCalendarDirty}
+                  >
+                    Сохранить
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           )}

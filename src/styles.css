@@ -1805,6 +1805,74 @@ body.interface-user .button {
   background-color: var(--color-surface);
 }
 
+.settings-section {
+  background: var(--color-surface);
+}
+
+.settings-section--compact {
+  padding: var(--space-3);
+}
+
+.settings-calendar__body {
+  padding: var(--space-2) var(--space-3);
+}
+
+.settings-calendar__toggle {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-calendar__toggle:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+}
+
+.settings-calendar__toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #000000;
+}
+
+.settings-calendar__status {
+  margin-top: var(--space-2);
+}
+
+.settings-calendar__meta {
+  margin-top: var(--space-1);
+}
+
+.settings-calendar__actions {
+  margin-top: var(--space-2);
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.settings-calendar__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.settings-section__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
 .settings-dict-grid {
   display: grid;
   gap: var(--space-4);
