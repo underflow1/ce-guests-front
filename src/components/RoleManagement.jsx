@@ -268,74 +268,82 @@ const RoleManagement = ({ embedded = false }) => {
   }, [displayError, pushToast])
 
   return (
-    <div className="panel role-management" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
+    <div
+      className="panel role-management"
+      style={embedded ? { width: '100%' } : { maxWidth: '66.666%', margin: '0 auto' }}
+    >
       <header className="panel__header">
         <h2 className="panel__title">Управление ролями</h2>
         <button
-          className="icon-action-button icon-action-button--primary"
+          className="button button--primary button--small"
           onClick={openCreate}
           disabled={loading}
           title="Добавить роль"
           aria-label="Добавить роль"
           style={{ gridColumn: 3 }}
         >
-          <i className="fa-solid fa-plus" aria-hidden="true" />
+          + Добавить роль
         </button>
       </header>
 
       {loadingRoles ? (
         <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>
       ) : (
-        <div className="panel__content">
+        <div className="panel__content" style={{ overflowX: 'auto' }}>
           <div className="role-list">
             {roles.length === 0 ? (
               <div className="role-list__empty">Роли не найдены</div>
             ) : (
-              roles.map((role) => {
-                const rolePerms = Array.isArray(role.permissions) ? role.permissions : []
-                const uiCount = rolePerms.filter((p) => isUiPermission(p)).length
-                const otherCount = rolePerms.length - uiCount
+              <table className="table role-management__table">
+                <thead>
+                  <tr>
+                    <th>Роль</th>
+                    <th>Описание</th>
+                    <th>Права</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {roles.map((role) => {
+                    const rolePerms = Array.isArray(role.permissions) ? role.permissions : []
+                    const uiCount = rolePerms.filter((p) => isUiPermission(p)).length
+                    const otherCount = rolePerms.length - uiCount
 
-                return (
-                  <div className="role-row" key={role.id}>
-                    <div className="role-row__main">
-                      <div className="role-row__title">
-                        <span className="role-row__name">{role.name}</span>
-                      </div>
-                      <div className="role-row__desc" title={role.description || ''}>
-                        {role.description || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
-                      </div>
-                    </div>
-
-                    <div className="role-row__summary">
-                      <div className="role-row__perms">
-                        <span className="role-row__perm-pill">UI: {uiCount}</span>
-                        <span className="role-row__perm-pill">Остальные: {otherCount}</span>
-                      </div>
-                    </div>
-
-                    <div className="role-row__actions">
-                      <button
-                        className="icon-action-button icon-action-button--primary"
-                        onClick={() => openEdit(role)}
-                        title="Редактировать роль"
-                        aria-label="Редактировать роль"
-                      >
-                        <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
-                      </button>
-                      <button
-                        className="icon-action-button icon-action-button--danger"
-                        onClick={() => handleDelete(role.id)}
-                        disabled={loading}
-                        title="Удалить роль"
-                        aria-label="Удалить роль"
-                      >
-                        <i className="fa-solid fa-trash" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                )
-              })
+                    return (
+                      <tr key={role.id}>
+                        <td title={role.name}>{role.name}</td>
+                        <td title={role.description || ''}>
+                          {role.description || 'Описание роли не указано'}
+                        </td>
+                        <td title={`UI: ${uiCount}, Backend: ${otherCount}`}>
+                          UI: {uiCount}, Backend: {otherCount}
+                        </td>
+                        <td>
+                          <div className="table__actions">
+                            <button
+                              className="icon-action-button icon-action-button--primary"
+                              onClick={() => openEdit(role)}
+                              title="Редактировать роль"
+                              aria-label="Редактировать роль"
+                            >
+                              <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                            </button>
+                            <button
+                              className="icon-action-button icon-action-button--danger"
+                              onClick={() => handleDelete(role.id)}
+                              disabled={loading}
+                              title="Удалить роль"
+                              aria-label="Удалить роль"
+                            >
+                              <i className="fa-solid fa-trash" aria-hidden="true" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
 
