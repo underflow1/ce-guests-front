@@ -63,25 +63,29 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
     { code: 'pass_revoked', title: 'Пропуск отозван' },
   ]
   const [availableTypes, setAvailableTypes] = useState(fallbackNotificationTypes)
+  const createDefaultNotifications = () => ({
+    providers: {
+      max_via_green_api: {
+        enabled: false,
+        base_url: '',
+        instance_id: '',
+        api_token: '',
+        chat_id: '',
+      },
+      telegram: {
+        enabled: false,
+        bot_token: '',
+        chat_id: '',
+      },
+    },
+    enabled_notification_types: fallbackNotificationTypes.map((t) => t.code),
+  })
+  const cloneNotifications = (value) => JSON.parse(JSON.stringify(value))
 
   // Форма настроек
   const [form, setForm] = useState({
     notifications: {
-      providers: {
-        max_via_green_api: {
-          enabled: false,
-          base_url: '',
-          instance_id: '',
-          api_token: '',
-          chat_id: '',
-        },
-        telegram: {
-          enabled: false,
-          bot_token: '',
-          chat_id: '',
-        },
-      },
-      enabled_notification_types: fallbackNotificationTypes.map((t) => t.code),
+      ...createDefaultNotifications(),
     },
     pass_integration: {
       enabled: false,
@@ -96,6 +100,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
       status: null,
     },
   })
+  const [notificationsInitial, setNotificationsInitial] = useState(() => cloneNotifications(createDefaultNotifications()))
 
   // Загрузить настройки при монтировании
   useEffect(() => {
@@ -118,24 +123,26 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
 
           setAvailableTypes(normalizedTypes)
 
-          setForm({
-            notifications: {
-              providers: {
-                max_via_green_api: {
-                  enabled: !!maxProvider.enabled,
-                  base_url: maxProvider.base_url || '',
-                  instance_id: maxProvider.instance_id || '',
-                  api_token: maxProvider.api_token || '',
-                  chat_id: maxProvider.chat_id || '',
-                },
-                telegram: {
-                  enabled: !!telegramProvider.enabled,
-                  bot_token: telegramProvider.bot_token || '',
-                  chat_id: telegramProvider.chat_id || '',
-                },
+          const loadedNotifications = {
+            providers: {
+              max_via_green_api: {
+                enabled: !!maxProvider.enabled,
+                base_url: maxProvider.base_url || '',
+                instance_id: maxProvider.instance_id || '',
+                api_token: maxProvider.api_token || '',
+                chat_id: maxProvider.chat_id || '',
               },
-              enabled_notification_types: enabledTypes,
+              telegram: {
+                enabled: !!telegramProvider.enabled,
+                bot_token: telegramProvider.bot_token || '',
+                chat_id: telegramProvider.chat_id || '',
+              },
             },
+            enabled_notification_types: enabledTypes,
+          }
+
+          setForm({
+            notifications: loadedNotifications,
             pass_integration: {
               enabled: !!passIntegration.enabled,
               base_url: passIntegration.base_url || '',
@@ -149,11 +156,13 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
               status: productionCalendar.status || null,
             },
           })
+          setNotificationsInitial(cloneNotifications(loadedNotifications))
           setProductionCalendarInitialEnabled(!!productionCalendar.enabled)
         }
       } catch (err) {
         // Если настройки не найдены, используем значения по умолчанию
         console.log('Настройки не найдены, используем значения по умолчанию')
+        setNotificationsInitial(cloneNotifications(createDefaultNotifications()))
       }
     }
     loadSettings()
@@ -284,6 +293,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
         },
       }
       const updatedSettings = await updateSettings(settingsData)
+      setNotificationsInitial(cloneNotifications(settingsData.notifications))
       if (updatedSettings?.production_calendar) {
         setForm((prev) => ({
           ...prev,
@@ -566,6 +576,17 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
   const showCalendar = section === 'all' || section === 'production-calendar'
   const showVisitDictionaries = section === 'all' || section === 'visit-dictionaries'
   const canSaveSettings = showNotifications || showPasses
+  const showHeaderSave = canSaveSettings && !showNotifications
+  const hidePanelHeader = section === 'notifications'
+  const panelClassName = hidePanelHeader ? 'settings-panel-frameless' : 'panel'
+  const isNotificationsDirty =
+    JSON.stringify(form.notifications) !== JSON.stringify(notificationsInitial)
+  const handleCancelNotifications = () => {
+    setForm((prev) => ({
+      ...prev,
+      notifications: cloneNotifications(notificationsInitial),
+    }))
+  }
 
   return (
     <div style={{ padding: embedded ? 0 : 'var(--space-6)' }}>
@@ -575,23 +596,27 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
         </button>
       )}
 
-      <div className="panel" style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
-        <header className="panel__header settings-bar">
-          <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
-          {canSaveSettings && (
-            <button
-              className="button button--primary button--small"
-              onClick={handleSave}
-              disabled={loading || calendarActionLoading || !isFormValid()}
-            >
-              {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
-            </button>
-          )}
-        </header>
+      <div className={panelClassName} style={{ maxWidth: embedded ? '100%' : '66.666%', margin: '0 auto' }}>
+        {!hidePanelHeader && (
+          <header className="panel__header settings-bar">
+            <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
+            {showHeaderSave && (
+              <button
+                className="button button--primary button--small"
+                onClick={handleSave}
+                disabled={loading || calendarActionLoading || !isFormValid()}
+              >
+                {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
+              </button>
+            )}
+          </header>
+        )}
 
         <div
           className={`panel__content settings-panel__content${
-            section === 'production-calendar' ? ' panel__content--flush-top' : ''
+            section === 'production-calendar' || section === 'notifications'
+              ? ' panel__content--flush-top'
+              : ''
           }`}
         >
           {error && (
@@ -601,136 +626,160 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
           )}
 
           {showNotifications && (
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Уведомления
-            </h3>
-
-            <div
-              className="settings-subpanel"
-              style={{
-                padding: 'var(--space-4)',
-                marginBottom: 'var(--space-4)',
-              }}
-            >
-              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={form.notifications.providers.max_via_green_api.enabled}
-                  onChange={(e) => toggleProviderEnabled('max_via_green_api', e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                <span>Мессенджер MAX (через Green API)</span>
-              </label>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Базовый URL:
+          <>
+            <div className="settings-section-shell settings-section-group__item">
+              <header className="settings-section-shell__header settings-bar">
+                <div className="text text--bold">MAX</div>
+              </header>
+              <div className="settings-section-shell__body settings-notify__body">
+                <label className="settings-calendar__toggle">
+                  <input
+                    type="checkbox"
+                    checked={form.notifications.providers.max_via_green_api.enabled}
+                    onChange={(e) => toggleProviderEnabled('max_via_green_api', e.target.checked)}
+                  />
+                  <span className="text">Использовать</span>
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.max_via_green_api.base_url}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'base_url', e.target.value)}
-                  disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="https://3100.api.green-api.com/v3"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Instance ID:
+                <label className="settings-notify__field">
+                  <span className="text text--muted">Базовый URL:</span>
+                  <input
+                    type="text"
+                    className="input text text--down settings-notify__input"
+                    value={form.notifications.providers.max_via_green_api.base_url}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'base_url', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="https://3100.api.green-api.com/v3"
+                  />
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.max_via_green_api.instance_id}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'instance_id', e.target.value)}
-                  disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="110000"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  API Token:
+                <label className="settings-notify__field">
+                  <span className="text text--muted">Instance ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down settings-notify__input"
+                    value={form.notifications.providers.max_via_green_api.instance_id}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'instance_id', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="110000"
+                  />
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.max_via_green_api.api_token}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'api_token', e.target.value)}
-                  disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="token123"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Chat ID:
+                <label className="settings-notify__field">
+                  <span className="text text--muted">API Token:</span>
+                  <input
+                    type="password"
+                    className="input text text--down settings-notify__input"
+                    value={form.notifications.providers.max_via_green_api.api_token}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'api_token', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="token123"
+                  />
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.max_via_green_api.chat_id}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'chat_id', e.target.value)}
-                  disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="chat123"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
+                <label className="settings-notify__field">
+                  <span className="text text--muted">Chat ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down settings-notify__input"
+                    value={form.notifications.providers.max_via_green_api.chat_id}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'chat_id', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="chat123"
+                  />
+                </label>
               </div>
+              <footer className="settings-section-shell__footer settings-bar">
+                <button
+                  className="button button--small"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--small button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
             </div>
 
-            <div
-              className="settings-subpanel"
-              style={{
-                padding: 'var(--space-4)',
-              }}
-            >
-              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={form.notifications.providers.telegram.enabled}
-                  onChange={(e) => toggleProviderEnabled('telegram', e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                <span>Telegram (Bot API)</span>
-              </label>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Bot Token:
+            <div className="settings-section-shell settings-section-group__item">
+              <header className="settings-section-shell__header settings-bar">
+                <div className="text text--bold">Telegram</div>
+              </header>
+              <div className="settings-section-shell__body settings-notify__body">
+                <label className="settings-calendar__toggle">
+                  <input
+                    type="checkbox"
+                    checked={form.notifications.providers.telegram.enabled}
+                    onChange={(e) => toggleProviderEnabled('telegram', e.target.checked)}
+                  />
+                  <span className="text">Использовать</span>
                 </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.telegram.bot_token}
-                  onChange={(e) => updateProviderConfig('telegram', 'bot_token', e.target.value)}
-                  disabled={!form.notifications.providers.telegram.enabled}
-                  placeholder="token123"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
+                <label className="settings-notify__field">
+                  <span className="text text--muted">Bot Token:</span>
+                  <input
+                    type="password"
+                    className="input text text--down settings-notify__input"
+                    value={form.notifications.providers.telegram.bot_token}
+                    onChange={(e) => updateProviderConfig('telegram', 'bot_token', e.target.value)}
+                    disabled={!form.notifications.providers.telegram.enabled}
+                    placeholder="token123"
+                  />
+                </label>
+                <label className="settings-notify__field">
+                  <span className="text text--muted">Chat ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down settings-notify__input"
+                    value={form.notifications.providers.telegram.chat_id}
+                    onChange={(e) => updateProviderConfig('telegram', 'chat_id', e.target.value)}
+                    disabled={!form.notifications.providers.telegram.enabled}
+                    placeholder="chat456"
+                  />
+                </label>
               </div>
+              <footer className="settings-section-shell__footer settings-bar">
+                <button
+                  className="button button--small"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--small button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
+            </div>
 
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Chat ID:
-                </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.telegram.chat_id}
-                  onChange={(e) => updateProviderConfig('telegram', 'chat_id', e.target.value)}
-                  disabled={!form.notifications.providers.telegram.enabled}
-                  placeholder="chat456"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
+            <div className="settings-section-shell settings-section-group__item">
+              <header className="settings-section-shell__header settings-bar">
+                <div className="text text--bold">Типы уведомлений</div>
+              </header>
+              <div className="settings-section-shell__body settings-notify__body">
+                <div className="settings-notify__types">
+                  {availableTypes.map((type) => (
+                    <label
+                      key={type.code}
+                      className="settings-notify__type-item"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.notifications.enabled_notification_types.includes(type.code)}
+                        onChange={() => toggleNotificationType(type.code)}
+                      />
+                      <span>{type.title}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </>
           )}
 
           {showCalendar && (
@@ -961,35 +1010,6 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                   style={{ width: '100%', padding: '4px 6px' }}
                 />
               </div>
-            </div>
-          </div>
-          )}
-
-          {showNotifications && (
-          <div>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Типы уведомлений
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              {availableTypes.map((type) => (
-                <label
-                  key={type.code}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 'var(--space-2)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.notifications.enabled_notification_types.includes(type.code)}
-                    onChange={() => toggleNotificationType(type.code)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <span>{type.title}</span>
-                </label>
-              ))}
             </div>
           </div>
           )}

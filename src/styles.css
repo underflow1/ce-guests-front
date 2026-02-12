@@ -749,6 +749,16 @@ body.interface-user .weekend-stack > .panel {
   min-height: 0;
 }
 
+.settings-panel-frameless {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  gap: 0;
+}
+
 /* В DayPanel запрещаем выделение текста */
 .panel--day {
   user-select: none;
@@ -1907,6 +1917,68 @@ body.interface-user .button {
 
 .settings-section-shell__footer {
   border-top: 1px solid var(--color-border-subtle);
+}
+
+.settings-section-shell__header {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.settings-section-shell__header.settings-bar {
+  justify-content: flex-start;
+}
+
+.settings-section-group__item + .settings-section-group__item {
+  margin-top: var(--space-4);
+}
+
+.settings-notify__body {
+  gap: var(--space-3);
+}
+
+.settings-notify__field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.settings-notify__input {
+  width: 100%;
+}
+
+.settings-notify__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.settings-notify__toggle input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #000000;
+}
+
+.settings-notify__types {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settings-notify__type-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.settings-notify__type-item input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #000000;
 }
 
 
