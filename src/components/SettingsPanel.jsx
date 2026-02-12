@@ -45,6 +45,9 @@ const SettingsPanel = ({ section = 'all' }) => {
   const [allowedReasonIds, setAllowedReasonIds] = useState(new Set())
   const [allowedLoading, setAllowedLoading] = useState(false)
   const [productionCalendarInitialEnabled, setProductionCalendarInitialEnabled] = useState(false)
+  const [editingGoalId, setEditingGoalId] = useState(null)
+  const [editingGoalName, setEditingGoalName] = useState('')
+  const [showAddGoalForm, setShowAddGoalForm] = useState(false)
 
   // Типы уведомлений (fallback, если metadata отсутствует)
   const fallbackNotificationTypes = [
@@ -400,6 +403,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       const updatedGoals = await getAllGoals()
       setVisitGoals(updatedGoals)
       setNewGoalName('')
+      setShowAddGoalForm(false)
       pushToast({
         type: 'success',
         title: 'Готово',
@@ -423,6 +427,35 @@ const SettingsPanel = ({ section = 'all' }) => {
       })
     } catch (err) {
       setError(err.message || 'Ошибка при обновлении цели визита')
+    }
+  }
+
+  const startEditGoal = (goal) => {
+    setEditingGoalId(goal.id)
+    setEditingGoalName(goal.name)
+    setError(null)
+  }
+
+  const cancelEditGoal = () => {
+    setEditingGoalId(null)
+    setError(null)
+  }
+
+  const handleUpdateGoalName = async (goalId) => {
+    const name = editingGoalName.trim()
+    if (!name) {
+      setError('Введите название цели')
+      return
+    }
+    try {
+      setError(null)
+      await updateGoal(goalId, { name })
+      const updatedGoals = await getAllGoals()
+      setVisitGoals(updatedGoals)
+      setEditingGoalId(null)
+      pushToast({ type: 'success', title: 'Готово', message: 'Цель визита обновлена' })
+    } catch (err) {
+      setError(err.message || 'Ошибка при сохранении цели визита')
     }
   }
 
@@ -931,50 +964,153 @@ const SettingsPanel = ({ section = 'all' }) => {
     );
   }
 
+  const cancelAddGoalForm = () => {
+    setShowAddGoalForm(false)
+    setNewGoalName('')
+    setError(null)
+  }
+
   const renderVisitGoalsSection = (wrapItem = false) => (
     <div key="goals" className={`panel section${wrapItem ? ' section-group__item' : ''}`}>
-      <header className="section__header section__header--start">
+      <header className="section__header section__header--between">
         <h3 className="panel__title">Цели визита</h3>
+        <button
+          className={`button button--primary button--small${showAddGoalForm ? ' action--hidden' : ''}`}
+          onClick={() => {
+            setShowAddGoalForm(true)
+            setError(null)
+          }}
+          disabled={goalsLoading}
+          tabIndex={showAddGoalForm ? -1 : 0}
+          aria-hidden={showAddGoalForm}
+        >
+          + Добавить
+        </button>
       </header>
-      <div className="section__body">
-        <div className="row-wrap section-block-end">
-          <input
-            type="text"
-            className="input text text--down input--grow"
-            value={newGoalName}
-            onChange={(e) => setNewGoalName(e.target.value)}
-            placeholder="Новая цель визита"
-          />
-          <button
-            className="button button--primary button--small"
-            onClick={handleCreateGoal}
-            disabled={goalsLoading}
-          >
-            Добавить
-          </button>
-        </div>
-        <div className="column-stack">
-          {visitGoals.length === 0 ? (
-            <div className="text text--muted">Целей визита пока нет</div>
-          ) : (
-            visitGoals.map((goal) => (
-              <div key={goal.id} className="list-row">
-                <div>
-                  <div className="text">{goal.name}</div>
-                  <div className="text text--down text--muted">
-                    {goal.is_active ? 'Активна' : 'Неактивна'}
-                  </div>
-                </div>
-                <button
-                  className={`button button--small${goal.is_active ? '' : ' button--primary'}`}
-                  onClick={() => handleToggleGoal(goal.id, !goal.is_active)}
-                  disabled={goalsLoading}
+      <div className="section__body section__body--scroll-x">
+        <div className="visit-goals">
+          <table className="table visit-goals__table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visitGoals.map((goal) => (
+                <tr
+                  key={goal.id}
+                  className={!goal.is_active ? 'visit-goals__row--inactive' : undefined}
                 >
-                  {goal.is_active ? 'Скрыть' : 'Восстановить'}
-                </button>
-              </div>
-            ))
-          )}
+                  {editingGoalId === goal.id ? (
+                    <>
+                      <td>
+                        <input
+                          type="text"
+                          className="input input--compact field--full"
+                          value={editingGoalName}
+                          onChange={(e) => setEditingGoalName(e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <div className="table__actions table__actions--nowrap">
+                          <button
+                            className="icon-action-button icon-action-button--primary"
+                            onClick={() => handleUpdateGoalName(goal.id)}
+                            disabled={goalsLoading}
+                            title="Сохранить"
+                            aria-label="Сохранить"
+                          >
+                            <i className="fa-solid fa-check" aria-hidden="true" />
+                          </button>
+                          <button
+                            className="icon-action-button"
+                            onClick={cancelEditGoal}
+                            title="Отмена"
+                            aria-label="Отмена"
+                          >
+                            <i className="fa-solid fa-xmark" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{goal.name}</td>
+                      <td>
+                        <div className="table__actions table__actions--nowrap">
+                          <button
+                            className="icon-action-button icon-action-button--primary"
+                            onClick={() => startEditGoal(goal)}
+                            disabled={!goal.is_active}
+                            title={goal.is_active ? 'Редактировать' : 'Редактирование недоступно'}
+                            aria-label="Редактировать"
+                          >
+                            <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                          </button>
+                          {goal.is_active ? (
+                            <button
+                              className="icon-action-button icon-action-button--danger"
+                              onClick={() => handleToggleGoal(goal.id, false)}
+                              disabled={goalsLoading}
+                              title="Деактивировать"
+                              aria-label="Деактивировать"
+                            >
+                              <i className="fa-solid fa-user-minus" aria-hidden="true" />
+                            </button>
+                          ) : (
+                            <button
+                              className="icon-action-button icon-action-button--success"
+                              onClick={() => handleToggleGoal(goal.id, true)}
+                              disabled={goalsLoading}
+                              title="Активировать"
+                              aria-label="Активировать"
+                            >
+                              <i className="fa-solid fa-user-check" aria-hidden="true" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+              {showAddGoalForm && (
+                <tr>
+                  <td>
+                    <input
+                      type="text"
+                      className="input input--compact field--full"
+                      placeholder="Новая цель визита"
+                      value={newGoalName}
+                      onChange={(e) => setNewGoalName(e.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <div className="table__actions table__actions--nowrap">
+                      <button
+                        className="icon-action-button icon-action-button--primary"
+                        onClick={handleCreateGoal}
+                        disabled={goalsLoading || !newGoalName.trim()}
+                        title="Сохранить"
+                        aria-label="Сохранить"
+                      >
+                        <i className="fa-solid fa-check" aria-hidden="true" />
+                      </button>
+                      <button
+                        className="icon-action-button"
+                        onClick={cancelAddGoalForm}
+                        title="Отмена"
+                        aria-label="Отмена"
+                      >
+                        <i className="fa-solid fa-xmark" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

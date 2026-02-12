@@ -2335,6 +2335,87 @@ body.interface-user .button {
   justify-content: center;
 }
 
+/* Цели визита — таблица по аналогии с пользователями */
+.visit-goals {
+  font-size: var(--text-size-base);
+}
+
+.visit-goals .table,
+.visit-goals .table th,
+.visit-goals .table td,
+.visit-goals .input--compact {
+  font-size: var(--text-size-base);
+}
+
+.visit-goals .table {
+  border-collapse: separate;
+  border-spacing: 0 2px;
+}
+
+.visit-goals .table th:nth-child(1) {
+  width: auto;
+}
+
+.visit-goals .table th:nth-child(2) {
+  width: 11%;
+  text-align: center;
+}
+
+.visit-goals .table th:nth-child(1),
+.visit-goals .table td:nth-child(1) {
+  border-right: 1px solid var(--color-border-subtle);
+  padding-right: var(--space-3);
+}
+
+.visit-goals .table td {
+  border-bottom: none;
+}
+
+.visit-goals .table td:nth-child(2) .table__actions {
+  justify-content: center;
+}
+
+.visit-goals .table tbody tr td {
+  background: var(--color-surface);
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+}
+
+.visit-goals .table tbody tr td:first-child {
+  border-left: 1px solid transparent;
+  border-top-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+.visit-goals .table tbody tr td:last-child {
+  border-right: 1px solid transparent;
+  border-top-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+.visit-goals .table tbody tr:hover td {
+  background: var(--color-surface-muted);
+  border-top-color: var(--color-border);
+  border-bottom-color: var(--color-border);
+}
+
+.visit-goals .table tbody tr:hover td:first-child {
+  border-left-color: var(--color-border);
+}
+
+.visit-goals .table tbody tr:hover td:last-child {
+  border-right-color: var(--color-border);
+}
+
+.visit-goals__row--inactive td {
+  color: var(--color-text-subtle);
+}
+
+.visit-goals__row--inactive .input {
+  color: var(--color-text-subtle);
+  border-color: var(--color-border-subtle);
+}
+
 .role-list__empty {
   font-size: 12px;
   color: var(--color-text-muted);
