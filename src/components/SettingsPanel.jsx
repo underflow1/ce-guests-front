@@ -590,8 +590,9 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
         </header>
 
         <div
-          className="panel__content"
-          style={{ maxHeight: '70vh', marginTop: section === 'production-calendar' ? 0 : undefined }}
+          className={`panel__content settings-panel__content${
+            section === 'production-calendar' ? ' panel__content--flush-top' : ''
+          }`}
         >
           {error && (
             <div className="error-message" style={{ marginBottom: 'var(--space-4)' }}>
@@ -733,15 +734,19 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
           )}
 
           {showCalendar && (
-          <div style={{ marginBottom: section === 'production-calendar' ? 0 : 'var(--space-4)' }}>
+          <div
+            className={`settings-section-group${
+              section === 'production-calendar' ? ' settings-section-group--compact-bottom' : ''
+            }`}
+          >
             {section === 'all' && (
-              <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
+              <h3 className="text text--up text--bold settings-section-group__title">
                 Производственный календарь
               </h3>
             )}
 
-            <div className="settings-section settings-calendar">
-              <div className="settings-calendar__body">
+            <div className="settings-section-shell settings-calendar">
+              <div className="settings-section-shell__body">
                 <label className="settings-calendar__toggle">
                 <input
                   type="checkbox"
@@ -760,10 +765,11 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
                 </label>
 
                 <div
-                  className="text text--down settings-calendar__status"
-                  style={{
-                    color: isProductionCalendarLoaded ? '#1d7a35' : '#b42318',
-                  }}
+                  className={`text text--down settings-calendar__status${
+                    isProductionCalendarLoaded
+                      ? ' settings-calendar__status--loaded'
+                      : ' settings-calendar__status--missing'
+                  }`}
                 >
                   {productionCalendarStatusText}
                 </div>
@@ -790,7 +796,7 @@ const SettingsPanel = ({ onBack, section = 'all', embedded = false }) => {
               </div>
 
               {section === 'production-calendar' && (
-                <div className="settings-calendar__footer settings-bar">
+                <div className="settings-section-shell__footer settings-calendar__footer settings-bar">
                   <button
                     className="button button--small"
                     onClick={handleCancelProductionCalendar}
