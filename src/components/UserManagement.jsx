@@ -5,7 +5,7 @@ import { useToast } from './ToastProvider'
 
 const UserManagement = () => {
   const { getUsers, createUser, updateUser, activateUser, deactivateUser, loading, error: apiError } = useUsers()
-  const { getRoles, loading: rolesLoading } = useRoles()
+  const { getRoles } = useRoles()
   const { pushToast } = useToast()
   const [users, setUsers] = useState([])
   const [roles, setRoles] = useState([])

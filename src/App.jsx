@@ -425,7 +425,6 @@ const App = () => {
               <div className="section-stack">
                 <SettingsPanel section="production-calendar" />
                 <MaintenancePanel
-                  today={today}
                   onSuccess={() => {
                     window.location.reload()
                   }}

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { apiDelete } from '../utils/api'
 import { useToast } from './ToastProvider'
 
-const MaintenancePanel = ({ today, onSuccess }) => {
+const MaintenancePanel = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false)
   const { pushToast } = useToast()
 

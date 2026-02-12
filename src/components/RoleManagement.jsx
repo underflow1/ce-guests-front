@@ -183,53 +183,6 @@ const RoleManagement = () => {
     }
   }
 
-  // Сохранить изменения
-  const handleUpdate = async (roleId) => {
-    if (!editForm.name.trim()) {
-      setError('Введите название роли')
-      return
-    }
-
-    if (editForm.permission_ids.length === 0) {
-      setError('Выберите хотя бы одно право')
-      return
-    }
-
-    const updateData = {}
-    
-    const originalRole = roles.find(r => r.id === roleId)
-    if (editForm.name !== originalRole.name) {
-      updateData.name = editForm.name.trim()
-    }
-    if (editForm.description !== (originalRole.description || '')) {
-      updateData.description = editForm.description.trim() || null
-    }
-    if (editForm.interface_type !== originalRole.interface_type) {
-      updateData.interface_type = editForm.interface_type
-    }
-    
-    const originalPermIds = originalRole.permission_ids || originalRole.permissions?.map(p => p.id) || []
-    const permIdsChanged = JSON.stringify(editForm.permission_ids.sort()) !== JSON.stringify(originalPermIds.sort())
-    if (permIdsChanged) {
-      updateData.permission_ids = editForm.permission_ids
-    }
-
-    if (Object.keys(updateData).length === 0) {
-      setEditingRole(null)
-      return
-    }
-
-    try {
-      setError(null)
-      await updateRole(roleId, updateData)
-      setEditingRole(null)
-      await loadData()
-      pushToast({ type: 'success', title: 'Успех', message: 'Роль обновлена' })
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
   // Удалить роль
   const handleDelete = async (roleId) => {
     const role = roles.find(r => r.id === roleId)
