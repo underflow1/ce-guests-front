@@ -75,6 +75,7 @@
       .block { display: block; }
       .menu-item { display: block; width: 100%; padding: var(--space-1) var(--space-2); text-align: left; border: none; background: transparent; cursor: pointer; font: inherit; color: var(--color-text); border-radius: var(--radius-sm); }
       .menu-item:hover { background: var(--color-surface-hover); }
+      .menu-item:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 
       .app-demo { padding: var(--user-space); padding-top: calc(var(--user-space) * 2 + 21px); border: 2px dashed var(--color-border); border-radius: 0; background: #fff; position: relative; }
       .app-demo::before { content: "padding: user-space со всех сторон"; position: absolute; top: var(--space-1); left: var(--space-2); font-size: var(--text-size-down); color: var(--color-text-muted); background: var(--color-bg); padding: 0 var(--space-1); }
@@ -85,9 +86,11 @@
       .panel__title { margin: 0; font-size: var(--text-size-up); font-weight: var(--text-weight-bold); }
       .btn { font-size: var(--text-size-down); padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); font: inherit; cursor: pointer; line-height: 1.2; color: inherit; user-select: none; }
       .btn:hover:not(:disabled) { background: var(--color-surface-hover); border-color: var(--color-border); }
+      .btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
       .btn:disabled { opacity: 0.5; cursor: not-allowed; }
       .btn--primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
       .btn--primary:hover:not(:disabled) { background: #1a1a1a; border-color: #1a1a1a; }
+      .btn--primary:focus-visible { outline-color: var(--color-accent); }
 
       .layout-demo { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 0; border: 1px solid var(--color-border); background: var(--color-surface); }
       .layout-demo__nav { padding: var(--section-pad-x); border-right: 1px solid var(--color-border-subtle); background: var(--color-surface-muted); }
@@ -104,6 +107,7 @@
       .visual-edge .label { position: absolute; top: calc(-1 * var(--space-2)); left: var(--space-2); font-size: var(--text-size-down); color: var(--color-text-muted); background: var(--color-bg); padding: 0 var(--space-1); }
 
       .input, .select { width: 100%; padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); font: inherit; color: inherit; }
+      .input:focus, .select:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 2px rgba(47, 47, 47, 0.15); }
       .input:disabled, .select:disabled { background: var(--color-surface-muted); color: var(--color-text-muted); cursor: not-allowed; }
       .cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
       .card { border: 1px solid var(--color-border); background: #fff; padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); }
@@ -274,6 +278,48 @@
       }
       .window-demo__list-item:hover { background: var(--color-surface-hover); }
       .window-demo__stat { font-size: var(--text-size-down); color: var(--color-text-muted); }
+
+      .form { display: flex; flex-direction: column; gap: var(--gap-stack); max-width: 360px; }
+      .form__field { display: flex; flex-direction: column; gap: var(--space-1); }
+      .form__label { font-size: var(--text-size-down); font-weight: var(--text-weight-bold); color: var(--color-text); }
+      .form__control { width: 100%; padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); font: inherit; }
+      .form__control:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 2px rgba(47, 47, 47, 0.15); }
+      .form__submit-row { display: flex; gap: var(--gap-inline); justify-content: flex-end; align-items: center; margin-top: var(--space-1); }
+
+      .breadcrumb { display: flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; font-size: var(--text-size-down); }
+      .breadcrumb__item { color: var(--color-text-muted); }
+      .breadcrumb__item:last-child { color: var(--color-text); font-weight: var(--text-weight-bold); }
+      .breadcrumb__sep { color: var(--color-text-subtle); user-select: none; }
+
+      .form__checkbox-label { display: flex; align-items: center; gap: var(--gap-inline); cursor: pointer; }
+      .form__checkbox { width: 16px; height: 16px; margin: 0; cursor: pointer; accent-color: #000; }
+      .check-row { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: var(--gap-inline); align-items: center; padding: var(--space-1) var(--space-2); border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; }
+      .check-row:hover { background: var(--color-surface-muted); border-color: var(--color-border); }
+      .check-row input[type="checkbox"] { width: 14px; height: 14px; margin: 0; accent-color: #000; cursor: pointer; }
+
+      .toast-host { display: flex; flex-direction: column; gap: var(--space-2); position: relative; max-width: 420px; }
+      .toast {
+        display: grid;
+        grid-template-columns: 28px 1fr 20px;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        border: 1px solid var(--color-border);
+        border-left: 4px solid var(--toast-color, #607d8b);
+        border-radius: var(--radius-sm);
+        background: var(--color-surface);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .toast__icon { width: 22px; height: 22px; border-radius: 999px; background: var(--toast-color, #607d8b); color: #fff; font-size: var(--text-size-down); font-weight: var(--text-weight-bold); display: flex; align-items: center; justify-content: center; line-height: 1; }
+      .toast__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+      .toast__title { font-size: var(--text-size-base); font-weight: var(--text-weight-bold); color: var(--color-text); }
+      .toast__message { font-size: var(--text-size-down); color: var(--color-text-muted); }
+      .toast__close { background: transparent; border: none; color: var(--color-text-subtle); cursor: pointer; font-size: var(--text-size-up); line-height: 1; padding: 0; }
+      .toast__close:hover { color: var(--color-text); }
+      .toast--error { --toast-color: #c00; }
+      .toast--success { --toast-color: #28a745; }
+      .toast--warning { --toast-color: #b26a00; }
+      .toast--info { --toast-color: #607d8b; }
     </style>
   </head>
   <body>
@@ -385,6 +431,11 @@
                 <span class="window-demo__title text">Визиты</span>
               </header>
               <div class="window-demo__body">
+                <nav class="breadcrumb text" aria-label="Навигация">
+                  <a href="#" class="breadcrumb__item">Главная</a>
+                  <span class="breadcrumb__sep">/</span>
+                  <span class="breadcrumb__item">Визиты</span>
+                </nav>
                 <div class="window-demo__content-row">
                   <div class="window-demo__panel">
                     <h3 class="window-demo__panel-title text">Визиты на сегодня</h3>
@@ -686,18 +737,137 @@
         </div>
 
         <hr class="divider" />
-        <h2 class="text text--up text--bold">В приложении есть ещё (не в шпаргалке)</h2>
-        <p class="text text--muted gap-top">Элементы из <code>styles.css</code> / настроек, которые можно добавить при необходимости:</p>
-        <ul class="text text--down text--muted gap-top" style="padding-left: var(--space-4);">
-          <li><strong class="text">Форма:</strong> .form, .form__field, .form__label, .form__control, .form__checkbox, .form-section, .form__submit-row, .form__bottom-actions</li>
-          <li><strong class="text">Кнопки:</strong> .button--danger, .button--success (семантика)</li>
-          <li><strong class="text">Иконка-кнопка:</strong> .icon-action-button, --primary, --success, --danger</li>
-          <li><strong class="text">Навбар настроек:</strong> .layout__item, .layout__item--active (пункт меню + активное состояние)</li>
-          <li><strong class="text">Блоки:</strong> .section-group, .section-group__title, .section-card</li>
-          <li><strong class="text">Поля:</strong> .input--wide, .input--grow</li>
-          <li><strong class="text">Обратная связь:</strong> .toast, .toast--error/success/warning/info, .error-message</li>
-          <li><strong class="text">Таблица:</strong> .table__status-active, .table__status-inactive</li>
-        </ul>
+        <h2 class="text text--up text--bold">Хлебные крошки</h2>
+        <p class="text text--muted text--down gap-top">Путь навигации. Последний элемент — текущая страница (жирный).</p>
+        <nav class="breadcrumb gap-top text" aria-label="Навигация">
+          <a href="#" class="breadcrumb__item">Главная</a>
+          <span class="breadcrumb__sep">/</span>
+          <a href="#" class="breadcrumb__item">Настройки</a>
+          <span class="breadcrumb__sep">/</span>
+          <span class="breadcrumb__item">Пользователи</span>
+        </nav>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Чекбоксы</h2>
+        <p class="text text--muted text--down gap-top">Чёрные галочки (accent-color). С подписью или строка-клик.</p>
+        <div class="stack gap-top" style="max-width: 280px;">
+          <label class="form__checkbox-label text">
+            <input type="checkbox" class="form__checkbox" />
+            <span>Включить уведомления</span>
+          </label>
+          <label class="form__checkbox-label text">
+            <input type="checkbox" class="form__checkbox" checked />
+            <span>Использовать интеграцию</span>
+          </label>
+          <label class="check-row text">
+            <input type="checkbox" />
+            <span class="text--down">Строка с чекбоксом (вся строка кликабельна)</span>
+          </label>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Тосты</h2>
+        <p class="text text--muted text--down gap-top">Всплывающие уведомления при событии. Контейнер .toast-host (в приложении — fixed сверху или сбоку), внутри — .toast. Варианты: .toast--success, .toast--error, .toast--warning, .toast--info.</p>
+        <div class="toast-host gap-top">
+          <div class="toast toast--success">
+            <span class="toast__icon" aria-hidden="true">✓</span>
+            <div class="toast__body">
+              <span class="toast__title text">Сохранено</span>
+              <span class="toast__message text">Настройки применены.</span>
+            </div>
+            <button type="button" class="toast__close" title="Закрыть">×</button>
+          </div>
+          <div class="toast toast--error">
+            <span class="toast__icon" aria-hidden="true">!</span>
+            <div class="toast__body">
+              <span class="toast__title text">Ошибка</span>
+              <span class="toast__message text">Не удалось сохранить данные.</span>
+            </div>
+            <button type="button" class="toast__close" title="Закрыть">×</button>
+          </div>
+          <div class="toast toast--warning">
+            <span class="toast__icon" aria-hidden="true">!</span>
+            <div class="toast__body">
+              <span class="toast__title text">Внимание</span>
+              <span class="toast__message text">Проверьте заполнение полей.</span>
+            </div>
+            <button type="button" class="toast__close" title="Закрыть">×</button>
+          </div>
+          <div class="toast toast--info">
+            <span class="toast__icon" aria-hidden="true">i</span>
+            <div class="toast__body">
+              <span class="toast__title text">Информация</span>
+              <span class="toast__message text">Новая версия доступна.</span>
+            </div>
+            <button type="button" class="toast__close" title="Закрыть">×</button>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Форма</h2>
+        <p class="text text--muted text--down gap-top">Поля с подписью, кнопки справа внизу.</p>
+        <div class="panel gap-top" style="max-width: 400px;">
+          <div class="section__header"><h3 class="panel__title text">Новая запись</h3></div>
+          <div class="section__body">
+            <form class="form">
+              <div class="form__field">
+                <label class="form__label text" for="demo-name">Название</label>
+                <input id="demo-name" type="text" class="form__control text" placeholder="Введите название" />
+              </div>
+              <div class="form__field">
+                <label class="form__label text" for="demo-date">Дата</label>
+                <input id="demo-date" type="text" class="form__control text" placeholder="ДД.ММ.ГГГГ" />
+              </div>
+              <div class="form__submit-row">
+                <button type="button" class="btn text">Отмена</button>
+                <button type="submit" class="btn btn--primary text">Сохранить</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Как перенести в другой проект</h2>
+        <p class="text text--muted text--down gap-top">Скопируйте блок <span class="kbd">&lt;style&gt;</span> из этого файла и подключите шрифт Ubuntu (300, 400, 600). Ниже — краткая выжимка.</p>
+        <h3 class="text text--up text--bold gap-top">Токены :root</h3>
+        <div class="grid gap-top">
+          <div class="text text--bold">Шрифт и типографика</div>
+          <div class="row"><span class="text text--down">--font-base, --text-size-base/up/down, --text-line-height-base, --text-weight-base/bold/thin</span></div>
+          <div class="text text--bold">Цвета</div>
+          <div class="row"><span class="text text--down">--color-bg, --color-surface, --color-surface-muted, --color-surface-hover, --color-border, --color-border-strong/subtle, --color-text, --color-text-muted/subtle, --color-accent</span></div>
+          <div class="text text--bold">Отступы и размеры</div>
+          <div class="row"><span class="text text--down">--space-1…6, --gap-inline, --gap-stack, --user-space, --section-pad-x/y, --section-bar-height, --section-button-height, --radius-sm/md</span></div>
+        </div>
+        <h3 class="text text--up text--bold gap-top">Структура</h3>
+        <div class="stack gap-top">
+          <div class="row">
+            <span class="text text--bold">Главный экран:</span>
+            <span class="text text--down">.app-viewport → .app-viewport__header (название + логин + меню) + .app-viewport__body. В body можно положить грид .app-viewport__back (фон) и поверх — .window-demo.</span>
+          </div>
+          <div class="row">
+            <span class="text text--bold">Окно (модальное/панель):</span>
+            <span class="text text--down">.window-demo → .window-demo__header (только заголовок) + .window-demo__body. В body: .window-demo__content-row, .window-demo__panel; кнопки в ряду с .window-demo__actions (слева группа, справа Отмена/Сохранить).</span>
+          </div>
+          <div class="row">
+            <span class="text text--bold">Панель/секция:</span>
+            <span class="text text--down">.panel → .section__header (внутри .panel__title) + .section__body. Без footer — кнопки в конце body через .inline или .inline--end.</span>
+          </div>
+        </div>
+        <h3 class="text text--up text--bold gap-top">Классы</h3>
+        <div class="row">
+          <div class="stack">
+            <span class="text text--down"><span class="kbd">.text</span> .text--up .text--down .text--bold .text--thin .text--italic .text--muted .text--subtle .text--strike</span>
+            <span class="text text--down"><span class="kbd">.stack</span> .inline .inline--end .gap-top .flex-none</span>
+            <span class="text text--down"><span class="kbd">.btn</span> .btn--primary | .input .select | .menu-item</span>
+            <span class="text text--down"><span class="kbd">.breadcrumb</span> .breadcrumb__item .breadcrumb__sep</span>
+            <span class="text text--down"><span class="kbd">.form__checkbox-label</span> .form__checkbox | .check-row (чекбокс чёрный, accent-color)</span>
+            <span class="text text--down"><span class="kbd">.card</span> .card--rounded | .panel .section__header .section__body .panel__title</span>
+            <span class="text text--down"><span class="kbd">.form</span> .form__field .form__label .form__control .form__submit-row</span>
+            <span class="text text--down"><span class="kbd">.table-demo</span> | .swatch .swatch--success/warning/danger/info</span>
+            <span class="text text--down"><span class="kbd">.toast-host</span> .toast .toast__icon .toast__body .toast__title .toast__message .toast__close | .toast--success/error/warning/info</span>
+          </div>
+        </div>
+
       </div>
     </div>
   </body>
