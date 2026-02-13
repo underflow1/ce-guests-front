@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Шпаргалка — компоненты и отступы</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --font-base: "Ubuntu", "Segoe UI", Tahoma, sans-serif;
+        --text-size-base: 13px;
+        --text-size-up: 15px;
+        --text-size-down: 12px;
+        --text-weight-base: 400;
+        --text-weight-bold: 600;
+        --color-bg: #f5f5f5;
+        --color-surface: #fff;
+        --color-surface-muted: #f5f5f5;
+        --color-surface-hover: #f9f9f9;
+        --color-border: #d8d8d8;
+        --color-border-strong: #cfcfcf;
+        --color-border-subtle: #ededed;
+        --color-text: #1f1f1f;
+        --color-text-muted: #666666;
+        --color-text-subtle: #999999;
+        --color-accent: #2f2f2f;
+        --radius-sm: 4px;
+        --radius-md: 6px;
+        --space-1: 4px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 20px;
+        --space-6: 24px;
+        --gap-inline: var(--space-2);
+        --gap-stack: var(--space-2);
+        --user-space: calc(var(--space-2) * 0.6667);
+        --section-pad-x: calc(var(--gap-inline) + var(--space-1));
+        --section-pad-y: var(--gap-stack);
+        --section-bar-height: 36px;
+        --section-button-height: 20px;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: var(--font-base); font-size: var(--text-size-base); color: var(--color-text); background: var(--color-bg); }
+      .text { font-family: var(--font-base); font-size: var(--text-size-base); font-weight: var(--text-weight-base); }
+      .text--up { font-size: var(--text-size-up); }
+      .text--down { font-size: var(--text-size-down); }
+      .text--bold { font-weight: var(--text-weight-bold); }
+      .text--muted { color: var(--color-text-muted); }
+      .text--subtle { color: var(--color-text-subtle); }
+
+      body { padding: var(--space-2); }
+      .frame { max-width: 980px; margin: 0 auto; background: #fff; border: 1px solid var(--color-border); border-radius: 0; padding: var(--space-2); }
+      .sheet { max-width: 980px; margin: 0 auto; padding: 0; }
+      .sheet__title { margin: 0 0 var(--space-1) 0; }
+      .sheet__hint { margin: 0 0 var(--space-1) 0; }
+      .grid { display: grid; grid-template-columns: 200px 1fr; gap: var(--space-1) var(--space-2); align-items: baseline; }
+      .row { padding: var(--space-1) var(--space-2); border: 1px dashed var(--color-border-subtle); border-radius: var(--radius-sm); background: var(--color-surface-muted); }
+      .kbd { display: inline-block; padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); font-size: var(--text-size-down); }
+      .divider { margin: var(--space-1) 0; border: none; border-top: 1px solid var(--color-border-subtle); }
+      .stack { display: flex; flex-direction: column; gap: var(--space-1); }
+      .inline { display: flex; gap: var(--gap-inline); align-items: center; flex-wrap: wrap; }
+      .inline--end { display: flex; gap: var(--gap-inline); align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+      .inline-1 { display: flex; gap: var(--space-1); align-items: center; flex-wrap: wrap; }
+      .gap-top { margin-top: var(--space-1); }
+      .flex-none { flex: 0 0 auto; }
+      .block { display: block; }
+      .menu-item { display: block; width: 100%; padding: var(--space-1) var(--space-2); text-align: left; border: none; background: transparent; cursor: pointer; font: inherit; color: var(--color-text); border-radius: var(--radius-sm); }
+      .menu-item:hover { background: var(--color-surface-hover); }
+
+      .app-demo { padding: var(--user-space); padding-top: calc(var(--user-space) * 2 + 21px); border: 2px dashed var(--color-border); border-radius: 0; background: #fff; position: relative; }
+      .app-demo::before { content: "padding: user-space со всех сторон"; position: absolute; top: var(--space-1); left: var(--space-2); font-size: var(--text-size-down); color: var(--color-text-muted); background: var(--color-bg); padding: 0 var(--space-1); }
+      .section-stack { display: flex; flex-direction: column; gap: var(--space-1); }
+      .panel { background: var(--color-surface); border: 1px solid var(--color-border); padding: var(--user-space); display: flex; flex-direction: column; gap: var(--space-1); }
+      .panel .section__header { height: var(--section-bar-height); min-height: var(--section-bar-height); padding: 0 var(--section-pad-x); display: flex; align-items: center; border-bottom: 1px solid var(--color-border-subtle); user-select: none; }
+      .panel .section__body { padding: var(--section-pad-y) var(--section-pad-x); display: flex; flex-direction: column; gap: var(--gap-stack); }
+      .panel__title { margin: 0; font-size: var(--text-size-up); font-weight: var(--text-weight-bold); }
+      .btn { font-size: var(--text-size-down); padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); font: inherit; cursor: pointer; line-height: 1.2; color: inherit; user-select: none; }
+      .btn:hover:not(:disabled) { background: var(--color-surface-hover); border-color: var(--color-border); }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .btn--primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+      .btn--primary:hover:not(:disabled) { background: #1a1a1a; border-color: #1a1a1a; }
+
+      .layout-demo { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 0; border: 1px solid var(--color-border); background: var(--color-surface); }
+      .layout-demo__nav { padding: var(--section-pad-x); border-right: 1px solid var(--color-border-subtle); background: var(--color-surface-muted); }
+      .layout-demo__content { padding: var(--section-pad-x); padding-left: var(--section-pad-x); }
+
+      .table-demo { width: 100%; border-collapse: collapse; font-size: var(--text-size-base); }
+      .table-demo th, .table-demo td { padding: var(--space-1) var(--space-2); text-align: left; border-bottom: 1px solid var(--color-border-subtle); }
+      .table-demo tbody tr:hover td { background: var(--color-surface-hover); }
+      .table-demo th:nth-child(1), .table-demo td:nth-child(1) { border-right: 1px solid var(--color-border-subtle); }
+      .table-demo th:last-child, .table-demo td:last-child { text-align: center; width: 80px; }
+
+      .visual-edge { padding: var(--user-space); border: 2px solid var(--color-border); position: relative; min-height: 60px; }
+      .visual-edge .inner { background: var(--color-surface-muted); padding: var(--space-2); border: 1px dashed var(--color-border); }
+      .visual-edge .label { position: absolute; top: calc(-1 * var(--space-2)); left: var(--space-2); font-size: var(--text-size-down); color: var(--color-text-muted); background: var(--color-bg); padding: 0 var(--space-1); }
+
+      .input, .select { width: 100%; padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); font: inherit; color: inherit; }
+      .input:disabled, .select:disabled { background: var(--color-surface-muted); color: var(--color-text-muted); cursor: not-allowed; }
+      .cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+      .card { border: 1px solid var(--color-border); background: #fff; padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); }
+      .card--square { border-radius: 0; }
+      .card--rounded { border-radius: var(--radius-md); }
+      .ui-demo { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-1) var(--space-2); align-items: center; }
+      .ui-demo__span2 { grid-column: 1 / -1; }
+      .ui-demo__actions { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+      .swatches { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+      .swatch { border: 1px solid var(--color-border); border-radius: 999px; padding: var(--space-1) var(--space-2); background: var(--color-surface); font: inherit; }
+      .swatch--danger { color: #dc3545; }
+      .swatch--success { color: #28a745; }
+      .swatch--warning { color: #b26a00; }
+      .swatch--info { color: #607d8b; }
+      .hover-demo { display: flex; flex-wrap: wrap; gap: var(--gap-stack); align-items: flex-start; }
+      .hover-demo__label { font-size: var(--text-size-down); color: var(--color-text-muted); }
+      .hover-demo__table { border-collapse: collapse; font-size: var(--text-size-down); }
+      .hover-demo__table th, .hover-demo__table td { padding: var(--space-1) var(--space-2); text-align: left; border-bottom: 1px solid var(--color-border-subtle); }
+      .hover-demo__table tbody tr:hover td { background: var(--color-surface-hover); }
+      .angle-demo { display: flex; gap: var(--gap-inline); align-items: flex-end; }
+      .angle-demo__box { width: calc(var(--space-6) * 2); height: var(--section-bar-height); border: 1px solid var(--color-border); background: var(--color-surface); }
+      .angle-demo__box--square { border-radius: 0; }
+      .angle-demo__box--rounded { border-radius: var(--radius-md); }
+      .angle-demo__label { font-size: var(--text-size-down); color: var(--color-text-muted); margin-top: var(--space-1); }
+      .space-scale-demo { display: flex; align-items: flex-end; gap: var(--space-1); flex-wrap: wrap; }
+      .space-scale-demo__item { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+      .space-scale-demo__bar { background: var(--color-border); border-radius: var(--radius-sm); min-width: var(--space-1); }
+      .space-scale-demo__item:nth-child(1) .space-scale-demo__bar { width: var(--space-1); height: var(--space-4); }
+      .space-scale-demo__item:nth-child(2) .space-scale-demo__bar { width: var(--space-2); height: var(--space-4); }
+      .space-scale-demo__item:nth-child(3) .space-scale-demo__bar { width: var(--space-3); height: var(--space-4); }
+      .space-scale-demo__item:nth-child(4) .space-scale-demo__bar { width: var(--space-4); height: var(--space-4); }
+      .space-scale-demo__item:nth-child(5) .space-scale-demo__bar { width: var(--space-5); height: var(--space-4); }
+      .space-scale-demo__item:nth-child(6) .space-scale-demo__bar { width: var(--space-6); height: var(--space-4); }
+      .space-scale-demo__name { font-size: var(--text-size-down); color: var(--color-text-muted); }
+      .gap-inline-demo { display: flex; gap: var(--gap-inline); }
+      .gap-stack-demo { display: flex; flex-direction: column; gap: var(--gap-stack); width: fit-content; }
+      .gap-demo__box { width: var(--space-5); height: var(--section-button-height); background: var(--color-surface-muted); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-sm); }
+      .accent-demo { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--gap-inline); }
+
+      /* Главный экран: контейнер с хедером (название + логин/меню) и body, без контура */
+      .app-viewport {
+        width: 100%;
+        min-height: 60vh;
+        background: var(--color-bg);
+        display: flex;
+        flex-direction: column;
+      }
+      .app-viewport__header {
+        background: var(--color-surface-muted);
+        border-bottom: 1px solid var(--color-border-subtle);
+        height: var(--section-bar-height);
+        min-height: var(--section-bar-height);
+        padding: 0 var(--section-pad-x);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--gap-inline);
+        user-select: none;
+      }
+      .app-viewport__title { font-size: var(--text-size-up); font-weight: var(--text-weight-bold); color: var(--color-text); }
+      .app-viewport__user { position: relative; display: flex; align-items: center; gap: var(--gap-inline); }
+      .app-viewport__login { font-weight: var(--text-weight-bold); color: var(--color-text); font-size: var(--text-size-base); cursor: pointer; }
+      .app-viewport__login:hover { opacity: 0.7; }
+      .app-viewport__menu {
+        width: var(--section-button-height);
+        height: var(--section-button-height);
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-sm);
+        background: var(--color-surface);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--text-size-down);
+        color: var(--color-text-muted);
+      }
+      .app-viewport__menu:hover { background: var(--color-surface-hover); }
+      .app-viewport__user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: var(--space-1);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        box-shadow: 0 var(--space-1) var(--space-2) rgba(0,0,0,0.1);
+        min-width: 140px;
+        overflow: hidden;
+        z-index: 10;
+      }
+      .app-viewport__body {
+        position: relative;
+        flex: 1;
+        padding: var(--user-space);
+        min-height: 420px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      /* Слой под окном: полный грид с контейнерами */
+      .app-viewport__back {
+        position: absolute;
+        inset: 0;
+        padding: var(--user-space);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: var(--space-2);
+        z-index: 0;
+      }
+      /* Окно поверх грида */
+      .app-viewport__body > .window-demo {
+        position: relative;
+        z-index: 1;
+      }
+      /* Окно (модальное и т.п.): скруглённое, с контуром; только заголовок окна и body, без логина */
+      .window-demo {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        background: var(--color-surface);
+        max-width: 720px;
+        width: 100%;
+        min-height: 360px;
+        display: flex;
+        flex-direction: column;
+      }
+      .window-demo .table-demo { font-size: var(--text-size-down); }
+      .window-demo .table-demo th, .window-demo .table-demo td { padding: var(--space-1) var(--space-2); }
+      .window-demo__header {
+        background: var(--color-surface-muted);
+        border-bottom: 1px solid var(--color-border-subtle);
+        height: var(--section-bar-height);
+        min-height: var(--section-bar-height);
+        padding: 0 var(--section-pad-x);
+        display: flex;
+        align-items: center;
+        user-select: none;
+      }
+      .window-demo__title { font-size: var(--text-size-up); font-weight: var(--text-weight-bold); color: var(--color-text); }
+      .window-demo__body {
+        flex: 1;
+        padding: var(--user-space);
+        display: flex;
+        flex-direction: column;
+        gap: var(--user-space);
+        background: var(--color-surface);
+      }
+      .window-demo__content-row { display: flex; gap: var(--user-space); flex: 1; min-height: 0; }
+      .window-demo__actions { justify-content: space-between; align-items: center; }
+      .window-demo__panel {
+        flex: 1;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        padding: var(--section-pad-y) var(--section-pad-x);
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap-stack);
+      }
+      .window-demo__panel-title { font-size: var(--text-size-base); font-weight: var(--text-weight-bold); margin: 0; }
+      .window-demo__list-item {
+        padding: var(--space-1) var(--space-2);
+        background: var(--color-surface-muted);
+        border-radius: var(--radius-sm);
+        font-size: var(--text-size-down);
+        border: 1px solid transparent;
+      }
+      .window-demo__list-item:hover { background: var(--color-surface-hover); }
+      .window-demo__stat { font-size: var(--text-size-down); color: var(--color-text-muted); }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="sheet">
+        <h1 class="sheet__title text text--up text--bold">Шпаргалка — компоненты и отступы</h1>
+        <p class="sheet__hint text text--muted">
+          Всё из двух gap (inline / stack) и шкалы space. От края экрана — один токен <span class="kbd">--user-space</span>. Плюс стиль интерфейса, кнопки, поля, цвета.
+        </p>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Пример главного экрана приложения</h2>
+        <p class="text text--muted text--down gap-top">Главный экран — хедер и body. В body полный грид с контейнерами (фон), поверх по z-index — окно «Визиты».</p>
+        <div class="app-viewport gap-top">
+          <header class="app-viewport__header">
+            <span class="app-viewport__title text">Гости</span>
+            <div class="app-viewport__user">
+              <span class="app-viewport__login text">Иванов И.И.</span>
+              <button type="button" class="app-viewport__menu" title="Меню">⋮</button>
+              <div class="app-viewport__user-dropdown">
+                <button type="button" class="menu-item text">Настройки</button>
+                <button type="button" class="menu-item text">Сменить пароль</button>
+                <button type="button" class="menu-item text">Выход</button>
+              </div>
+            </div>
+          </header>
+          <div class="app-viewport__body">
+            <div class="app-viewport__back">
+              <div class="card card--rounded">
+                <div class="text text--bold">Быстрые действия</div>
+                <div class="inline gap-top">
+                  <button type="button" class="btn text">Новый визит</button>
+                  <button type="button" class="btn text">Отчёт</button>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="section__header"><h3 class="panel__title text">Сводка</h3></div>
+                <div class="section__body">
+                  <span class="text text--down">За неделю: 12 визитов</span>
+                  <span class="text text--down text--muted">Ожидают: 2 пропуска</span>
+                </div>
+              </div>
+              <div class="card card--rounded">
+                <div class="text text--bold">Статус</div>
+                <div class="stack gap-top">
+                  <span class="swatch swatch--success text">Активен</span>
+                  <span class="swatch swatch--warning text">Ожидает</span>
+                </div>
+              </div>
+              <div class="card card--rounded">
+                <div class="text text--bold">Последние</div>
+                <table class="table-demo gap-top">
+                  <tbody>
+                    <tr><td class="text text--down">09:00</td><td class="text">Ромашка</td></tr>
+                    <tr><td class="text text--down">11:30</td><td class="text">Петров</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="card card--rounded">
+                <div class="text text--bold">Уведомления</div>
+                <div class="stack gap-top">
+                  <span class="text text--down">Новый пропуск оформлен</span>
+                  <span class="text text--down text--muted">Согласовать до 18:00</span>
+                </div>
+              </div>
+              <div class="card card--rounded">
+                <div class="text text--bold">Поиск</div>
+                <input type="text" class="input gap-top" placeholder="Гость или организация" />
+              </div>
+            </div>
+            <div class="window-demo">
+              <header class="window-demo__header">
+                <span class="window-demo__title text">Визиты</span>
+              </header>
+              <div class="window-demo__body">
+                <div class="window-demo__content-row">
+                  <div class="window-demo__panel">
+                    <h3 class="window-demo__panel-title text">Визиты на сегодня</h3>
+                    <div class="stack">
+                      <div class="window-demo__list-item text">09:00 — ООО «Ромашка»</div>
+                      <div class="window-demo__list-item text">11:30 — ИП Петров</div>
+                      <div class="window-demo__list-item text">14:00 — Администрация</div>
+                    </div>
+                    <span class="window-demo__stat text text--muted">3 визита</span>
+                  </div>
+                  <div class="window-demo__panel">
+                    <h3 class="window-demo__panel-title text">Ближайшее</h3>
+                    <div class="stack">
+                      <div class="card card--rounded">
+                        <div class="text text--bold">Пропуск № 1245</div>
+                        <span class="text text--down text--muted">Ожидает оформления</span>
+                      </div>
+                      <div class="card card--rounded">
+                        <div class="text text--bold">Напоминание</div>
+                        <span class="text text--down text--muted">Согласовать визит до 18:00</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="window-demo__content-row">
+                  <div class="window-demo__panel">
+                    <h3 class="window-demo__panel-title text">Последние записи</h3>
+                    <table class="table-demo">
+                      <thead>
+                        <tr><th>Время</th><th>Гость</th><th>Действия</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td class="text text--down">09:00</td><td class="text">ООО «Ромашка»</td><td><button type="button" class="btn text">Открыть</button></td></tr>
+                        <tr><td class="text text--down">11:30</td><td class="text">ИП Петров</td><td><button type="button" class="btn text">Открыть</button></td></tr>
+                        <tr><td class="text text--down">14:00</td><td class="text">Администрация</td><td><button type="button" class="btn text">Открыть</button></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="window-demo__panel">
+                    <h3 class="window-demo__panel-title text">Статус</h3>
+                    <div class="stack">
+                      <div class="window-demo__list-item text"><span class="swatch swatch--success text">Активен</span> 12 визитов за неделю</div>
+                      <div class="window-demo__list-item text"><span class="swatch swatch--warning text">Ожидает</span> 2 пропуска</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="window-demo__content-row flex-none window-demo__actions">
+                  <div class="inline">
+                    <button type="button" class="btn btn--primary text">+ Новая запись</button>
+                    <button type="button" class="btn text">Настройки</button>
+                    <button type="button" class="btn text">Экспорт</button>
+                    <button type="button" class="btn text">Печать</button>
+                  </div>
+                  <div class="inline">
+                    <button type="button" class="btn text">Отмена</button>
+                    <button type="button" class="btn btn--primary text">Сохранить</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Стиль интерфейса (гайд)</h2>
+        <div class="grid gap-top">
+          <div class="text text--bold">Характер</div>
+          <div class="row">
+            <div class="inline">
+              <div style="width: calc(var(--space-6) * 2.5); height: var(--section-bar-height); border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 0;"></div>
+              <span class="text text--muted text--down">Минимум декора, строго.</span>
+            </div>
+          </div>
+          <div class="text text--bold">Углы</div>
+          <div class="row">
+            <div class="angle-demo">
+              <div><div class="angle-demo__box angle-demo__box--square"></div><div class="angle-demo__label">0</div></div>
+              <div><div class="angle-demo__box angle-demo__box--rounded"></div><div class="angle-demo__label">radius-md</div></div>
+            </div>
+          </div>
+          <div class="text text--bold">Примеры блоков</div>
+          <div class="row">
+            <div class="cards">
+              <div class="card card--square"><div class="text text--bold">Квадратный</div><div class="text text--muted">radius: 0</div><div class="text">Текст в блоке</div></div>
+              <div class="card card--rounded"><div class="text text--bold">Скруглённый</div><div class="text text--muted">radius: var(--radius-md)</div><div class="text">Текст в блоке</div></div>
+            </div>
+          </div>
+          <div class="text text--bold">Кнопки</div>
+          <div class="row">
+            <div class="ui-demo__actions">
+              <button type="button" class="btn text">Обычная</button>
+              <button type="button" class="btn btn--primary text">Primary</button>
+              <button type="button" class="btn text" disabled>Disabled</button>
+            </div>
+          </div>
+          <div class="text text--bold">Поля ввода</div>
+          <div class="row">
+            <div class="ui-demo ui-demo__span2" style="max-width: calc(var(--space-4) * 17.5);">
+              <input class="input text" type="text" value="Пример текста" />
+              <select class="select text"><option>Опция 1</option><option>Опция 2</option></select>
+              <input class="input text ui-demo__span2" type="text" value="Disabled" disabled />
+            </div>
+          </div>
+          <div class="text text--bold">Ховер</div>
+          <div class="row">
+            <div class="stack">
+              <span class="text text--muted">Наведите на элементы:</span>
+              <div class="hover-demo">
+                <div class="stack">
+                  <span class="hover-demo__label">Кнопка</span>
+                  <button type="button" class="btn text">Обычная</button>
+                </div>
+                <div class="stack">
+                  <span class="hover-demo__label">Строка таблицы</span>
+                  <table class="hover-demo__table">
+                    <tbody>
+                      <tr><td>Строка 1</td></tr>
+                      <tr><td>Строка 2</td></tr>
+                      <tr><td>Строка 3</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="stack">
+                  <span class="hover-demo__label">Пункт меню</span>
+                  <div class="stack">
+                    <button type="button" class="menu-item text">Пункт 1</button>
+                    <button type="button" class="menu-item text">Пункт 2</button>
+                    <button type="button" class="menu-item text">Пункт 3</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text text--bold">Отступы</div>
+          <div class="row">
+            <div class="inline-1">
+              <div class="gap-demo__box"></div>
+              <div class="gap-demo__box"></div>
+              <div class="gap-demo__box"></div>
+              <span class="text text--down text--muted">← между блоками <span class="kbd">--space-1</span></span>
+            </div>
+          </div>
+          <div class="text text--bold">Акценты</div>
+          <div class="row">
+            <div class="accent-demo">
+              <span class="text">Обычный</span>
+              <span class="text text--bold">Жирный</span>
+              <span class="text text--up">Up</span>
+            </div>
+          </div>
+          <div class="text text--bold">Цвет текста</div>
+          <div class="row">
+            <div class="stack">
+              <span class="text">Primary</span>
+              <span class="text text--muted">Muted</span>
+              <span class="text text--subtle">Subtle</span>
+            </div>
+          </div>
+          <div class="text text--bold">Монохром</div>
+          <div class="row">
+            <div class="inline">
+              <div style="width: calc(var(--space-5) * 4); height: var(--section-bar-height); background: var(--color-surface-muted); border: 1px solid var(--color-border); border-radius: var(--radius-sm);"></div>
+              <span class="swatch swatch--danger text">Danger</span>
+              <span class="text text--down text--muted">Интерфейс серый, цвет — по делу.</span>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Семантические цвета</h2>
+        <div class="swatches gap-top">
+          <span class="swatch swatch--danger text">Danger</span>
+          <span class="swatch swatch--success text">Success</span>
+          <span class="swatch swatch--warning text">Warning</span>
+          <span class="swatch swatch--info text">Info</span>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Токены отступов</h2>
+        <div class="grid gap-top">
+          <div class="text text--bold">Шкала space</div>
+          <div class="row">
+            <div class="space-scale-demo">
+              <div class="space-scale-demo__item"><div class="space-scale-demo__bar"></div><span class="space-scale-demo__name">1</span></div>
+              <div class="space-scale-demo__item"><div class="space-scale-demo__bar"></div><span class="space-scale-demo__name">2</span></div>
+              <div class="space-scale-demo__item"><div class="space-scale-demo__bar"></div><span class="space-scale-demo__name">3</span></div>
+              <div class="space-scale-demo__item"><div class="space-scale-demo__bar"></div><span class="space-scale-demo__name">4</span></div>
+              <div class="space-scale-demo__item"><div class="space-scale-demo__bar"></div><span class="space-scale-demo__name">5</span></div>
+              <div class="space-scale-demo__item"><div class="space-scale-demo__bar"></div><span class="space-scale-demo__name">6</span></div>
+            </div>
+            <span class="text text--down text--muted gap-top block">4px → 8px → 12px → 16px → 20px → 24px</span>
+          </div>
+          <div class="text text--bold">gap-inline</div>
+          <div class="row">
+            <div class="stack">
+              <div class="gap-inline-demo">
+                <div class="gap-demo__box"></div>
+                <div class="gap-demo__box"></div>
+                <div class="gap-demo__box"></div>
+              </div>
+              <span class="text text--down text--muted">Между элементами по горизонтали</span>
+            </div>
+          </div>
+          <div class="text text--bold">gap-stack</div>
+          <div class="row">
+            <div class="stack">
+              <div class="gap-stack-demo">
+                <div class="gap-demo__box"></div>
+                <div class="gap-demo__box"></div>
+                <div class="gap-demo__box"></div>
+              </div>
+              <span class="text text--down text--muted">Между блоками по вертикали</span>
+            </div>
+          </div>
+          <div class="text text--bold">Отступ от экрана</div>
+          <div class="row">
+            <span class="text"><span class="kbd">--user-space</span></span>
+            <span class="text text--down text--muted">— см. блок «Отступ от краёв окна» ниже.</span>
+          </div>
+          <div class="text text--bold">Внутри секции</div>
+          <div class="row">
+            <span class="text"><span class="kbd">--section-pad-x</span> <span class="kbd">--section-pad-y</span> <span class="kbd">--section-bar-height</span> 36px</span>
+            <span class="text text--down text--muted">— видны в демо «Панель и секция».</span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Отступ от краёв окна</h2>
+        <div class="visual-edge gap-top">
+          <span class="label">.app (padding: user-space)</span>
+          <div class="inner">
+            <span class="text text--down text--muted">Контент внутри. Расстояние от внешней границы до этого блока = user-space.</span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Панель и секция (header / body)</h2>
+        <div class="section-stack gap-top" style="max-width: calc(var(--space-6) * 17.5);">
+          <div class="panel">
+            <div class="section__header"><h3 class="panel__title">Заголовок блока</h3></div>
+            <div class="section__body">
+              <span class="text">Тело секции. Отступы: pad-y, pad-x. Между строками: gap-stack.</span>
+              <div class="inline gap-top">
+                <button type="button" class="btn">Отмена</button>
+                <button type="button" class="btn btn--primary">Сохранить</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Стек секций (section-stack)</h2>
+        <div class="app-demo gap-top">
+          <div class="section-stack">
+            <div class="panel">
+              <div class="section__header"><h3 class="panel__title">Первый блок</h3></div>
+              <div class="section__body"><span class="text">Контент.</span></div>
+            </div>
+            <div class="panel">
+              <div class="section__header"><h3 class="panel__title">Второй блок</h3></div>
+              <div class="section__body"><span class="text">Контент. Между блоками — space-1.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Layout с боковым меню</h2>
+        <div class="layout-demo gap-top" style="min-height: calc(var(--space-5) * 4);">
+          <div class="layout-demo__nav">
+            <div class="stack">
+              <span class="text text--down text--muted">Нав 220px</span>
+              <span class="text text--down">Пункт 1</span>
+              <span class="text text--down">Пункт 2</span>
+            </div>
+          </div>
+          <div class="layout-demo__content">
+            <span class="text">Контент. padding-left = section-pad-x.</span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Таблица: данные и действия</h2>
+        <table class="table-demo gap-top" style="max-width: calc(var(--space-5) * 20);">
+          <thead>
+            <tr><th>Название</th><th>Действия</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Строка 1</td><td><button type="button" class="btn">OK</button></td></tr>
+            <tr><td>Строка 2</td><td><button type="button" class="btn">OK</button></td></tr>
+          </tbody>
+        </table>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">Кнопки</h2>
+        <div class="row gap-top inline">
+          <button type="button" class="btn">Отмена</button>
+          <button type="button" class="btn btn--primary">Сохранить</button>
+          <button type="button" class="btn">+ Добавить</button>
+        </div>
+
+        <hr class="divider" />
+        <h2 class="text text--up text--bold">В приложении есть ещё (не в шпаргалке)</h2>
+        <p class="text text--muted gap-top">Элементы из <code>styles.css</code> / настроек, которые можно добавить при необходимости:</p>
+        <ul class="text text--down text--muted gap-top" style="padding-left: var(--space-4);">
+          <li><strong class="text">Форма:</strong> .form, .form__field, .form__label, .form__control, .form__checkbox, .form-section, .form__submit-row, .form__bottom-actions</li>
+          <li><strong class="text">Кнопки:</strong> .button--danger, .button--success (семантика)</li>
+          <li><strong class="text">Иконка-кнопка:</strong> .icon-action-button, --primary, --success, --danger</li>
+          <li><strong class="text">Навбар настроек:</strong> .layout__item, .layout__item--active (пункт меню + активное состояние)</li>
+          <li><strong class="text">Блоки:</strong> .section-group, .section-group__title, .section-card</li>
+          <li><strong class="text">Поля:</strong> .input--wide, .input--grow</li>
+          <li><strong class="text">Обратная связь:</strong> .toast, .toast--error/success/warning/info, .error-message</li>
+          <li><strong class="text">Таблица:</strong> .table__status-active, .table__status-inactive</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
