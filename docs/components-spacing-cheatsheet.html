@@ -3,18 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Шпаргалка — компоненты и отступы</title>
+    <title>Шпаргалка — стиль и компоненты</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;600&display=swap" rel="stylesheet" />
     <style>
       :root {
         --font-base: "Ubuntu", "Segoe UI", Tahoma, sans-serif;
         --text-size-base: 13px;
         --text-size-up: 15px;
         --text-size-down: 12px;
+        --text-line-height-base: 1.2;
         --text-weight-base: 400;
         --text-weight-bold: 600;
+        --text-weight-thin: 300;
         --color-bg: #f5f5f5;
         --color-surface: #fff;
         --color-surface-muted: #f5f5f5;
@@ -43,13 +45,17 @@
         --section-button-height: 20px;
       }
       * { box-sizing: border-box; }
-      body { margin: 0; font-family: var(--font-base); font-size: var(--text-size-base); color: var(--color-text); background: var(--color-bg); }
-      .text { font-family: var(--font-base); font-size: var(--text-size-base); font-weight: var(--text-weight-base); }
+      body { margin: 0; font-family: var(--font-base); font-size: var(--text-size-base); line-height: var(--text-line-height-base); color: var(--color-text); background: var(--color-bg); }
+      input, button, select { font: inherit; color: inherit; }
+      .text { font-family: var(--font-base); font-size: var(--text-size-base); line-height: var(--text-line-height-base); font-weight: var(--text-weight-base); }
       .text--up { font-size: var(--text-size-up); }
       .text--down { font-size: var(--text-size-down); }
       .text--bold { font-weight: var(--text-weight-bold); }
+      .text--thin { font-weight: var(--text-weight-thin); }
+      .text--italic { font-style: italic; }
       .text--muted { color: var(--color-text-muted); }
       .text--subtle { color: var(--color-text-subtle); }
+      .text--strike { text-decoration: line-through; }
 
       body { padding: var(--space-2); }
       .frame { max-width: 980px; margin: 0 auto; background: #fff; border: 1px solid var(--color-border); border-radius: 0; padding: var(--space-2); }
@@ -273,10 +279,46 @@
   <body>
     <div class="frame">
       <div class="sheet">
-        <h1 class="sheet__title text text--up text--bold">Шпаргалка — компоненты и отступы</h1>
+        <h1 class="sheet__title text text--up text--bold">Шпаргалка — стиль и компоненты</h1>
         <p class="sheet__hint text text--muted">
-          Всё из двух gap (inline / stack) и шкалы space. От края экрана — один токен <span class="kbd">--user-space</span>. Плюс стиль интерфейса, кнопки, поля, цвета.
+          Типографика, отступы (gap / space), кнопки, поля, цвета. Единый гайд по стилю интерфейса.
         </p>
+
+        <h2 class="text text--up text--bold gap-top">Типографика</h2>
+        <p class="text text--muted text--down gap-top">
+          База <span class="kbd">text</span> + модификаторы. Размеры: <span class="kbd">--text-size-down</span> (12px), <span class="kbd">--text-size-base</span> (13px), <span class="kbd">--text-size-up</span> (15px). Шрифт <span class="kbd">--font-base</span> — Ubuntu, Segoe UI, Tahoma…
+        </p>
+        <div class="grid gap-top">
+          <div class="text">Base</div>
+          <div class="row"><span class="text">Базовый (13px)</span> <span class="text text--muted">— по умолчанию</span></div>
+          <div class="text text--bold">Base Strong</div>
+          <div class="row"><span class="text text--bold">Жирный</span> <span class="text text--bold text--muted">— акцент</span></div>
+          <div class="text text--thin">Base Light</div>
+          <div class="row"><span class="text text--thin">Тонкий</span> <span class="text text--thin text--muted">— легче</span></div>
+          <div class="text text--italic">Base Italic</div>
+          <div class="row"><span class="text text--italic">Курсив</span> <span class="text text--italic text--muted">— примечания</span></div>
+          <div class="text text--up">Up</div>
+          <div class="row"><span class="text text--up">Крупнее (15px)</span> <span class="text text--up text--muted">— заголовки</span></div>
+          <div class="text text--up text--bold">Up Strong</div>
+          <div class="row"><span class="text text--up text--bold">Заголовок секции</span> <span class="text text--up text--bold text--muted">— панели</span></div>
+          <div class="text text--down">Down</div>
+          <div class="row"><span class="text text--down">Мельче (12px)</span> <span class="text text--down text--muted">— мета, подписи</span></div>
+        </div>
+        <h3 class="text text--up text--bold gap-top">Тональности</h3>
+        <p class="text text--muted text--down gap-top">Основной → вторичный → третичный.</p>
+        <div class="grid gap-top">
+          <div class="text">Primary</div>
+          <div class="row"><span class="text">Основной текст</span></div>
+          <div class="text text--muted">Muted</div>
+          <div class="row"><span class="text text--muted">Вторичный (подписи, даты)</span></div>
+          <div class="text text--subtle">Subtle</div>
+          <div class="row"><span class="text text--subtle">Третичный (коды, детали)</span></div>
+        </div>
+        <h3 class="text text--up text--bold gap-top">Декорации</h3>
+        <div class="grid gap-top">
+          <div class="text text--strike">Strike</div>
+          <div class="row"><span class="text text--muted text--strike">Зачёркнутый</span> <span class="text text--muted">— отменено / неактуально</span></div>
+        </div>
 
         <hr class="divider" />
         <h2 class="text text--up text--bold">Пример главного экрана приложения</h2>
