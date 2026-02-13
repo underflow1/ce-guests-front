@@ -225,7 +225,7 @@ const RoleManagement = () => {
       <header className="panel__header section__header section__header--between">
         <h2 className="panel__title">Управление ролями</h2>
         <button
-          className="button button--primary button--small"
+          className="button button--primary"
           onClick={openCreate}
           disabled={loading}
           title="Добавить роль"
@@ -369,7 +369,7 @@ const RoleManagement = () => {
                         <div className="role-modal__perm-actions">
                           <button
                             type="button"
-                            className="button button--small"
+                            className="button"
                             onClick={() => setAllInGroup(permissionGroups.ui, true)}
                             disabled={permissionGroups.ui.length === 0}
                           >
@@ -377,7 +377,7 @@ const RoleManagement = () => {
                           </button>
                           <button
                             type="button"
-                            className="button button--small"
+                            className="button"
                             onClick={() => setAllInGroup(permissionGroups.ui, false)}
                             disabled={permissionGroups.ui.length === 0}
                           >
@@ -412,7 +412,7 @@ const RoleManagement = () => {
                         <div className="role-modal__perm-actions">
                           <button
                             type="button"
-                            className="button button--small"
+                            className="button"
                             onClick={() => setAllInGroup(permissionGroups.other, true)}
                             disabled={permissionGroups.other.length === 0}
                           >
@@ -420,7 +420,7 @@ const RoleManagement = () => {
                           </button>
                           <button
                             type="button"
-                            className="button button--small"
+                            className="button"
                             onClick={() => setAllInGroup(permissionGroups.other, false)}
                             disabled={permissionGroups.other.length === 0}
                           >
@@ -452,11 +452,11 @@ const RoleManagement = () => {
                 </div>
 
                 <footer className="role-modal__footer section__footer section__footer--end">
-                  <button className="button button--small" onClick={closeModal}>
+                  <button className="button" onClick={closeModal}>
                     Отмена
                   </button>
                   <button
-                    className="button button--primary button--small"
+                    className="button button--primary"
                     onClick={handleSubmit}
                     disabled={loading}
                   >

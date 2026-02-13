@@ -491,10 +491,6 @@ body.duty-officer-mobile * {
   color: #b42318;
 }
 
-.button--small {
-  font-size: var(--section-button-font-size);
-}
-
 .button--danger {
   color: #ff1f1f;
 }
@@ -802,6 +798,7 @@ body.interface-user .panel--inactive {
 
 .section__header .button,
 .section__footer .button {
+  margin: 0;
   height: var(--section-button-height);
   min-height: var(--section-button-height);
   padding: 0 var(--section-button-pad-x);
@@ -811,6 +808,7 @@ body.interface-user .panel--inactive {
   align-items: center;
   justify-content: center;
   align-self: center;
+  box-sizing: border-box;
 }
 
 .section__header .icon-action-button,
@@ -1767,13 +1765,12 @@ body.interface-user .select--compact {
   height: var(--section-button-height);
   min-height: var(--section-button-height);
   padding: 0 var(--section-button-pad-x);
-  /* Активная кнопка — "полный" контур */
-  border: 1px solid var(--color-accent);
+  border: 1px solid var(--color-border-strong);
   background: var(--color-surface);
   cursor: pointer;
   align-self: flex-start;
   transition: background 0.2s ease, border-color 0.2s ease;
-  font-size: 12px;
+  font-size: var(--section-button-font-size);
   border-radius: var(--radius-sm);
   line-height: 1.2;
   display: inline-flex;
@@ -1782,16 +1779,12 @@ body.interface-user .select--compact {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-}
-
-body.interface-user .button {
-  font-size: var(--text-size-base);
-  line-height: var(--text-line-height-base);
+  box-sizing: border-box;
 }
 
 .button:hover:not(:disabled) {
   background: var(--color-surface-hover);
-  border-color: var(--color-accent);
+  border-color: var(--color-border);
 }
 
 .button:disabled {

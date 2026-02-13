@@ -406,7 +406,7 @@ const EntryForm = ({
             <div className="visit-goals__hint text text--down" style={{ marginTop: '4px' }}>
               <button
                 type="button"
-                className="button button--small"
+                className="button"
                 onClick={() => {
                   if (!entry?.id) return
                   onRollbackMeetingResult?.(entry.id, editingDateKey)

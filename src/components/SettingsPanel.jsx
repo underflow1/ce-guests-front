@@ -218,7 +218,7 @@ const SettingsPanel = ({ section = 'all' }) => {
   }
 
   const loadAllAllowedReasons = async () => {
-    setAllowedLoading(true)
+      setAllowedLoading(true)
     try {
       const [res40, res50, res60] = await Promise.all([
         apiGet('/states/40/reasons/all'),
@@ -686,7 +686,7 @@ const SettingsPanel = ({ section = 'all' }) => {
   }
 
   if (section === 'notifications') {
-    return (
+  return (
       <div className="section-stack">
         {error && <div className="error-message section-block-end">{error}</div>}
         <div className="panel section notify">
@@ -749,14 +749,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button button--small"
+                  className="button"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--small button--primary"
+                  className="button button--primary"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -803,14 +803,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button button--small"
+                  className="button"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--small button--primary"
+                  className="button button--primary"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -842,14 +842,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button button--small"
+                  className="button"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--small button--primary"
+                  className="button button--primary"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -984,14 +984,14 @@ const SettingsPanel = ({ section = 'all' }) => {
           </div>
           <footer className="section__footer section__footer--end">
             <button
-              className="button button--small"
+              className="button"
               onClick={handleCancelPasses}
               disabled={loading || calendarActionLoading || !isPassesDirty}
             >
               Отмена
             </button>
             <button
-              className="button button--small button--primary"
+              className="button button--primary"
               onClick={handleSave}
               disabled={loading || calendarActionLoading || !isFormValid() || !isPassesDirty}
             >
@@ -1014,7 +1014,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       <header className="section__header section__header--between">
         <h3 className="panel__title">Цели визита</h3>
         <button
-          className={`button button--primary button--small${showAddGoalForm ? ' action--hidden' : ''}`}
+          className={`button button--primary${showAddGoalForm ? ' action--hidden' : ''}`}
           onClick={() => {
             setShowAddGoalForm(true)
             setError(null)
@@ -1106,8 +1106,8 @@ const SettingsPanel = ({ section = 'all' }) => {
                               aria-label="Активировать"
                             >
                               <i className="fa-solid fa-user-check" aria-hidden="true" />
-                            </button>
-                          )}
+        </button>
+      )}
                         </div>
                       </td>
                     </>
@@ -1166,7 +1166,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       <header className="section__header section__header--between">
         <h3 className="panel__title">Результаты и причины</h3>
         <button
-          className={`button button--primary button--small${showAddReasonForm ? ' action--hidden' : ''}`}
+          className={`button button--primary${showAddReasonForm ? ' action--hidden' : ''}`}
           onClick={() => {
             setShowAddReasonForm(true)
             setError(null)
@@ -1348,14 +1348,14 @@ const SettingsPanel = ({ section = 'all' }) => {
       </div>
       <footer className="section__footer section__footer--end">
         <button
-          className="button button--small"
+          className="button"
           onClick={handleCancelReasons}
           disabled={allowedLoading || !isReasonsDirty}
         >
           Отмена
         </button>
         <button
-          className="button button--small button--primary"
+          className="button button--primary"
           onClick={handleSaveAllowed}
           disabled={allowedLoading || !isReasonsDirty}
         >
@@ -1379,17 +1379,17 @@ const SettingsPanel = ({ section = 'all' }) => {
     <div>
       <div className={`${panelClassName} section`}>
         <header className="panel__header section__header section__header--between">
-          <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
-          {showHeaderSave && (
-            <button
-              className="button button--primary button--small"
-              onClick={handleSave}
-              disabled={loading || calendarActionLoading || !isFormValid()}
-            >
-              {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
-            </button>
-          )}
-        </header>
+            <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
+            {showHeaderSave && (
+              <button
+              className="button button--primary"
+                onClick={handleSave}
+                disabled={loading || calendarActionLoading || !isFormValid()}
+              >
+                {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
+              </button>
+            )}
+          </header>
 
         <div className="section__body section-content">
           {error && <div className="error-message section-block-end">{error}</div>}
@@ -1456,14 +1456,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button button--small"
+                  className="button"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--small button--primary"
+                  className="button button--primary"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -1510,14 +1510,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button button--small"
+                  className="button"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--small button--primary"
+                  className="button button--primary"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -1549,14 +1549,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button button--small"
+                  className="button"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--small button--primary"
+                  className="button button--primary"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -1613,14 +1613,14 @@ const SettingsPanel = ({ section = 'all' }) => {
 
                 <div className="calendar__actions">
                   <button
-                    className="button button--small button--primary"
+                    className="button button--primary"
                     onClick={handleLoadProductionCalendar}
                     disabled={loading || calendarActionLoading}
                   >
                     {calendarActionLoading ? 'Выполняется...' : `Загрузить ${currentYear}`}
                   </button>
                   <button
-                    className="button button--small"
+                    className="button"
                     onClick={handleClearProductionCalendar}
                     disabled={loading || calendarActionLoading}
                   >
@@ -1632,14 +1632,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               {section === 'production-calendar' && (
                 <div className="calendar__footer section__footer section__footer--end">
                   <button
-                    className="button button--small"
+                    className="button"
                     onClick={handleCancelProductionCalendar}
                     disabled={loading || calendarActionLoading || !isCalendarDirty}
                   >
                     Отменить
                   </button>
                   <button
-                    className="button button--primary button--small"
+                    className="button button--primary"
                     onClick={handleSave}
                     disabled={loading || calendarActionLoading || !isCalendarDirty}
                   >
@@ -1658,132 +1658,132 @@ const SettingsPanel = ({ section = 'all' }) => {
               </header>
               <div className="section__body">
                 <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={form.pass_integration.enabled}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        pass_integration: {
-                          ...prev.pass_integration,
-                          enabled: e.target.checked,
-                        },
-                      }))
-                    }
-                  />
+                <input
+                  type="checkbox"
+                  checked={form.pass_integration.enabled}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        enabled: e.target.checked,
+                      },
+                    }))
+                  }
+                />
                   <span className="text">Использовать</span>
-                </label>
+              </label>
                 <label className="notify__field">
                   <span className="text text--muted">API URL:</span>
-                  <input
-                    type="text"
+                <input
+                  type="text"
                     className="input text text--down notify__input"
-                    value={form.pass_integration.base_url}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        pass_integration: {
-                          ...prev.pass_integration,
-                          base_url: e.target.value,
-                        },
-                      }))
-                    }
-                    disabled={!form.pass_integration.enabled}
-                    placeholder="https://example.local/api"
-                  />
+                  value={form.pass_integration.base_url}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        base_url: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="https://example.local/api"
+                />
                 </label>
                 <label className="notify__field">
                   <span className="text text--muted">Логин:</span>
-                  <input
-                    type="text"
+                <input
+                  type="text"
                     className="input text text--down notify__input"
-                    value={form.pass_integration.login}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        pass_integration: {
-                          ...prev.pass_integration,
-                          login: e.target.value,
-                        },
-                      }))
-                    }
-                    disabled={!form.pass_integration.enabled}
-                    placeholder="login"
-                  />
+                  value={form.pass_integration.login}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        login: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="login"
+                />
                 </label>
                 <label className="notify__field">
                   <span className="text text--muted">Пароль:</span>
-                  <input
-                    type="password"
+                <input
+                  type="password"
                     className="input text text--down notify__input"
-                    value={form.pass_integration.password}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        pass_integration: {
-                          ...prev.pass_integration,
-                          password: e.target.value,
-                        },
-                      }))
-                    }
-                    disabled={!form.pass_integration.enabled}
-                    placeholder="password"
-                  />
+                  value={form.pass_integration.password}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        password: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="password"
+                />
                 </label>
                 <label className="notify__field">
                   <span className="text text--muted">Object:</span>
-                  <input
-                    type="text"
+                <input
+                  type="text"
                     className="input text text--down notify__input"
-                    value={form.pass_integration.object}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        pass_integration: {
-                          ...prev.pass_integration,
-                          object: e.target.value,
-                        },
-                      }))
-                    }
-                    disabled={!form.pass_integration.enabled}
-                    placeholder="1"
-                  />
+                  value={form.pass_integration.object}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        object: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="1"
+                />
                 </label>
                 <label className="notify__field">
                   <span className="text text--muted">Corpa:</span>
-                  <input
-                    type="text"
+                <input
+                  type="text"
                     className="input text text--down notify__input"
-                    value={form.pass_integration.corpa}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        pass_integration: {
-                          ...prev.pass_integration,
-                          corpa: e.target.value,
-                        },
-                      }))
-                    }
-                    disabled={!form.pass_integration.enabled}
-                    placeholder="Название организации"
-                  />
+                  value={form.pass_integration.corpa}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      pass_integration: {
+                        ...prev.pass_integration,
+                        corpa: e.target.value,
+                      },
+                    }))
+                  }
+                  disabled={!form.pass_integration.enabled}
+                  placeholder="Название организации"
+                />
                 </label>
               </div>
               <footer className="section__footer section__footer--end">
-                <button
-                  className="button button--small"
+              <button
+                  className="button"
                   onClick={handleCancelPasses}
                   disabled={loading || calendarActionLoading || !isPassesDirty}
-                >
+              >
                   Отмена
-                </button>
-                <button
-                  className="button button--small button--primary"
+              </button>
+              <button
+                  className="button button--primary"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isPassesDirty}
-                >
+              >
                   {loading ? 'Сохранение...' : 'Сохранить'}
-                </button>
+              </button>
               </footer>
             </div>
           )}
@@ -1793,9 +1793,9 @@ const SettingsPanel = ({ section = 'all' }) => {
               {renderVisitGoalsSection(true)}
               {renderVisitReasonsSection(true)}
             </>
-          )}
-        </div>
-      </div>
+                      )}
+                    </div>
+                  </div>
     </div>
   )
 }

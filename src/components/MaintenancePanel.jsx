@@ -56,7 +56,7 @@ const MaintenancePanel = ({ onSuccess }) => {
                 Жесткое удаление всех событий из базы данных. Это действие необратимо и отменить его невозможно!
               </p>
               <button
-                className="button button--small button--danger"
+                className="button button--danger"
                 onClick={handleClearDatabase}
                 disabled={loading}
               >
