@@ -183,53 +183,6 @@ const RoleManagement = () => {
     }
   }
 
-  // Сохранить изменения
-  const handleUpdate = async (roleId) => {
-    if (!editForm.name.trim()) {
-      setError('Введите название роли')
-      return
-    }
-
-    if (editForm.permission_ids.length === 0) {
-      setError('Выберите хотя бы одно право')
-      return
-    }
-
-    const updateData = {}
-    
-    const originalRole = roles.find(r => r.id === roleId)
-    if (editForm.name !== originalRole.name) {
-      updateData.name = editForm.name.trim()
-    }
-    if (editForm.description !== (originalRole.description || '')) {
-      updateData.description = editForm.description.trim() || null
-    }
-    if (editForm.interface_type !== originalRole.interface_type) {
-      updateData.interface_type = editForm.interface_type
-    }
-    
-    const originalPermIds = originalRole.permission_ids || originalRole.permissions?.map(p => p.id) || []
-    const permIdsChanged = JSON.stringify(editForm.permission_ids.sort()) !== JSON.stringify(originalPermIds.sort())
-    if (permIdsChanged) {
-      updateData.permission_ids = editForm.permission_ids
-    }
-
-    if (Object.keys(updateData).length === 0) {
-      setEditingRole(null)
-      return
-    }
-
-    try {
-      setError(null)
-      await updateRole(roleId, updateData)
-      setEditingRole(null)
-      await loadData()
-      pushToast({ type: 'success', title: 'Успех', message: 'Роль обновлена' })
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
   // Удалить роль
   const handleDelete = async (roleId) => {
     const role = roles.find(r => r.id === roleId)
@@ -268,124 +221,155 @@ const RoleManagement = () => {
   }, [displayError, pushToast])
 
   return (
-    <div className="panel" style={{ maxWidth: '66.666%', margin: '0 auto' }}>
-      <header className="panel__header">
+    <div className="panel section role-management">
+      <header className="panel__header section__header section__header--between">
         <h2 className="panel__title">Управление ролями</h2>
+        <button
+          className="button button--primary"
+          onClick={openCreate}
+          disabled={loading}
+          title="Добавить роль"
+          aria-label="Добавить роль"
+        >
+          + Добавить роль
+        </button>
       </header>
 
       {loadingRoles ? (
-        <div style={{ padding: '2rem', textAlign: 'center' }}>Загрузка...</div>
+        <div className="section-loading">Загрузка...</div>
       ) : (
-        <div className="panel__content">
+        <div className="section__body section__body--scroll-x">
           <div className="role-list">
             {roles.length === 0 ? (
               <div className="role-list__empty">Роли не найдены</div>
             ) : (
-              roles.map((role) => {
-                const rolePerms = Array.isArray(role.permissions) ? role.permissions : []
-                const uiCount = rolePerms.filter((p) => isUiPermission(p)).length
-                const otherCount = rolePerms.length - uiCount
+              <table className="table role-management__table">
+                <thead>
+                  <tr>
+                    <th>Роль</th>
+                    <th>Описание</th>
+                    <th>Права</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {roles.map((role) => {
+                    const rolePerms = Array.isArray(role.permissions) ? role.permissions : []
+                    const uiCount = rolePerms.filter((p) => isUiPermission(p)).length
+                    const otherCount = rolePerms.length - uiCount
 
-                return (
-                  <div className="role-row" key={role.id}>
-                    <div className="role-row__main">
-                      <div className="role-row__title">
-                        <span className="role-row__name">{role.name}</span>
-                      </div>
-                      <div className="role-row__desc" title={role.description || ''}>
-                        {role.description || <span style={{ color: 'var(--color-text-muted)' }}>—</span>}
-                      </div>
-                    </div>
-
-                    <div className="role-row__summary">
-                      <div className="role-row__perms">
-                        <span className="role-row__perm-pill">UI: {uiCount}</span>
-                        <span className="role-row__perm-pill">Остальные: {otherCount}</span>
-                      </div>
-                    </div>
-
-                    <div className="role-row__actions">
-                      <button className="button button--primary button--small" onClick={() => openEdit(role)}>
-                        Редактировать
-                      </button>
-                      <button
-                        className="button button--small button--danger"
-                        onClick={() => handleDelete(role.id)}
-                        disabled={loading}
-                      >
-                        Удалить
-                      </button>
-                    </div>
-                  </div>
-                )
-              })
+                    return (
+                      <tr key={role.id}>
+                        <td title={role.name}>{role.name}</td>
+                        <td title={role.description || ''}>
+                          {role.description || 'Описание роли не указано'}
+                        </td>
+                        <td title={`UI: ${uiCount}, Backend: ${otherCount}`}>
+                          UI: {uiCount}, Backend: {otherCount}
+                        </td>
+                        <td>
+                          <div className="table__actions">
+                            <button
+                              className="icon-action-button icon-action-button--primary"
+                              onClick={() => openEdit(role)}
+                              title="Редактировать роль"
+                              aria-label="Редактировать роль"
+                            >
+                              <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                            </button>
+                            <button
+                              className="icon-action-button icon-action-button--danger"
+                              onClick={() => handleDelete(role.id)}
+                              disabled={loading}
+                              title="Удалить роль"
+                              aria-label="Удалить роль"
+                            >
+                              <i className="fa-solid fa-trash" aria-hidden="true" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
 
-          <div style={{ marginTop: 'var(--space-3)' }}>
-            <button className="button button--primary button--small" onClick={openCreate} disabled={loading}>
-              + Добавить роль
-            </button>
-          </div>
-
           {modal.open && (
-            <div className="modal-overlay" aria-hidden="true">
-              <div className="modal" role="dialog" aria-modal="true" aria-label="Редактирование роли">
-                <div className="modal__header">
-                  <div className="modal__title">
+            <div className="role-modal-overlay" aria-hidden="true">
+              <section
+                className="role-modal text"
+                role="dialog"
+                aria-modal="true"
+                aria-label={modal.mode === 'create' ? 'Создание роли' : 'Редактирование роли'}
+              >
+                <header className="role-modal__header panel__header section__header section__header--between">
+                  <h3 className="role-modal__title panel__title">
                     {modal.mode === 'create' ? 'Создать роль' : 'Редактировать роль'}
-                  </div>
-                </div>
+                  </h3>
+                  <button
+                    type="button"
+                    className="icon-action-button"
+                    onClick={closeModal}
+                    title="Закрыть"
+                    aria-label="Закрыть"
+                  >
+                    <i className="fa-solid fa-xmark" aria-hidden="true" />
+                  </button>
+                </header>
 
-                <div className="modal__body">
-                  <div className="modal__grid">
-                    <label className="modal__field modal__field--name">
-                      <div className="modal__label">Название *</div>
-                      <input
-                        type="text"
-                        className="input"
-                        value={form.name}
-                        onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                      />
-                    </label>
-
-                    <label className="modal__field modal__field--interface">
-                      <div className="modal__label">Интерфейс</div>
-                      <select
-                        className="input"
-                        value={form.interface_type}
-                        onChange={(e) => setForm((p) => ({ ...p, interface_type: e.target.value }))}
-                      >
-                        {INTERFACE_OPTIONS.map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="text text--down text--muted">
-                        Пользователь — полный интерфейс. Оперативный дежурный — только текущий день.
+                <div className="role-modal__body">
+                  <div className="role-modal__layout">
+                    <section className="role-modal__card">
+                      <div className="role-modal__card-title text text--bold">
+                        Параметры роли
                       </div>
-                    </label>
+                      <div className="role-modal__fields">
+                        <label className="role-modal__field">
+                          <span className="role-modal__label text">Название *</span>
+                          <input
+                            type="text"
+                            className="input input--compact text field--full"
+                            value={form.name}
+                            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                          />
+                        </label>
 
-                    <label className="modal__field modal__field--description">
-                      <div className="modal__label">Описание</div>
-                      <input
-                        type="text"
-                        className="input"
-                        value={form.description}
-                        onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                      />
-                    </label>
-                  </div>
+                        <label className="role-modal__field">
+                          <span className="role-modal__label text">Описание</span>
+                          <textarea
+                            className="input input--compact text field--full"
+                            rows={3}
+                            value={form.description}
+                            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                          />
+                        </label>
 
-                  <div className="perm-sections">
-                    <div className="perm-section">
-                      <div className="perm-section__header">
-                        <div className="perm-section__title">UI‑права</div>
-                        <div className="perm-section__actions">
+                        <label className="role-modal__field">
+                          <span className="role-modal__label text">Интерфейс</span>
+                          <select
+                            className="input input--compact text field--full"
+                            value={form.interface_type}
+                            onChange={(e) => setForm((p) => ({ ...p, interface_type: e.target.value }))}
+                          >
+                            {INTERFACE_OPTIONS.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                    </section>
+
+                    <section className="role-modal__card">
+                      <header className="role-modal__perm-head section__header section__header--between">
+                        <div className="text text--bold">UI-права</div>
+                        <div className="role-modal__perm-actions">
                           <button
                             type="button"
-                            className="button button--small"
+                            className="button"
                             onClick={() => setAllInGroup(permissionGroups.ui, true)}
                             disabled={permissionGroups.ui.length === 0}
                           >
@@ -393,43 +377,42 @@ const RoleManagement = () => {
                           </button>
                           <button
                             type="button"
-                            className="button button--small"
+                            className="button"
                             onClick={() => setAllInGroup(permissionGroups.ui, false)}
                             disabled={permissionGroups.ui.length === 0}
                           >
                             Снять все
                           </button>
                         </div>
-                      </div>
-
-                      <div className="perm-section__list">
+                      </header>
+                      <div className="role-modal__perm-list">
                         {permissionGroups.ui.length === 0 ? (
-                          <div className="perm-section__empty">UI‑прав нет</div>
+                          <div className="text text--down text--muted">UI-прав нет</div>
                         ) : (
                           permissionGroups.ui.map((perm) => (
-                            <label className="perm-item" key={perm.id}>
+                            <label className="role-modal__perm-item" key={perm.id}>
                               <input
                                 type="checkbox"
                                 checked={selectedPermissionSet.has(perm.id)}
                                 onChange={() => togglePermission(perm.id)}
                               />
-                              <span className="perm-item__text">
-                                <span className="perm-item__name">{perm.name}</span>
-                                <span className="perm-item__code">{perm.code}</span>
+                              <span className="role-modal__perm-text">
+                                <span className="text">{perm.name}</span>
+                                <span className="text text--down text--subtle">{perm.code}</span>
                               </span>
                             </label>
                           ))
                         )}
                       </div>
-                    </div>
+                    </section>
 
-                    <div className="perm-section">
-                      <div className="perm-section__header">
-                      <div className="perm-section__title">Backend‑права</div>
-                        <div className="perm-section__actions">
+                    <section className="role-modal__card">
+                      <header className="role-modal__perm-head section__header section__header--between">
+                        <div className="text text--bold">Backend-права</div>
+                        <div className="role-modal__perm-actions">
                           <button
                             type="button"
-                            className="button button--small"
+                            className="button"
                             onClick={() => setAllInGroup(permissionGroups.other, true)}
                             disabled={permissionGroups.other.length === 0}
                           >
@@ -437,51 +420,50 @@ const RoleManagement = () => {
                           </button>
                           <button
                             type="button"
-                            className="button button--small"
+                            className="button"
                             onClick={() => setAllInGroup(permissionGroups.other, false)}
                             disabled={permissionGroups.other.length === 0}
                           >
                             Снять все
                           </button>
                         </div>
-                      </div>
-
-                      <div className="perm-section__list">
+                      </header>
+                      <div className="role-modal__perm-list">
                         {permissionGroups.other.length === 0 ? (
-                          <div className="perm-section__empty">Прав нет</div>
+                          <div className="text text--down text--muted">Прав нет</div>
                         ) : (
                           permissionGroups.other.map((perm) => (
-                            <label className="perm-item" key={perm.id}>
+                            <label className="role-modal__perm-item" key={perm.id}>
                               <input
                                 type="checkbox"
                                 checked={selectedPermissionSet.has(perm.id)}
                                 onChange={() => togglePermission(perm.id)}
                               />
-                              <span className="perm-item__text">
-                                <span className="perm-item__name">{perm.name}</span>
-                                <span className="perm-item__code">{perm.code}</span>
+                              <span className="role-modal__perm-text">
+                                <span className="text">{perm.name}</span>
+                                <span className="text text--down text--subtle">{perm.code}</span>
                               </span>
                             </label>
                           ))
                         )}
                       </div>
-                    </div>
+                    </section>
                   </div>
                 </div>
 
-                <div className="modal__footer">
+                <footer className="role-modal__footer section__footer section__footer--end">
+                  <button className="button" onClick={closeModal}>
+                    Отмена
+                  </button>
                   <button
-                    className="button button--primary button--small"
+                    className="button button--primary"
                     onClick={handleSubmit}
                     disabled={loading}
                   >
                     {loading ? '...' : modal.mode === 'create' ? 'Создать' : 'Сохранить'}
                   </button>
-                  <button className="button button--small" onClick={closeModal}>
-                    Отмена
-                  </button>
-                </div>
-              </div>
+                </footer>
+              </section>
             </div>
           )}
         </div>

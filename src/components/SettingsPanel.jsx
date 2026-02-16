@@ -4,7 +4,15 @@ import useVisitGoals from '../hooks/useVisitGoals'
 import { apiGet, apiPost, apiPatch, apiPut } from '../utils/api'
 import { useToast } from './ToastProvider'
 
-const SettingsPanel = ({ onBack }) => {
+const SECTION_TITLES = {
+  notifications: 'Уведомления',
+  passes: 'Пропуска',
+  'production-calendar': 'Производственный календарь',
+  'visit-dictionaries': 'Справочники визитов',
+  all: 'Настройки',
+}
+
+const SettingsPanel = ({ section = 'all' }) => {
   const {
     getSettings,
     updateSettings,
@@ -33,9 +41,29 @@ const SettingsPanel = ({ onBack }) => {
   const [reasonsError, setReasonsError] = useState(null)
   const currentYear = new Date().getFullYear()
 
-  const [activeReasonState, setActiveReasonState] = useState(50) // 50=Не оформлен, 40=Отказ
-  const [allowedReasonIds, setAllowedReasonIds] = useState(new Set())
+  const REASON_STATES = [
+    { value: 40, label: 'Отказ' },
+    { value: 50, label: 'Не оформлен' },
+    { value: 60, label: 'Трудоустроен' },
+  ]
+  const [allowedReasonIdsByState, setAllowedReasonIdsByState] = useState(() => ({
+    40: new Set(),
+    50: new Set(),
+    60: new Set(),
+  }))
+  const [allowedReasonIdsByStateInitial, setAllowedReasonIdsByStateInitial] = useState(() => ({
+    40: new Set(),
+    50: new Set(),
+    60: new Set(),
+  }))
   const [allowedLoading, setAllowedLoading] = useState(false)
+  const [editingReasonId, setEditingReasonId] = useState(null)
+  const [editingReasonName, setEditingReasonName] = useState('')
+  const [showAddReasonForm, setShowAddReasonForm] = useState(false)
+  const [productionCalendarInitialEnabled, setProductionCalendarInitialEnabled] = useState(false)
+  const [editingGoalId, setEditingGoalId] = useState(null)
+  const [editingGoalName, setEditingGoalName] = useState('')
+  const [showAddGoalForm, setShowAddGoalForm] = useState(false)
 
   // Типы уведомлений (fallback, если metadata отсутствует)
   const fallbackNotificationTypes = [
@@ -53,25 +81,29 @@ const SettingsPanel = ({ onBack }) => {
     { code: 'pass_revoked', title: 'Пропуск отозван' },
   ]
   const [availableTypes, setAvailableTypes] = useState(fallbackNotificationTypes)
+  const createDefaultNotifications = () => ({
+    providers: {
+      max_via_green_api: {
+        enabled: false,
+        base_url: '',
+        instance_id: '',
+        api_token: '',
+        chat_id: '',
+      },
+      telegram: {
+        enabled: false,
+        bot_token: '',
+        chat_id: '',
+      },
+    },
+    enabled_notification_types: fallbackNotificationTypes.map((t) => t.code),
+  })
+  const cloneNotifications = (value) => JSON.parse(JSON.stringify(value))
 
   // Форма настроек
   const [form, setForm] = useState({
     notifications: {
-      providers: {
-        max_via_green_api: {
-          enabled: false,
-          base_url: '',
-          instance_id: '',
-          api_token: '',
-          chat_id: '',
-        },
-        telegram: {
-          enabled: false,
-          bot_token: '',
-          chat_id: '',
-        },
-      },
-      enabled_notification_types: fallbackNotificationTypes.map((t) => t.code),
+      ...createDefaultNotifications(),
     },
     pass_integration: {
       enabled: false,
@@ -86,6 +118,16 @@ const SettingsPanel = ({ onBack }) => {
       status: null,
     },
   })
+  const [notificationsInitial, setNotificationsInitial] = useState(() => cloneNotifications(createDefaultNotifications()))
+  const createDefaultPassIntegration = () => ({
+    enabled: false,
+    base_url: '',
+    login: '',
+    password: '',
+    object: '',
+    corpa: '',
+  })
+  const [passesInitial, setPassesInitial] = useState(() => createDefaultPassIntegration())
 
   // Загрузить настройки при монтировании
   useEffect(() => {
@@ -108,24 +150,26 @@ const SettingsPanel = ({ onBack }) => {
 
           setAvailableTypes(normalizedTypes)
 
-          setForm({
-            notifications: {
-              providers: {
-                max_via_green_api: {
-                  enabled: !!maxProvider.enabled,
-                  base_url: maxProvider.base_url || '',
-                  instance_id: maxProvider.instance_id || '',
-                  api_token: maxProvider.api_token || '',
-                  chat_id: maxProvider.chat_id || '',
-                },
-                telegram: {
-                  enabled: !!telegramProvider.enabled,
-                  bot_token: telegramProvider.bot_token || '',
-                  chat_id: telegramProvider.chat_id || '',
-                },
+          const loadedNotifications = {
+            providers: {
+              max_via_green_api: {
+                enabled: !!maxProvider.enabled,
+                base_url: maxProvider.base_url || '',
+                instance_id: maxProvider.instance_id || '',
+                api_token: maxProvider.api_token || '',
+                chat_id: maxProvider.chat_id || '',
               },
-              enabled_notification_types: enabledTypes,
+              telegram: {
+                enabled: !!telegramProvider.enabled,
+                bot_token: telegramProvider.bot_token || '',
+                chat_id: telegramProvider.chat_id || '',
+              },
             },
+            enabled_notification_types: enabledTypes,
+          }
+
+          setForm({
+            notifications: loadedNotifications,
             pass_integration: {
               enabled: !!passIntegration.enabled,
               base_url: passIntegration.base_url || '',
@@ -139,10 +183,22 @@ const SettingsPanel = ({ onBack }) => {
               status: productionCalendar.status || null,
             },
           })
+          setNotificationsInitial(cloneNotifications(loadedNotifications))
+          setPassesInitial({
+            enabled: !!passIntegration.enabled,
+            base_url: passIntegration.base_url || '',
+            login: passIntegration.login || '',
+            password: passIntegration.password || '',
+            object: passIntegration.object || '',
+            corpa: passIntegration.corpa || '',
+          })
+          setProductionCalendarInitialEnabled(!!productionCalendar.enabled)
         }
       } catch (err) {
         // Если настройки не найдены, используем значения по умолчанию
         console.log('Настройки не найдены, используем значения по умолчанию')
+        setNotificationsInitial(cloneNotifications(createDefaultNotifications()))
+        setPassesInitial(createDefaultPassIntegration())
       }
     }
     loadSettings()
@@ -161,20 +217,21 @@ const SettingsPanel = ({ onBack }) => {
     }
   }
 
-  const loadAllowedReasons = async (state) => {
-    const s = Number(state)
-    if (![40, 50].includes(s)) return
-    try {
+  const loadAllAllowedReasons = async () => {
       setAllowedLoading(true)
-      const res = await apiGet(`/states/${s}/reasons/all`)
-      const list = res?.reasons || []
-      // Важно: разрешённые причины храним только в allowedReasonIds (галки).
-      // Ранее тут был вызов setAllowedReasons(list), но такого state не существовало,
-      // из-за чего переключение 40/50 ломалось и казалось, что списки "одинаковые".
-      // Защита от гонки: применяем результат только если state не успел смениться.
-      if (Number(activeReasonState) === s) {
-        setAllowedReasonIds(new Set(list.map((r) => r.id)))
+    try {
+      const [res40, res50, res60] = await Promise.all([
+        apiGet('/states/40/reasons/all'),
+        apiGet('/states/50/reasons/all'),
+        apiGet('/states/60/reasons/all'),
+      ])
+      const next = {
+        40: new Set((res40?.reasons || []).map((r) => r.id)),
+        50: new Set((res50?.reasons || []).map((r) => r.id)),
+        60: new Set((res60?.reasons || []).map((r) => r.id)),
       }
+      setAllowedReasonIdsByState(next)
+      setAllowedReasonIdsByStateInitial(next)
     } catch (err) {
       setReasonsError(err.message || 'Не удалось загрузить список разрешенных причин')
     } finally {
@@ -188,9 +245,9 @@ const SettingsPanel = ({ onBack }) => {
   }, [])
 
   useEffect(() => {
-    loadAllowedReasons(activeReasonState)
+    loadAllAllowedReasons()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeReasonState])
+  }, [])
 
   useEffect(() => {
     const loadGoals = async () => {
@@ -204,10 +261,6 @@ const SettingsPanel = ({ onBack }) => {
     loadGoals()
   }, [])
 
-  useEffect(() => {
-    setReasonEdits({})
-    setNewReasonName('')
-  }, [activeReasonState])
 
   // Обработка ошибок
   const displayError = error || apiError || goalsError || reasonsError
@@ -273,6 +326,8 @@ const SettingsPanel = ({ onBack }) => {
         },
       }
       const updatedSettings = await updateSettings(settingsData)
+      setNotificationsInitial(cloneNotifications(settingsData.notifications))
+      setPassesInitial({ ...settingsData.pass_integration })
       if (updatedSettings?.production_calendar) {
         setForm((prev) => ({
           ...prev,
@@ -281,6 +336,7 @@ const SettingsPanel = ({ onBack }) => {
             status: updatedSettings.production_calendar.status || null,
           },
         }))
+        setProductionCalendarInitialEnabled(!!updatedSettings.production_calendar.enabled)
       }
       pushToast({
         type: 'success',
@@ -360,6 +416,7 @@ const SettingsPanel = ({ onBack }) => {
       const updatedGoals = await getAllGoals()
       setVisitGoals(updatedGoals)
       setNewGoalName('')
+      setShowAddGoalForm(false)
       pushToast({
         type: 'success',
         title: 'Готово',
@@ -386,6 +443,35 @@ const SettingsPanel = ({ onBack }) => {
     }
   }
 
+  const startEditGoal = (goal) => {
+    setEditingGoalId(goal.id)
+    setEditingGoalName(goal.name)
+    setError(null)
+  }
+
+  const cancelEditGoal = () => {
+    setEditingGoalId(null)
+    setError(null)
+  }
+
+  const handleUpdateGoalName = async (goalId) => {
+    const name = editingGoalName.trim()
+    if (!name) {
+      setError('Введите название цели')
+      return
+    }
+    try {
+      setError(null)
+      await updateGoal(goalId, { name })
+      const updatedGoals = await getAllGoals()
+      setVisitGoals(updatedGoals)
+      setEditingGoalId(null)
+      pushToast({ type: 'success', title: 'Готово', message: 'Цель визита обновлена' })
+    } catch (err) {
+      setError(err.message || 'Ошибка при сохранении цели визита')
+    }
+  }
+
   const handleCreateReason = async () => {
     const name = newReasonName.trim()
     if (!name) {
@@ -397,6 +483,7 @@ const SettingsPanel = ({ onBack }) => {
       await apiPost('/reasons', { name })
       await loadAllReasons()
       setNewReasonName('')
+      setShowAddReasonForm(false)
       pushToast({ type: 'success', title: 'Готово', message: 'Причина добавлена' })
     } catch (err) {
       setError(err.message || 'Ошибка при добавлении причины')
@@ -408,8 +495,7 @@ const SettingsPanel = ({ onBack }) => {
       setError(null)
       await apiPatch(`/reasons/${reasonId}`, { is_active: nextActive })
       await loadAllReasons()
-      // если причина сейчас разрешена для выбранного state — просто перезагрузим список
-      await loadAllowedReasons(activeReasonState)
+      await loadAllAllowedReasons()
       pushToast({
         type: 'success',
         title: 'Готово',
@@ -420,49 +506,75 @@ const SettingsPanel = ({ onBack }) => {
     }
   }
 
+  const startEditReason = (reason) => {
+    setEditingReasonId(reason.id)
+    setEditingReasonName(reason.name)
+    setError(null)
+  }
+
+  const cancelEditReason = () => {
+    setEditingReasonId(null)
+    setError(null)
+  }
+
   const handleUpdateReasonName = async (reasonId) => {
-    const original = allReasons.find((item) => item.id === reasonId)
-    const nextName = (reasonEdits[reasonId] ?? original?.name ?? '').trim()
-    if (!nextName) {
+    const name = editingReasonName.trim()
+    if (!name) {
       setError('Название причины не может быть пустым')
       return
     }
-    if (nextName === original?.name) return
-
     try {
       setError(null)
-      await apiPatch(`/reasons/${reasonId}`, { name: nextName })
+      await apiPatch(`/reasons/${reasonId}`, { name })
       await loadAllReasons()
-      await loadAllowedReasons(activeReasonState)
-      setReasonEdits((prev) => {
-        const next = { ...prev }
-        delete next[reasonId]
-        return next
-      })
+      setEditingReasonId(null)
       pushToast({ type: 'success', title: 'Готово', message: 'Причина обновлена' })
     } catch (err) {
       setError(err.message || 'Ошибка при обновлении причины')
     }
   }
 
-  const handleToggleAllowed = (reasonId) => {
-    setAllowedReasonIds((prev) => {
-      const next = new Set(prev)
+  const handleToggleAllowed = (reasonId, state) => {
+    setAllowedReasonIdsByState((prev) => {
+      const next = new Set(prev[state])
       if (next.has(reasonId)) next.delete(reasonId)
       else next.add(reasonId)
-      return next
+      return { ...prev, [state]: next }
     })
+  }
+
+  const isReasonsDirty = [40, 50, 60].some((s) => {
+    const cur = allowedReasonIdsByState[s] || new Set()
+    const init = allowedReasonIdsByStateInitial[s] || new Set()
+    if (cur.size !== init.size) return true
+    for (const id of cur) if (!init.has(id)) return true
+    return false
+  })
+
+  const handleCancelReasons = () => {
+    setAllowedReasonIdsByState({
+      40: new Set(allowedReasonIdsByStateInitial[40]),
+      50: new Set(allowedReasonIdsByStateInitial[50]),
+      60: new Set(allowedReasonIdsByStateInitial[60]),
+    })
+    setError(null)
   }
 
   const handleSaveAllowed = async () => {
     try {
       setError(null)
-      const ids = Array.from(allowedReasonIds)
-      await apiPut(`/states/${Number(activeReasonState)}/reasons`, { reason_ids: ids })
-      await loadAllowedReasons(activeReasonState)
-      pushToast({ type: 'success', title: 'Готово', message: 'Список причин сохранён' })
+      setAllowedLoading(true)
+      await Promise.all([
+        apiPut('/states/40/reasons', { reason_ids: Array.from(allowedReasonIdsByState[40]) }),
+        apiPut('/states/50/reasons', { reason_ids: Array.from(allowedReasonIdsByState[50]) }),
+        apiPut('/states/60/reasons', { reason_ids: Array.from(allowedReasonIdsByState[60]) }),
+      ])
+      await loadAllAllowedReasons()
+      pushToast({ type: 'success', title: 'Готово', message: 'Списки причин сохранены' })
     } catch (err) {
-      setError(err.message || 'Ошибка при сохранении списка причин')
+      setError(err.message || 'Ошибка при сохранении списков причин')
+    } finally {
+      setAllowedLoading(false)
     }
   }
 
@@ -534,186 +646,942 @@ const SettingsPanel = ({ onBack }) => {
     : lastClearedAtText
       ? `Последняя очистка: ${lastClearedAtText}`
       : 'Загрузок еще не было'
+  const isCalendarDirty =
+    !!form.production_calendar &&
+    !!(section === 'production-calendar') &&
+    !!(form.production_calendar.enabled !== productionCalendarInitialEnabled)
+
+  const handleCancelProductionCalendar = () => {
+    setForm((prev) => ({
+      ...prev,
+      production_calendar: {
+        ...(prev.production_calendar || {}),
+        enabled: productionCalendarInitialEnabled,
+      },
+    }))
+  }
+
+  const showNotifications = section === 'all' || section === 'notifications'
+  const showPasses = section === 'all' || section === 'passes'
+  const showCalendar = section === 'all' || section === 'production-calendar'
+  const showVisitDictionaries = section === 'all' || section === 'visit-dictionaries'
+  const canSaveSettings = showNotifications || showPasses
+  const showHeaderSave = canSaveSettings && !showNotifications
+  const panelClassName = 'panel'
+  const isNotificationsDirty =
+    JSON.stringify(form.notifications) !== JSON.stringify(notificationsInitial)
+  const handleCancelNotifications = () => {
+    setForm((prev) => ({
+      ...prev,
+      notifications: cloneNotifications(notificationsInitial),
+    }))
+  }
+  const isPassesDirty =
+    JSON.stringify(form.pass_integration) !== JSON.stringify(passesInitial)
+  const handleCancelPasses = () => {
+    setForm((prev) => ({
+      ...prev,
+      pass_integration: { ...passesInitial },
+    }))
+  }
+
+  if (section === 'notifications') {
+  return (
+      <div className="section-stack">
+        {error && <div className="error-message section-block-end">{error}</div>}
+        <div className="panel section notify">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">MAX</h3>
+              </header>
+              <div className="section__body">
+                <label className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={form.notifications.providers.max_via_green_api.enabled}
+                    onChange={(e) => toggleProviderEnabled('max_via_green_api', e.target.checked)}
+                  />
+                  <span className="text">Использовать</span>
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Базовый URL:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.max_via_green_api.base_url}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'base_url', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="https://3100.api.green-api.com/v3"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Instance ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.max_via_green_api.instance_id}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'instance_id', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="110000"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">API Token:</span>
+                  <input
+                    type="password"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.max_via_green_api.api_token}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'api_token', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="token123"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Chat ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.max_via_green_api.chat_id}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'chat_id', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="chat123"
+                  />
+                </label>
+              </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
+            </div>
+
+        <div className="panel section notify">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">Telegram</h3>
+              </header>
+              <div className="section__body">
+                <label className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={form.notifications.providers.telegram.enabled}
+                    onChange={(e) => toggleProviderEnabled('telegram', e.target.checked)}
+                  />
+                  <span className="text">Использовать</span>
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Bot Token:</span>
+                  <input
+                    type="password"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.telegram.bot_token}
+                    onChange={(e) => updateProviderConfig('telegram', 'bot_token', e.target.value)}
+                    disabled={!form.notifications.providers.telegram.enabled}
+                    placeholder="token123"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Chat ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.telegram.chat_id}
+                    onChange={(e) => updateProviderConfig('telegram', 'chat_id', e.target.value)}
+                    disabled={!form.notifications.providers.telegram.enabled}
+                    placeholder="chat456"
+                  />
+                </label>
+              </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
+            </div>
+
+        <div className="panel section notify">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">Типы уведомлений</h3>
+              </header>
+              <div className="section__body">
+                <div className="notify__types">
+                  {availableTypes.map((type) => (
+                    <label
+                      key={type.code}
+                      className="notify__type-item"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.notifications.enabled_notification_types.includes(type.code)}
+                        onChange={() => toggleNotificationType(type.code)}
+                      />
+                      <span>{type.title}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
+            </div>
+      </div>
+    );
+  }
+
+  if (section === 'passes') {
+    return (
+      <div className="section-stack">
+        {error && <div className="error-message section-block-end">{error}</div>}
+        <div className="panel section">
+          <header className="section__header section__header--start">
+            <h3 className="panel__title">Заказ пропусков (интеграция)</h3>
+          </header>
+          <div className="section__body">
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={form.pass_integration.enabled}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      enabled: e.target.checked,
+                    },
+                  }))
+                }
+              />
+              <span className="text">Использовать</span>
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">API URL:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={form.pass_integration.base_url}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      base_url: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="https://example.local/api"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Логин:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={form.pass_integration.login}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      login: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="login"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Пароль:</span>
+              <input
+                type="password"
+                className="input text text--down notify__input"
+                value={form.pass_integration.password}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      password: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="password"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Object:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={form.pass_integration.object}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      object: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="1"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Corpa:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={form.pass_integration.corpa}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    pass_integration: {
+                      ...prev.pass_integration,
+                      corpa: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!form.pass_integration.enabled}
+                placeholder="Название организации"
+              />
+            </label>
+          </div>
+          <footer className="section__footer section__footer--end">
+            <button
+              className="button"
+              onClick={handleCancelPasses}
+              disabled={loading || calendarActionLoading || !isPassesDirty}
+            >
+              Отмена
+            </button>
+            <button
+              className="button button--primary"
+              onClick={handleSave}
+              disabled={loading || calendarActionLoading || !isFormValid() || !isPassesDirty}
+            >
+              {loading ? 'Сохранение...' : 'Сохранить'}
+            </button>
+          </footer>
+        </div>
+      </div>
+    );
+  }
+
+  const cancelAddGoalForm = () => {
+    setShowAddGoalForm(false)
+    setNewGoalName('')
+    setError(null)
+  }
+
+  const renderVisitGoalsSection = (wrapItem = false) => (
+    <div key="goals" className={`panel section${wrapItem ? ' section-group__item' : ''}`}>
+      <header className="section__header section__header--between">
+        <h3 className="panel__title">Цели визита</h3>
+        <button
+          className={`button button--primary${showAddGoalForm ? ' action--hidden' : ''}`}
+          onClick={() => {
+            setShowAddGoalForm(true)
+            setError(null)
+          }}
+          disabled={goalsLoading}
+          tabIndex={showAddGoalForm ? -1 : 0}
+          aria-hidden={showAddGoalForm}
+        >
+          + Добавить
+        </button>
+      </header>
+      <div className="section__body section__body--scroll-x">
+        <div className="visit-goals">
+          <table className="table visit-goals__table">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visitGoals.map((goal) => (
+                <tr
+                  key={goal.id}
+                  className={!goal.is_active ? 'visit-goals__row--inactive' : undefined}
+                >
+                  {editingGoalId === goal.id ? (
+                    <>
+                      <td>
+                        <input
+                          type="text"
+                          className="input input--compact field--full"
+                          value={editingGoalName}
+                          onChange={(e) => setEditingGoalName(e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <div className="table__actions table__actions--nowrap">
+                          <button
+                            className="icon-action-button icon-action-button--primary"
+                            onClick={() => handleUpdateGoalName(goal.id)}
+                            disabled={goalsLoading}
+                            title="Сохранить"
+                            aria-label="Сохранить"
+                          >
+                            <i className="fa-solid fa-check" aria-hidden="true" />
+                          </button>
+                          <button
+                            className="icon-action-button"
+                            onClick={cancelEditGoal}
+                            title="Отмена"
+                            aria-label="Отмена"
+                          >
+                            <i className="fa-solid fa-xmark" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{goal.name}</td>
+                      <td>
+                        <div className="table__actions table__actions--nowrap">
+                          <button
+                            className="icon-action-button icon-action-button--primary"
+                            onClick={() => startEditGoal(goal)}
+                            disabled={!goal.is_active}
+                            title={goal.is_active ? 'Редактировать' : 'Редактирование недоступно'}
+                            aria-label="Редактировать"
+                          >
+                            <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                          </button>
+                          {goal.is_active ? (
+                            <button
+                              className="icon-action-button icon-action-button--danger"
+                              onClick={() => handleToggleGoal(goal.id, false)}
+                              disabled={goalsLoading}
+                              title="Деактивировать"
+                              aria-label="Деактивировать"
+                            >
+                              <i className="fa-solid fa-user-minus" aria-hidden="true" />
+                            </button>
+                          ) : (
+                            <button
+                              className="icon-action-button icon-action-button--success"
+                              onClick={() => handleToggleGoal(goal.id, true)}
+                              disabled={goalsLoading}
+                              title="Активировать"
+                              aria-label="Активировать"
+                            >
+                              <i className="fa-solid fa-user-check" aria-hidden="true" />
+        </button>
+      )}
+                        </div>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+              {showAddGoalForm && (
+                <tr>
+                  <td>
+                    <input
+                      type="text"
+                      className="input input--compact field--full"
+                      placeholder="Новая цель визита"
+                      value={newGoalName}
+                      onChange={(e) => setNewGoalName(e.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <div className="table__actions table__actions--nowrap">
+                      <button
+                        className="icon-action-button icon-action-button--primary"
+                        onClick={handleCreateGoal}
+                        disabled={goalsLoading || !newGoalName.trim()}
+                        title="Сохранить"
+                        aria-label="Сохранить"
+                      >
+                        <i className="fa-solid fa-check" aria-hidden="true" />
+                      </button>
+                      <button
+                        className="icon-action-button"
+                        onClick={cancelAddGoalForm}
+                        title="Отмена"
+                        aria-label="Отмена"
+                      >
+                        <i className="fa-solid fa-xmark" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+
+  const cancelAddReasonForm = () => {
+    setShowAddReasonForm(false)
+    setNewReasonName('')
+    setError(null)
+  }
+
+  const renderVisitReasonsSection = (wrapItem = false) => (
+    <div key="reasons" className={`panel section${wrapItem ? ' section-group__item' : ''}`}>
+      <header className="section__header section__header--between">
+        <h3 className="panel__title">Результаты и причины</h3>
+        <button
+          className={`button button--primary${showAddReasonForm ? ' action--hidden' : ''}`}
+          onClick={() => {
+            setShowAddReasonForm(true)
+            setError(null)
+          }}
+          disabled={reasonsLoading}
+          tabIndex={showAddReasonForm ? -1 : 0}
+          aria-hidden={showAddReasonForm}
+        >
+          + Добавить
+        </button>
+      </header>
+      <div className="section__body section__body--scroll-x">
+        <div className="visit-reasons">
+          <table className="table visit-reasons__table">
+            <thead>
+              <tr>
+                <th>Название причины</th>
+                {REASON_STATES.map(({ value, label }) => (
+                  <th key={value} title={label} className="visit-reasons__state-th">{value}</th>
+                ))}
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reasonsLoading ? (
+                <tr>
+                  <td colSpan={2 + REASON_STATES.length} className="text text--muted">
+                    Загрузка...
+                  </td>
+                </tr>
+              ) : allReasons.length === 0 && !showAddReasonForm ? (
+                <tr>
+                  <td colSpan={2 + REASON_STATES.length} className="text text--muted">
+                    Причин пока нет
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  {allReasons.map((reason) => (
+                    <tr
+                      key={reason.id}
+                      className={!reason.is_active ? 'visit-reasons__row--inactive' : undefined}
+                    >
+                      {editingReasonId === reason.id ? (
+                        <>
+                          <td>
+                            <input
+                              type="text"
+                              className="input input--compact field--full"
+                              value={editingReasonName}
+                              onChange={(e) => setEditingReasonName(e.target.value)}
+                            />
+                          </td>
+                          {REASON_STATES.map(({ value }) => (
+                            <td key={value} className="visit-reasons__check-col">
+                              <input
+                                type="checkbox"
+                                checked={allowedReasonIdsByState[value]?.has(reason.id) ?? false}
+                                onChange={() => handleToggleAllowed(reason.id, value)}
+                                className="visit-reasons__check"
+                              />
+                            </td>
+                          ))}
+                          <td>
+                            <div className="table__actions table__actions--nowrap">
+                              <button
+                                className="icon-action-button icon-action-button--primary"
+                                onClick={() => handleUpdateReasonName(reason.id)}
+                                disabled={reasonsLoading}
+                                title="Сохранить"
+                                aria-label="Сохранить"
+                              >
+                                <i className="fa-solid fa-check" aria-hidden="true" />
+                              </button>
+                              <button
+                                className="icon-action-button"
+                                onClick={cancelEditReason}
+                                title="Отмена"
+                                aria-label="Отмена"
+                              >
+                                <i className="fa-solid fa-xmark" aria-hidden="true" />
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>{reason.name}</td>
+                          {REASON_STATES.map(({ value }) => (
+                            <td key={value} className="visit-reasons__check-col">
+                              <input
+                                type="checkbox"
+                                checked={allowedReasonIdsByState[value]?.has(reason.id) ?? false}
+                                onChange={() => handleToggleAllowed(reason.id, value)}
+                                className="visit-reasons__check"
+                              />
+                            </td>
+                          ))}
+                          <td>
+                            <div className="table__actions table__actions--nowrap">
+                              <button
+                                className="icon-action-button icon-action-button--primary"
+                                onClick={() => startEditReason(reason)}
+                                disabled={!reason.is_active}
+                                title={reason.is_active ? 'Редактировать' : 'Редактирование недоступно'}
+                                aria-label="Редактировать"
+                              >
+                                <i className="fa-solid fa-pen-to-square" aria-hidden="true" />
+                              </button>
+                              {reason.is_active ? (
+                                <button
+                                  className="icon-action-button icon-action-button--danger"
+                                  onClick={() => handleToggleReason(reason.id, false)}
+                                  disabled={reasonsLoading}
+                                  title="Деактивировать"
+                                  aria-label="Деактивировать"
+                                >
+                                  <i className="fa-solid fa-user-minus" aria-hidden="true" />
+                                </button>
+                              ) : (
+                                <button
+                                  className="icon-action-button icon-action-button--success"
+                                  onClick={() => handleToggleReason(reason.id, true)}
+                                  disabled={reasonsLoading}
+                                  title="Активировать"
+                                  aria-label="Активировать"
+                                >
+                                  <i className="fa-solid fa-user-check" aria-hidden="true" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                  {showAddReasonForm && (
+                    <tr>
+                      <td>
+                        <input
+                          type="text"
+                          className="input input--compact field--full"
+                          placeholder="Новая причина результата"
+                          value={newReasonName}
+                          onChange={(e) => setNewReasonName(e.target.value)}
+                        />
+                      </td>
+                      {REASON_STATES.map(({ value }) => (
+                        <td key={value} className="visit-reasons__check-col" />
+                      ))}
+                      <td>
+                        <div className="table__actions table__actions--nowrap">
+                          <button
+                            className="icon-action-button icon-action-button--primary"
+                            onClick={handleCreateReason}
+                            disabled={reasonsLoading || !newReasonName.trim()}
+                            title="Сохранить"
+                            aria-label="Сохранить"
+                          >
+                            <i className="fa-solid fa-check" aria-hidden="true" />
+                          </button>
+                          <button
+                            className="icon-action-button"
+                            onClick={cancelAddReasonForm}
+                            title="Отмена"
+                            aria-label="Отмена"
+                          >
+                            <i className="fa-solid fa-xmark" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <footer className="section__footer section__footer--end">
+        <button
+          className="button"
+          onClick={handleCancelReasons}
+          disabled={allowedLoading || !isReasonsDirty}
+        >
+          Отмена
+        </button>
+        <button
+          className="button button--primary"
+          onClick={handleSaveAllowed}
+          disabled={allowedLoading || !isReasonsDirty}
+        >
+          {allowedLoading ? 'Сохранение...' : 'Сохранить'}
+        </button>
+      </footer>
+    </div>
+  )
+
+  if (section === 'visit-dictionaries') {
+    return (
+      <div className="section-stack">
+        {error && <div className="error-message section-block-end">{error}</div>}
+        {renderVisitGoalsSection(false)}
+        {renderVisitReasonsSection(false)}
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: 'var(--space-6)' }}>
-      <button className="button" onClick={onBack} style={{ marginBottom: '1rem' }}>
-        ← Назад к записям
-      </button>
+    <div>
+      <div className={`${panelClassName} section`}>
+        <header className="panel__header section__header section__header--between">
+            <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
+            {showHeaderSave && (
+              <button
+              className="button button--primary"
+                onClick={handleSave}
+                disabled={loading || calendarActionLoading || !isFormValid()}
+              >
+                {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
+              </button>
+            )}
+          </header>
 
-      <div className="panel" style={{ maxWidth: '66.666%', margin: '0 auto' }}>
-        <header className="panel__header">
-          <h2 className="panel__title">Настройки</h2>
-          <button
-            className="button button--primary button--small"
-            onClick={handleSave}
-            disabled={loading || calendarActionLoading || !isFormValid()}
-            style={{
-              gridColumn: 3,
-            }}
-          >
-            {loading ? 'Сохранение...' : calendarActionLoading ? 'Операция с календарем...' : 'Сохранить'}
-          </button>
-        </header>
+        <div className="section__body section-content">
+          {error && <div className="error-message section-block-end">{error}</div>}
 
-        <div className="panel__content" style={{ maxHeight: '70vh' }}>
-          {error && (
-            <div className="error-message" style={{ marginBottom: 'var(--space-4)' }}>
-              {error}
+          {showNotifications && (
+          <>
+            <div className="section notify section-group__item">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">MAX</h3>
+              </header>
+              <div className="section__body">
+                <label className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={form.notifications.providers.max_via_green_api.enabled}
+                    onChange={(e) => toggleProviderEnabled('max_via_green_api', e.target.checked)}
+                  />
+                  <span className="text">Использовать</span>
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Базовый URL:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.max_via_green_api.base_url}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'base_url', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="https://3100.api.green-api.com/v3"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Instance ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.max_via_green_api.instance_id}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'instance_id', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="110000"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">API Token:</span>
+                  <input
+                    type="password"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.max_via_green_api.api_token}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'api_token', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="token123"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Chat ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.max_via_green_api.chat_id}
+                    onChange={(e) => updateProviderConfig('max_via_green_api', 'chat_id', e.target.value)}
+                    disabled={!form.notifications.providers.max_via_green_api.enabled}
+                    placeholder="chat123"
+                  />
+                </label>
+              </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
             </div>
+
+            <div className="section notify section-group__item">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">Telegram</h3>
+              </header>
+              <div className="section__body">
+                <label className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={form.notifications.providers.telegram.enabled}
+                    onChange={(e) => toggleProviderEnabled('telegram', e.target.checked)}
+                  />
+                  <span className="text">Использовать</span>
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Bot Token:</span>
+                  <input
+                    type="password"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.telegram.bot_token}
+                    onChange={(e) => updateProviderConfig('telegram', 'bot_token', e.target.value)}
+                    disabled={!form.notifications.providers.telegram.enabled}
+                    placeholder="token123"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Chat ID:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.notifications.providers.telegram.chat_id}
+                    onChange={(e) => updateProviderConfig('telegram', 'chat_id', e.target.value)}
+                    disabled={!form.notifications.providers.telegram.enabled}
+                    placeholder="chat456"
+                  />
+                </label>
+              </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
+            </div>
+
+            <div className="section notify section-group__item">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">Типы уведомлений</h3>
+              </header>
+              <div className="section__body">
+                <div className="notify__types">
+                  {availableTypes.map((type) => (
+                    <label
+                      key={type.code}
+                      className="notify__type-item"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.notifications.enabled_notification_types.includes(type.code)}
+                        onChange={() => toggleNotificationType(type.code)}
+                      />
+                      <span>{type.title}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="button"
+                  onClick={handleCancelNotifications}
+                  disabled={loading || calendarActionLoading || !isNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="button button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
+            </div>
+          </>
           )}
 
-          {/* Секция уведомлений */}
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Уведомления
-            </h3>
+          {showCalendar && (
+          <div
+            className={`section-group${
+              section === 'production-calendar' ? ' section-group--compact-bottom' : ''
+            }`}
+          >
+            {section === 'all' && (
+              <h3 className="text text--up text--bold section-group__title">
+                Производственный календарь
+              </h3>
+            )}
 
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-                marginBottom: 'var(--space-4)',
-              }}
-            >
-              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={form.notifications.providers.max_via_green_api.enabled}
-                  onChange={(e) => toggleProviderEnabled('max_via_green_api', e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                <span>Мессенджер MAX (через Green API)</span>
-              </label>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Базовый URL:
-                </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.max_via_green_api.base_url}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'base_url', e.target.value)}
-                  disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="https://3100.api.green-api.com/v3"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Instance ID:
-                </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.max_via_green_api.instance_id}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'instance_id', e.target.value)}
-                  disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="110000"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  API Token:
-                </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.max_via_green_api.api_token}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'api_token', e.target.value)}
-                  disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="token123"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Chat ID:
-                </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.max_via_green_api.chat_id}
-                  onChange={(e) => updateProviderConfig('max_via_green_api', 'chat_id', e.target.value)}
-                  disabled={!form.notifications.providers.max_via_green_api.enabled}
-                  placeholder="chat123"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-            </div>
-
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-              }}
-            >
-              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={form.notifications.providers.telegram.enabled}
-                  onChange={(e) => toggleProviderEnabled('telegram', e.target.checked)}
-                  style={{ cursor: 'pointer' }}
-                />
-                <span>Telegram (Bot API)</span>
-              </label>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Bot Token:
-                </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.telegram.bot_token}
-                  onChange={(e) => updateProviderConfig('telegram', 'bot_token', e.target.value)}
-                  disabled={!form.notifications.providers.telegram.enabled}
-                  placeholder="token123"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Chat ID:
-                </label>
-                <input
-                  type="text"
-                  className="input text text--down"
-                  value={form.notifications.providers.telegram.chat_id}
-                  onChange={(e) => updateProviderConfig('telegram', 'chat_id', e.target.value)}
-                  disabled={!form.notifications.providers.telegram.enabled}
-                  placeholder="chat456"
-                  style={{ width: '100%', padding: '4px 6px' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Секция производственного календаря */}
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Производственный календарь
-            </h3>
-
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-              }}
-            >
-              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
+            <div className="section calendar">
+              <div className="section__body">
+                <label className="check-row">
                 <input
                   type="checkbox"
                   checked={!!form.production_calendar?.enabled}
@@ -726,58 +1594,70 @@ const SettingsPanel = ({ onBack }) => {
                       },
                     }))
                   }
-                  style={{ cursor: 'pointer' }}
                 />
-                <span>Использовать производственный календарь</span>
-              </label>
+                  <span className="text">Использовать производственный календарь</span>
+                </label>
 
-              <div
-                className="text text--down"
-                style={{
-                  marginTop: 'var(--space-3)',
-                  color: isProductionCalendarLoaded ? '#1d7a35' : '#b42318',
-                }}
-              >
-                {productionCalendarStatusText}
-              </div>
-              <div className="text text--down text--muted" style={{ marginTop: 'var(--space-1)' }}>
-                {productionCalendarMetaText}
+                <div
+                  className={`text text--down calendar__status${
+                    isProductionCalendarLoaded
+                      ? ' calendar__status--loaded'
+                      : ' calendar__status--missing'
+                  }`}
+                >
+                  {productionCalendarStatusText}
+                </div>
+                <div className="text text--down text--muted calendar__meta">
+                  {productionCalendarMetaText}
+                </div>
+
+                <div className="calendar__actions">
+                  <button
+                    className="button button--primary"
+                    onClick={handleLoadProductionCalendar}
+                    disabled={loading || calendarActionLoading}
+                  >
+                    {calendarActionLoading ? 'Выполняется...' : `Загрузить ${currentYear}`}
+                  </button>
+                  <button
+                    className="button"
+                    onClick={handleClearProductionCalendar}
+                    disabled={loading || calendarActionLoading}
+                  >
+                    {calendarActionLoading ? 'Выполняется...' : `Очистить ${currentYear}`}
+                  </button>
+                </div>
               </div>
 
-              <div style={{ marginTop: 'var(--space-3)', display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-                <button
-                  className="button button--small button--primary"
-                  onClick={handleLoadProductionCalendar}
-                  disabled={loading || calendarActionLoading}
-                >
-                  {calendarActionLoading ? 'Выполняется...' : `Загрузить ${currentYear}`}
-                </button>
-                <button
-                  className="button button--small"
-                  onClick={handleClearProductionCalendar}
-                  disabled={loading || calendarActionLoading}
-                >
-                  {calendarActionLoading ? 'Выполняется...' : `Очистить ${currentYear}`}
-                </button>
-              </div>
+              {section === 'production-calendar' && (
+                <div className="calendar__footer section__footer section__footer--end">
+                  <button
+                    className="button"
+                    onClick={handleCancelProductionCalendar}
+                    disabled={loading || calendarActionLoading || !isCalendarDirty}
+                  >
+                    Отменить
+                  </button>
+                  <button
+                    className="button button--primary"
+                    onClick={handleSave}
+                    disabled={loading || calendarActionLoading || !isCalendarDirty}
+                  >
+                    Сохранить
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+          )}
 
-          {/* Секция интеграции пропусков */}
-          <div style={{ marginBottom: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Заказ пропусков (интеграция)
-            </h3>
-
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-              }}
-            >
-              <label className="text" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', cursor: 'pointer' }}>
+          {showPasses && (
+            <div className="panel section section-group__item">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">Заказ пропусков (интеграция)</h3>
+              </header>
+              <div className="section__body">
+                <label className="check-row">
                 <input
                   type="checkbox"
                   checked={form.pass_integration.enabled}
@@ -790,18 +1670,14 @@ const SettingsPanel = ({ onBack }) => {
                       },
                     }))
                   }
-                  style={{ cursor: 'pointer' }}
                 />
-                <span>Включить интеграцию</span>
+                  <span className="text">Использовать</span>
               </label>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  API URL:
-                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">API URL:</span>
                 <input
                   type="text"
-                  className="input text text--down"
+                    className="input text text--down notify__input"
                   value={form.pass_integration.base_url}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -814,17 +1690,13 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="https://example.local/api"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Логин:
                 </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Логин:</span>
                 <input
                   type="text"
-                  className="input text text--down"
+                    className="input text text--down notify__input"
                   value={form.pass_integration.login}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -837,17 +1709,13 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="login"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Пароль:
                 </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Пароль:</span>
                 <input
                   type="password"
-                  className="input text text--down"
+                    className="input text text--down notify__input"
                   value={form.pass_integration.password}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -860,17 +1728,13 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="password"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Object:
                 </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Object:</span>
                 <input
                   type="text"
-                  className="input text text--down"
+                    className="input text text--down notify__input"
                   value={form.pass_integration.object}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -883,17 +1747,13 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="1"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
-              </div>
-
-              <div style={{ marginTop: 'var(--space-3)' }}>
-                <label className="text text--muted" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
-                  Corpa:
                 </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Corpa:</span>
                 <input
                   type="text"
-                  className="input text text--down"
+                    className="input text text--down notify__input"
                   value={form.pass_integration.corpa}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -906,295 +1766,36 @@ const SettingsPanel = ({ onBack }) => {
                   }
                   disabled={!form.pass_integration.enabled}
                   placeholder="Название организации"
-                  style={{ width: '100%', padding: '4px 6px' }}
                 />
-              </div>
-            </div>
-          </div>
-
-          {/* Секция типов уведомлений */}
-          <div>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Типы уведомлений
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              {availableTypes.map((type) => (
-                <label
-                  key={type.code}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 'var(--space-2)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.notifications.enabled_notification_types.includes(type.code)}
-                    onChange={() => toggleNotificationType(type.code)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <span>{type.title}</span>
                 </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Секция целей визита */}
-          <div style={{ marginTop: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Цели визита
-            </h3>
-
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-                display: 'flex',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-4)',
-                flexWrap: 'wrap',
-              }}
-            >
-              <input
-                type="text"
-                className="input text text--down"
-                value={newGoalName}
-                onChange={(e) => setNewGoalName(e.target.value)}
-                placeholder="Новая цель визита"
-                style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
-              />
+              </div>
+              <footer className="section__footer section__footer--end">
               <button
-                className="button button--primary button--small"
-                onClick={handleCreateGoal}
-                disabled={goalsLoading}
+                  className="button"
+                  onClick={handleCancelPasses}
+                  disabled={loading || calendarActionLoading || !isPassesDirty}
               >
-                Добавить
+                  Отмена
               </button>
+              <button
+                  className="button button--primary"
+                  onClick={handleSave}
+                  disabled={loading || calendarActionLoading || !isFormValid() || !isPassesDirty}
+              >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+              </button>
+              </footer>
             </div>
+          )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              {visitGoals.length === 0 ? (
-                <div className="text text--muted">Целей визита пока нет</div>
-              ) : (
-                visitGoals.map((goal) => (
-                  <div
-                    key={goal.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 'var(--space-3)',
-                      padding: 'var(--space-2) var(--space-3)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-sm)',
-                      backgroundColor: 'var(--color-surface)',
-                    }}
-                  >
-                    <div>
-                      <div className="text">{goal.name}</div>
-                      <div className="text text--down text--muted">
-                        {goal.is_active ? 'Активна' : 'Неактивна'}
-                      </div>
+          {showVisitDictionaries && (
+            <>
+              {renderVisitGoalsSection(true)}
+              {renderVisitReasonsSection(true)}
+            </>
+                      )}
                     </div>
-                    <button
-                      className={`button button--small${goal.is_active ? '' : ' button--primary'}`}
-                      onClick={() => handleToggleGoal(goal.id, !goal.is_active)}
-                      disabled={goalsLoading}
-                    >
-                      {goal.is_active ? 'Скрыть' : 'Восстановить'}
-                    </button>
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Секция причин результатов (по state) */}
-          <div style={{ marginTop: 'var(--space-6)' }}>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-3)' }}>
-              Причины результатов
-            </h3>
-
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-                display: 'flex',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-4)',
-                flexWrap: 'wrap',
-              }}
-            >
-              <button
-                className={`button button--small${Number(activeReasonState) === 50 ? ' button--primary' : ''}`}
-                onClick={() => setActiveReasonState(50)}
-              >
-                Не оформлен (50)
-              </button>
-              <button
-                className={`button button--small${Number(activeReasonState) === 40 ? ' button--primary' : ''}`}
-                onClick={() => setActiveReasonState(40)}
-              >
-                Отказ (40)
-              </button>
-            </div>
-
-            <div
-              style={{
-                padding: 'var(--space-4)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--color-surface-muted)',
-                display: 'flex',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-4)',
-                flexWrap: 'wrap',
-              }}
-            >
-              <input
-                type="text"
-                className="input text text--down"
-                value={newReasonName}
-                onChange={(e) => setNewReasonName(e.target.value)}
-                placeholder="Новая причина"
-                style={{ flex: '1 1 240px', minWidth: 200, padding: '4px 6px' }}
-              />
-              <button
-                className="button button--primary button--small"
-                onClick={handleCreateReason}
-                disabled={reasonsLoading}
-              >
-                Добавить
-              </button>
-            </div>
-
-            <div style={{ display: 'grid', gap: 'var(--space-4)', gridTemplateColumns: '1fr 1fr' }}>
-              <div>
-                <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
-                  Все причины
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                  {reasonsLoading ? (
-                    <div className="text text--muted">Загрузка...</div>
-                  ) : allReasons.length === 0 ? (
-                    <div className="text text--muted">Причин пока нет</div>
-                  ) : (
-                    allReasons.map((reason) => {
-                      const editValue = reasonEdits[reason.id] ?? reason.name
-                      const isNameChanged = editValue.trim() && editValue.trim() !== reason.name
-                      return (
-                        <div
-                          key={reason.id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: 'var(--space-3)',
-                            padding: 'var(--space-2) var(--space-3)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-sm)',
-                            backgroundColor: 'var(--color-surface)',
-                          }}
-                        >
-                          <div style={{ flex: '1 1 auto' }}>
-                            <input
-                              type="text"
-                              className="input text text--down"
-                              value={editValue}
-                              onChange={(e) =>
-                                setReasonEdits((prev) => ({
-                                  ...prev,
-                                  [reason.id]: e.target.value,
-                                }))
-                              }
-                              style={{ width: '100%', padding: '4px 6px' }}
-                            />
-                            <div className="text text--down text--muted" style={{ marginTop: '4px' }}>
-                              {reason.is_active ? 'Активна' : 'Неактивна'}
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                            <button
-                              className="button button--small"
-                              onClick={() => handleUpdateReasonName(reason.id)}
-                              disabled={!isNameChanged}
-                            >
-                              Сохранить
-                            </button>
-                            <button
-                              className={`button button--small${reason.is_active ? '' : ' button--primary'}`}
-                              onClick={() => handleToggleReason(reason.id, !reason.is_active)}
-                              disabled={reasonsLoading}
-                            >
-                              {reason.is_active ? 'Скрыть' : 'Восстановить'}
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    })
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div className="text text--down text--muted" style={{ marginBottom: 'var(--space-2)' }}>
-                  Разрешены для state={Number(activeReasonState)}
-                </div>
-                <div style={{ marginBottom: 'var(--space-2)' }}>
-                  <button
-                    className="button button--small button--primary"
-                    onClick={handleSaveAllowed}
-                    disabled={allowedLoading}
-                  >
-                    Сохранить список
-                  </button>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 'var(--space-2)',
-                    maxHeight: 420,
-                    overflow: 'auto',
-                    paddingRight: 6,
-                  }}
-                >
-                  {allowedLoading ? (
-                    <div className="text text--muted">Загрузка...</div>
-                  ) : allReasons.length === 0 ? (
-                    <div className="text text--muted">Сначала добавьте причины</div>
-                  ) : (
-                    allReasons.map((reason) => {
-                      const checked = allowedReasonIds.has(reason.id)
-                      return (
-                        <label
-                          key={reason.id}
-                          className="text text--down"
-                          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => handleToggleAllowed(reason.id)}
-                          />
-                          <span style={{ opacity: reason.is_active ? 1 : 0.5 }}>
-                            {reason.name}
-                          </span>
-                        </label>
-                      )
-                    })
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

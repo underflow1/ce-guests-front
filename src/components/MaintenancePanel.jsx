@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { apiDelete } from '../utils/api'
 import { useToast } from './ToastProvider'
 
-const MaintenancePanel = ({ today, onBack, onSuccess }) => {
+const MaintenancePanel = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false)
   const { pushToast } = useToast()
 
@@ -43,35 +43,26 @@ const MaintenancePanel = ({ today, onBack, onSuccess }) => {
   }
 
   return (
-    <div style={{ padding: 'var(--space-6)' }}>
-      <button
-        className="button"
-        onClick={onBack}
-        style={{ marginBottom: '1rem' }}
-      >
-        ← Назад к записям
-      </button>
-
-      <div className="panel" style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <header className="panel__header">
-          <h2 className="panel__title">Обслуживание</h2>
+    <div>
+      <div className="panel section">
+        <header className="panel__header section__header section__header--start">
+          <h2 className="panel__title">Очистка базы данных от событий</h2>
         </header>
 
-        <div className="panel__content">
-          <div>
-            <h3 className="text text--up text--bold" style={{ marginBottom: 'var(--space-2)' }}>
-              Очистка базы данных от событий
-            </h3>
-            <p className="text text--muted" style={{ marginBottom: 'var(--space-3)' }}>
-              Жесткое удаление всех событий из базы данных. Это действие необратимо и отменить его невозможно!
-            </p>
-            <button
-              className="button button--danger"
-              onClick={handleClearDatabase}
-              disabled={loading}
-            >
-              {loading ? 'Очистка...' : 'Очистить базу данных от событий'}
-            </button>
+        <div className="section__body">
+          <div className="section maintenance">
+            <div className="section__body">
+              <p className="text maintenance__description">
+                Жесткое удаление всех событий из базы данных. Это действие необратимо и отменить его невозможно!
+              </p>
+              <button
+                className="button button--danger"
+                onClick={handleClearDatabase}
+                disabled={loading}
+              >
+                {loading ? 'Очистка...' : 'Очистить базу данных от событий'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
