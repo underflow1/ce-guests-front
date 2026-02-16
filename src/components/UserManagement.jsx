@@ -255,7 +255,7 @@ const UserManagement = () => {
       <header className="panel__header section__header section__header--between">
         <h2 className="panel__title">Управление пользователями</h2>
         <button
-          className={`button button--primary${showCreateForm ? ' action--hidden' : ''}`}
+          className={`btn btn--primary text${showCreateForm ? ' action--hidden' : ''}`}
           onClick={() => {
             setShowCreateForm(true)
             setEditingUser(null)
@@ -512,7 +512,7 @@ const UserManagement = () => {
                     <div className="table__actions table__actions--nowrap">
                       <button
                         type="button"
-                        className="button button--primary button--nowrap"
+                        className="btn btn--primary btn--nowrap text"
                         onClick={handleCreate}
                         disabled={loading || !createForm.username.trim() || !createForm.password.trim()}
                       >
@@ -520,7 +520,7 @@ const UserManagement = () => {
                       </button>
                       <button
                         type="button"
-                        className="button button--nowrap"
+                        className="btn btn--nowrap text"
                         onClick={cancelCreate}
                       >
                         Отмена

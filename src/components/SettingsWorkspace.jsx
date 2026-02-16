@@ -23,7 +23,7 @@ const SettingsWorkspace = ({ onBack, sections }) => {
       <div className="layout__shell panel section">
         <header className="panel__header layout__header section__header section__header--between">
           <h2 className="panel__title">Настройки</h2>
-          <button className="button" onClick={onBack}>
+          <button className="btn text" onClick={onBack}>
             ← К записям
           </button>
         </header>

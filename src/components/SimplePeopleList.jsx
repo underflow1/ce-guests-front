@@ -128,10 +128,9 @@ const SimplePeopleList = ({
         .join(' ')
       return (
         <span
-          className={className}
+          className={`${className} opacity-subtle`}
           title="Заказ пропусков отключен"
           aria-label="Заказ пропусков отключен"
-          style={{ opacity: 0.75 }}
         >
           <i className="fa-solid fa-skull-crossbones" aria-hidden="true" />
         </span>
