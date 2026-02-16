@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design System v1.8</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════════════════════════
+       DESIGN TOKENS
+       ═══════════════════════════════════════════════════════════════════ */
+    :root {
+      --font-base: "Ubuntu", "Segoe UI", Tahoma, sans-serif;
+      --text-size-base: 13px;
+      --text-size-up: 15px;
+      --text-size-down: 12px;
+      --text-line-height-base: 1.2;
+      --text-line-height-body: 1.5;
+      --text-weight-base: 400;
+      --text-weight-bold: 600;
+      --text-weight-thin: 300;
+      --color-bg: #f5f5f5;
+      --color-surface: #fff;
+      --color-surface-muted: #f5f5f5;
+      --color-surface-hover: #f9f9f9;
+      --color-border: #d8d8d8;
+      --color-border-strong: #cfcfcf;
+      --color-border-subtle: #ededed;
+      --color-text: #1f1f1f;
+      --color-text-muted: #666666;
+      --color-text-subtle: #999999;
+      --color-accent: #2f2f2f;
+      --color-accent-hover: #1a1a1a;
+      --color-accent-soft: rgba(47, 47, 47, 0.15);
+      --color-shadow: rgba(0, 0, 0, 0.1);
+      --color-danger: #dc3545;
+      --color-success: #28a745;
+      --color-warning: #b26a00;
+      --color-info: #607d8b;
+      --color-checkbox-accent: #000;
+      --gap-tight: 2px;
+      --size-toast-icon: calc(var(--space-5) + var(--gap-tight));
+      --size-toast-icon-cell: calc(var(--size-toast-icon) + var(--space-1) + var(--gap-tight));
+      --size-toast-close: var(--space-5);
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --gap-inline: var(--space-2);
+      --gap-stack: var(--space-2);
+      --user-space: var(--space-1);
+      --section-pad-x: calc(var(--gap-inline) + var(--space-1));
+      --section-pad-y: var(--gap-stack);
+      --section-bar-height: 36px;
+      --section-button-height: 20px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       COMPONENT LIBRARY
+       ═══════════════════════════════════════════════════════════════════ */
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font-base); font-size: var(--text-size-base); line-height: var(--text-line-height-body); color: var(--color-text); background: var(--color-bg); }
+    input, button, select { font: inherit; color: inherit; }
+
+    .text { font-family: var(--font-base); font-size: var(--text-size-base); line-height: var(--text-line-height-base); font-weight: var(--text-weight-base); }
+    .text--up { font-size: var(--text-size-up); }
+    .text--down { font-size: var(--text-size-down); }
+    .text--bold { font-weight: var(--text-weight-bold); }
+    .text--thin { font-weight: var(--text-weight-thin); }
+    .text--italic { font-style: italic; }
+    .text--muted { color: var(--color-text-muted); }
+    .text--subtle { color: var(--color-text-subtle); }
+    .text--accent { color: var(--color-accent); }
+    .text--strike { text-decoration: line-through; }
+
+    .stack { display: flex; flex-direction: column; gap: var(--space-1); }
+    .inline { display: flex; gap: var(--gap-inline); align-items: center; flex-wrap: wrap; }
+    .inline--end { display: flex; gap: var(--gap-inline); align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+    .gap-top { margin-top: var(--space-1); }
+    .flex-none { flex: 0 0 auto; }
+
+    .btn { font-size: var(--text-size-down); padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); font: inherit; cursor: pointer; line-height: 1.2; color: inherit; user-select: none; }
+    .btn:hover:not(:disabled) { background: var(--color-surface-hover); border-color: var(--color-border); }
+    .btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn--primary { background: var(--color-accent); color: var(--color-surface); border-color: var(--color-accent); }
+    .btn--primary:hover:not(:disabled) { background: var(--color-accent-hover); border-color: var(--color-accent-hover); }
+
+    .input, .select { width: 100%; padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); font: inherit; color: inherit; }
+    .input:focus, .select:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 2px var(--color-accent-soft); }
+    .input:disabled, .select:disabled { background: var(--color-surface-muted); color: var(--color-text-muted); cursor: not-allowed; }
+
+    .form__field { display: flex; flex-direction: column; gap: var(--space-1); }
+    .form__label { font-size: var(--text-size-base); font-weight: var(--text-weight-bold); color: var(--color-text); }
+    .form__control { width: 100%; padding: var(--space-1) var(--space-2); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); background: var(--color-surface); font: inherit; }
+    .form__control:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 2px var(--color-accent-soft); }
+    .form__submit-row { display: flex; gap: var(--gap-inline); justify-content: flex-end; align-items: center; margin-top: var(--space-1); }
+    .form { display: flex; flex-direction: column; gap: var(--gap-stack); }
+    .form__checkbox-label { display: flex; align-items: center; gap: var(--gap-inline); cursor: pointer; }
+    .form__checkbox { width: var(--space-4); height: var(--space-4); margin: 0; cursor: pointer; accent-color: var(--color-checkbox-accent); }
+    .check-row { display: grid; grid-template-columns: var(--space-4) minmax(0, 1fr); gap: var(--gap-inline); align-items: center; padding: var(--space-1) var(--space-2); border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; }
+    .check-row:hover { background: var(--color-surface-muted); border-color: var(--color-border); }
+    .check-row input[type="checkbox"] { width: var(--space-4); height: var(--space-4); margin: 0; accent-color: var(--color-checkbox-accent); cursor: pointer; }
+
+    .menu-item { display: block; width: 100%; padding: var(--space-1) var(--space-2); text-align: left; border: none; background: transparent; cursor: pointer; font: inherit; color: var(--color-text); border-radius: var(--radius-sm); }
+    .menu-item:hover { background: var(--color-surface-hover); }
+    .menu-item:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+    .breadcrumb { display: flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; font-size: var(--text-size-base); }
+    .breadcrumb__item { color: var(--color-text-muted); }
+    .breadcrumb a.breadcrumb__item { color: var(--color-text-muted); text-decoration: none; cursor: pointer; }
+    .breadcrumb a.breadcrumb__item:hover { color: var(--color-accent); }
+    .breadcrumb__item:last-child { color: var(--color-text); font-weight: var(--text-weight-bold); }
+    .breadcrumb__sep { color: var(--color-text-subtle); user-select: none; }
+
+    .table-demo { width: 100%; border-collapse: collapse; font-size: var(--text-size-base); }
+    .table-demo th, .table-demo td { padding: var(--space-1) var(--space-2); text-align: left; border-bottom: 1px solid var(--color-border-subtle); }
+    .table-demo tbody tr:hover td { background: var(--color-surface-hover); }
+    .table-demo th:nth-child(1), .table-demo td:nth-child(1) { border-right: 1px solid var(--color-border-subtle); }
+    .table-demo th:last-child, .table-demo td:last-child { text-align: center; width: 80px; }
+
+    .card { border: 1px solid var(--color-border); background: var(--color-surface); padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); }
+    .card--square { border-radius: 0; }
+    .card--rounded { border-radius: var(--radius-md); }
+
+    .panel { background: var(--color-surface); border: 1px solid var(--color-border); padding: var(--user-space); display: flex; flex-direction: column; gap: var(--space-1); }
+    .panel .section__header { height: var(--section-bar-height); min-height: var(--section-bar-height); padding: 0 var(--section-pad-x); display: flex; align-items: center; border-bottom: 1px solid var(--color-border-subtle); }
+    .panel .section__body { padding: var(--section-pad-y) var(--section-pad-x); display: flex; flex-direction: column; gap: var(--gap-stack); }
+    .panel__title { margin: 0; font-size: var(--text-size-up); font-weight: var(--text-weight-bold); }
+
+    .group { border: 1px solid var(--color-border-subtle); border-radius: var(--radius-sm); overflow: hidden; }
+    .group__head { padding: var(--space-1) var(--space-2); background: var(--color-surface-muted); border-bottom: 1px solid var(--color-border-subtle); font-size: var(--text-size-down); font-weight: var(--text-weight-bold); color: var(--color-text-muted); }
+    .group__body { padding: var(--space-2); display: flex; flex-direction: column; gap: var(--space-2); }
+    .group__body--row { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+    .group__body--grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+
+    .swatch { border: 1px solid var(--color-border); border-radius: 999px; padding: var(--space-1) var(--space-2); background: var(--color-surface); font: inherit; }
+    .swatch--danger { color: var(--color-danger); }
+    .swatch--success { color: var(--color-success); }
+    .swatch--warning { color: var(--color-warning); }
+    .swatch--info { color: var(--color-info); }
+
+    .toast { display: grid; grid-template-columns: var(--size-toast-icon-cell) 1fr var(--size-toast-close); align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border); border-left: var(--space-1) solid var(--toast-color, var(--color-info)); border-radius: var(--radius-sm); background: var(--color-surface); box-shadow: 0 var(--gap-tight) var(--space-2) var(--color-shadow); }
+    .toast__icon { width: var(--size-toast-icon); height: var(--size-toast-icon); border-radius: 999px; background: var(--toast-color, var(--color-info)); color: var(--color-surface); font-size: var(--text-size-down); font-weight: var(--text-weight-bold); display: flex; align-items: center; justify-content: center; }
+    .toast__body { display: flex; flex-direction: column; gap: var(--gap-tight); min-width: 0; }
+    .toast__title { font-size: var(--text-size-base); font-weight: var(--text-weight-bold); color: var(--color-text); }
+    .toast__message { font-size: var(--text-size-base); color: var(--color-text-muted); }
+    .toast__close { background: transparent; border: none; color: var(--color-text-subtle); cursor: pointer; font-size: var(--text-size-up); line-height: 1; padding: 0; }
+    .toast__close:hover { color: var(--color-text); }
+    .toast--error { --toast-color: var(--color-danger); }
+    .toast--success { --toast-color: var(--color-success); }
+    .toast--warning { --toast-color: var(--color-warning); }
+    .toast--info { --toast-color: var(--color-info); }
+
+    .layout-demo { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 0; border: 1px solid var(--color-border); background: var(--color-surface); }
+    .layout-demo__nav { padding: var(--section-pad-x); border-right: 1px solid var(--color-border-subtle); background: var(--color-surface-muted); }
+    .layout-demo__content { padding: var(--section-pad-x); }
+
+    .window-demo { border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; background: var(--color-surface); display: flex; flex-direction: column; }
+    .window-demo__header { background: var(--color-surface-muted); border-bottom: 1px solid var(--color-border-subtle); height: var(--section-bar-height); padding: 0 var(--section-pad-x); display: flex; align-items: center; cursor: move; user-select: none; }
+    .window-demo__title { font-size: var(--text-size-up); font-weight: var(--text-weight-bold); color: var(--color-text); }
+    .window-demo__body { flex: 1; padding: var(--user-space); display: flex; flex-direction: column; gap: var(--user-space); }
+    .window-demo__content-row { display: flex; gap: var(--user-space); flex: 1; min-height: 0; }
+    .window-demo__panel { flex: 1; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--section-pad-y) var(--section-pad-x); display: flex; flex-direction: column; gap: var(--gap-stack); }
+    .window-demo__panel-title { font-size: var(--text-size-base); font-weight: var(--text-weight-bold); margin: 0; }
+    .window-demo__list-item { padding: var(--space-1) var(--space-2); background: var(--color-surface-muted); border-radius: var(--radius-sm); font-size: var(--text-size-base); }
+    .window-demo__list-item:hover { background: var(--color-surface-hover); }
+    .window-demo__actions { justify-content: space-between; align-items: center; }
+
+    .app-viewport { width: 100%; min-height: 50vh; background: var(--color-bg); display: flex; flex-direction: column; }
+    .app-viewport__header { background: var(--color-bg); height: var(--section-bar-height); padding: 0 var(--section-pad-x); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--color-border); }
+    .app-viewport__title { font-size: var(--text-size-up); font-weight: var(--text-weight-bold); color: var(--color-text); }
+    .app-viewport__body { flex: 1; padding: var(--user-space); min-height: 300px; position: relative; display: flex; justify-content: center; align-items: center; }
+    .app-viewport__user { position: relative; display: flex; align-items: center; }
+    .app-viewport__user-trigger { font-size: var(--text-size-up); font-weight: var(--text-weight-bold); color: var(--color-text-muted); background: none; border: none; padding: 0; cursor: pointer; font: inherit; }
+    .app-viewport__user-trigger:hover { color: var(--color-text); }
+    .app-viewport__user-trigger:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+    .app-viewport__user-dropdown { display: none; position: absolute; top: 100%; right: 0; margin-top: var(--space-1); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: 0 var(--space-1) var(--space-2) var(--color-shadow); min-width: 140px; z-index: 20; overflow: hidden; }
+    .app-viewport__user-dropdown.is-open { display: block; }
+    .app-viewport__back { position: absolute; inset: 0; padding: var(--user-space); display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: var(--space-2); z-index: 0; }
+    .app-viewport__body > .window-demo { position: relative; z-index: 10; max-width: 680px; width: 100%; min-height: 340px; }
+    .app-viewport--demo { min-height: 58vh; }
+    .app-viewport--demo .app-viewport__body { min-height: 400px; }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       DOCUMENTATION SHELL
+       ═══════════════════════════════════════════════════════════════════ */
+    .ds { display: flex; min-height: 100vh; }
+    .ds__nav { width: 240px; flex-shrink: 0; background: var(--color-surface); border-right: 1px solid var(--color-border); position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; padding: var(--space-4) 0; }
+    .ds__nav-title { text-transform: uppercase; letter-spacing: 0.08em; padding: 0 var(--space-4); margin: 0 0 var(--space-3) 0; }
+    .ds__nav-list { list-style: none; margin: 0; padding: 0; }
+    .ds__nav-item { margin: 0; }
+    .ds__nav-link { display: block; padding: var(--space-2) var(--space-4); text-decoration: none; border-left: 3px solid transparent; }
+    .ds__nav-link:hover { background: var(--color-surface-muted); color: var(--color-accent); }
+    .ds__nav-link.active { color: var(--color-accent); font-weight: var(--text-weight-bold); border-left-color: var(--color-accent); background: var(--color-accent-soft); }
+    .ds__main { flex: 1; margin-left: 240px; padding: var(--space-6); max-width: 720px; }
+    .ds__hero { margin-bottom: var(--space-6); padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
+    .ds__hero h1 { margin: 0 0 var(--space-2) 0; }
+    .ds__hero p { margin: 0; line-height: 1.6; max-width: 50ch; }
+    .ds__section { margin-bottom: var(--space-6); scroll-margin-top: var(--space-4); }
+    .ds__section h2 { margin: 0 0 var(--space-3) 0; padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-border-subtle); }
+    .ds__section p { margin: 0 0 var(--space-3) 0; line-height: 1.6; }
+    .ds__block { margin-bottom: var(--space-4); }
+    .ds__block h3 { margin: 0 0 var(--space-2) 0; }
+    .ds__block-desc { margin: 0 0 var(--space-2) 0; }
+    .ds__preview { padding: var(--space-4); background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-sm); margin-bottom: var(--space-2); }
+    .ds__meta code { font-family: var(--font-base); background: var(--color-surface-muted); padding: 2px 6px; border-radius: 2px; }
+    .ds__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: var(--space-2); }
+    .ds__swatch { border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; }
+    .ds__swatch-block { height: 40px; }
+    .ds__swatch-info { padding: var(--space-1) var(--space-2); }
+    .ds__swatch-hex { font-family: monospace; }
+    .ds__space-row { display: flex; align-items: flex-end; gap: var(--space-1); flex-wrap: wrap; }
+    .ds__space-item { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+    .ds__space-bar { background: var(--color-border); border-radius: var(--radius-sm); }
+    .ds__space-label { font-family: monospace; }
+    .ds__do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-top: var(--space-2); }
+    .ds__do { padding: var(--space-2); border-radius: var(--radius-sm); background: rgba(40, 167, 69, 0.08); border: 1px solid rgba(40, 167, 69, 0.3); }
+    .ds__dont { padding: var(--space-2); border-radius: var(--radius-sm); background: rgba(220, 53, 69, 0.06); border: 1px solid rgba(220, 53, 69, 0.25); }
+    .ds__do h4, .ds__dont h4 { margin: 0 0 var(--space-1) 0; }
+    .ds__do p, .ds__dont p { margin: 0; }
+    .ds__tokens { font-family: monospace; background: var(--color-surface-muted); padding: var(--space-3); border-radius: var(--radius-sm); overflow-x: auto; }
+    .ds__tokens dt { margin-top: var(--space-2); }
+    .ds__tokens dt:first-child { margin-top: 0; }
+    .ds__tokens dd { margin: 0 0 0 var(--space-2); }
+    .ds__demo-hint { margin-bottom: var(--space-2); }
+    .ds__typo-hint { display: block; margin-top: var(--space-1); }
+  </style>
+</head>
+<body>
+  <div class="ds">
+    <nav class="ds__nav" aria-label="Документация">
+      <p class="ds__nav-title text text--down text--bold text--subtle">Design System <span class="text text--thin">v1.8</span></p>
+      <ul class="ds__nav-list">
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#intro">Введение</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#full-demo">Полный демо</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#principles">Принципы</a></li>
+      </ul>
+      <p class="ds__nav-title text text--down text--bold text--subtle">Foundations</p>
+      <ul class="ds__nav-list">
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#color">Цвет</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#typography">Типографика</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#spacing">Отступы</a></li>
+      </ul>
+      <p class="ds__nav-title text text--down text--bold text--subtle">Components</p>
+      <ul class="ds__nav-list">
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#button">Button</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#input">Input & Select</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#checkbox">Checkbox</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#table">Table</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#card">Card</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#panel">Panel</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#group">Group</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#swatch">Status swatch</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#toast">Toast</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#breadcrumb">Breadcrumb</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#menu">Menu item</a></li>
+      </ul>
+      <p class="ds__nav-title text text--down text--bold text--subtle">Patterns</p>
+      <ul class="ds__nav-list">
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#form">Form</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#layout">Layout</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#window">Window</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#viewport">App viewport</a></li>
+      </ul>
+      <p class="ds__nav-title text text--down text--bold text--subtle">Reference</p>
+      <ul class="ds__nav-list">
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#tokens">Tokens</a></li>
+        <li class="ds__nav-item"><a class="ds__nav-link text" href="#implementation">Implementation</a></li>
+      </ul>
+    </nav>
+
+    <main class="ds__main">
+      <header class="ds__hero" id="intro">
+        <h1 class="text text--up text--bold">Design System</h1>
+        <p class="text text--muted">Единая система визуальных токенов и компонентов для десктоп-приложений. Все стили строятся на foundations.</p>
+      </header>
+
+      <section class="ds__section" id="full-demo">
+        <h2 class="text text--up text--bold">Полный демо</h2>
+        <p class="text text--muted">Главный экран приложения: грид виджетов на фоне, окно поверх. Клик по имени — меню пользователя. Перетащи окно за заголовок.</p>
+        <p class="ds__demo-hint text text--down text--subtle">Тема: Backlog — управление задачами. Карточки, панели, таблица, форма в окне.</p>
+        <p class="ds__demo-hint text text--down text--subtle">Типографика в демо: заголовки карточек/панелей — .text--bold; заголовок окна — .text--up .text--bold; основной текст — .text; второстепенный (мета, автор) — .text--muted; подписи — .text--down.</p>
+        <div class="app-viewport app-viewport--demo">
+          <header class="app-viewport__header">
+            <span class="app-viewport__title text">Backlog</span>
+            <div class="app-viewport__user">
+              <button type="button" class="app-viewport__user-trigger" aria-expanded="false" aria-haspopup="true" aria-controls="user-menu">Сидорова А.К.</button>
+              <div id="user-menu" class="app-viewport__user-dropdown" role="menu">
+                <button type="button" class="menu-item text" role="menuitem">Профиль</button>
+                <button type="button" class="menu-item text" role="menuitem">Настройки</button>
+                <button type="button" class="menu-item text" role="menuitem">Выход</button>
+              </div>
+            </div>
+          </header>
+          <div class="app-viewport__body">
+            <div class="app-viewport__back">
+              <div class="card card--rounded">
+                <span class="text text--bold">Быстрые действия</span>
+                <div class="inline gap-top">
+                  <button type="button" class="btn btn--primary text">+ Задача</button>
+                  <button type="button" class="btn text">Спринт</button>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="section__header"><h3 class="panel__title text">Сводка</h3></div>
+                <div class="section__body">
+                  <span class="text">В работе: 8</span>
+                  <span class="text text--muted">Просрочено: 2</span>
+                  <span class="text text--down"><span class="swatch swatch--warning text">2</span> требуют внимания</span>
+                </div>
+              </div>
+              <div class="card card--rounded">
+                <span class="text text--bold">Статусы</span>
+                <div class="stack gap-top">
+                  <span class="swatch swatch--success text">Done</span>
+                  <span class="swatch swatch--info text">In progress</span>
+                  <span class="swatch swatch--warning text">Blocked</span>
+                </div>
+              </div>
+              <div class="card card--rounded">
+                <span class="text text--bold">Поиск</span>
+                <input type="text" class="input gap-top" placeholder="Задача или ID" />
+              </div>
+              <div class="card card--rounded">
+                <span class="text text--bold">Недавние</span>
+                <table class="table-demo gap-top">
+                  <tbody>
+                    <tr><td class="text">#142</td><td class="text">Фикс авторизации</td></tr>
+                    <tr><td class="text">#141</td><td class="text">API для экспорта</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="card card--rounded">
+                <span class="text text--bold">Уведомления</span>
+                <div class="stack gap-top">
+                  <span class="text">#140 переведена в Done</span>
+                  <span class="text text--muted">Сидоров, 10 мин назад</span>
+                </div>
+              </div>
+            </div>
+            <div class="window-demo">
+              <header class="window-demo__header">
+                <span class="window-demo__title text">Задача #143</span>
+              </header>
+              <div class="window-demo__body">
+                <nav class="breadcrumb text" aria-label="Навигация">
+                  <a href="#" class="breadcrumb__item">Backlog</a>
+                  <span class="breadcrumb__sep">/</span>
+                  <span class="breadcrumb__item">Задача #143</span>
+                </nav>
+                <div class="window-demo__content-row">
+                  <div class="window-demo__panel">
+                    <h3 class="window-demo__panel-title text">Описание</h3>
+                    <form class="form">
+                      <div class="form__field">
+                        <label class="form__label text" for="task-title">Название</label>
+                        <input id="task-title" type="text" class="form__control text" placeholder="Краткое описание" value="Интеграция с платежами" />
+                      </div>
+                      <div class="form__field">
+                        <label class="form__label text" for="task-status">Статус</label>
+                        <select id="task-status" class="form__control text"><option>To do</option><option selected>In progress</option><option>Done</option></select>
+                      </div>
+                      <label class="form__checkbox-label text"><input type="checkbox" class="form__checkbox" /><span>Высокий приоритет</span></label>
+                    </form>
+                  </div>
+                  <div class="window-demo__panel">
+                    <h3 class="window-demo__panel-title text">Активность</h3>
+                    <div class="stack">
+                      <div class="window-demo__list-item text">Сидорова взяла в работу</div>
+                      <div class="window-demo__list-item text">Иванов добавил комментарий</div>
+                      <div class="window-demo__list-item text">Создана Петровым</div>
+                    </div>
+                    <span class="text text--muted text--down">3 события</span>
+                  </div>
+                </div>
+                <div class="window-demo__content-row flex-none window-demo__actions">
+                  <div class="inline">
+                    <button type="button" class="btn text">Комментарий</button>
+                    <button type="button" class="btn text">Вложения</button>
+                  </div>
+                  <div class="inline inline--end">
+                    <button type="button" class="btn text">Отмена</button>
+                    <button type="button" class="btn btn--primary text">Сохранить</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds__section" id="principles">
+        <h2 class="text text--up text--bold">Принципы</h2>
+        <p class="text text--muted">Токены — <span class="text text--accent">единственный источник правды</span>. Компоненты — композиция токенов. Паттерны — композиция компонентов.</p>
+      </section>
+
+      <section class="ds__section" id="color">
+        <h2 class="text text--up text--bold">Цвет</h2>
+        <p class="text text--muted">Семантическая палитра. text, muted, subtle — иерархия. surface, muted, hover — фон. danger, success, warning, info — статусы.</p>
+        <div class="ds__grid">
+          <div class="ds__swatch"><div class="ds__swatch-block" style="background: var(--color-text);"></div><div class="ds__swatch-info"><span class="ds__swatch-name text text--down text--subtle">text</span><br><span class="ds__swatch-hex text text--down text--subtle">#1f1f1f</span></div></div>
+          <div class="ds__swatch"><div class="ds__swatch-block" style="background: var(--color-text-muted);"></div><div class="ds__swatch-info"><span class="ds__swatch-name text text--down text--subtle">muted</span><br><span class="ds__swatch-hex text text--down text--subtle">#666</span></div></div>
+          <div class="ds__swatch"><div class="ds__swatch-block" style="background: var(--color-accent);"></div><div class="ds__swatch-info"><span class="ds__swatch-name text text--down text--subtle">accent</span><br><span class="ds__swatch-hex text text--down text--subtle">#2f2f2f</span></div></div>
+          <div class="ds__swatch"><div class="ds__swatch-block" style="background: var(--color-danger);"></div><div class="ds__swatch-info"><span class="ds__swatch-name text text--down text--subtle">danger</span><br><span class="ds__swatch-hex text text--down text--subtle">#dc3545</span></div></div>
+          <div class="ds__swatch"><div class="ds__swatch-block" style="background: var(--color-success);"></div><div class="ds__swatch-info"><span class="ds__swatch-name text text--down text--subtle">success</span><br><span class="ds__swatch-hex text text--down text--subtle">#28a745</span></div></div>
+          <div class="ds__swatch"><div class="ds__swatch-block" style="background: var(--color-warning);"></div><div class="ds__swatch-info"><span class="ds__swatch-name text text--down text--subtle">warning</span><br><span class="ds__swatch-hex text text--down text--subtle">#b26a00</span></div></div>
+          <div class="ds__swatch"><div class="ds__swatch-block" style="background: var(--color-info);"></div><div class="ds__swatch-info"><span class="ds__swatch-name text text--down text--subtle">info</span><br><span class="ds__swatch-hex text text--down text--subtle">#607d8b</span></div></div>
+        </div>
+      </section>
+
+      <section class="ds__section" id="typography">
+        <h2 class="text text--up text--bold">Типографика</h2>
+        <p class="text text--muted">Ubuntu 300/400/600. base 13px, up 15px, down 12px.</p>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack">
+              <span class="text">Основной текст — .text</span>
+              <span class="text text--up">Подзаголовок — .text--up</span>
+              <span class="text text--up text--bold">Заголовок — .text--up .text--bold</span>
+              <span class="text text--down">Подпись, мета — .text--down</span>
+              <span class="text text--thin">Акцент лёгкости — .text--thin</span>
+              <span class="text text--muted">Второстепенный текст — .text--muted</span>
+              <span class="text text--subtle">Третичный текст — .text--subtle</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle">Классы: <code>.text</code> <code>.text--up</code> <code>.text--down</code> <code>.text--bold</code> <code>.text--thin</code> <code>.text--italic</code> <code>.text--muted</code> <code>.text--subtle</code> <code>.text--accent</code> <code>.text--strike</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="spacing">
+        <h2 class="text text--up text--bold">Отступы</h2>
+        <p class="text text--muted">space-1…6. gap-inline, gap-stack, section-pad-x/y.</p>
+        <div class="ds__preview">
+          <div class="ds__space-row">
+            <div class="ds__space-item"><div class="ds__space-bar" style="width: var(--space-1); height: var(--space-4);"></div><span class="ds__space-label text text--down text--subtle">1</span></div>
+            <div class="ds__space-item"><div class="ds__space-bar" style="width: var(--space-2); height: var(--space-4);"></div><span class="ds__space-label text text--down text--subtle">2</span></div>
+            <div class="ds__space-item"><div class="ds__space-bar" style="width: var(--space-3); height: var(--space-4);"></div><span class="ds__space-label text text--down text--subtle">3</span></div>
+            <div class="ds__space-item"><div class="ds__space-bar" style="width: var(--space-4); height: var(--space-4);"></div><span class="ds__space-label text text--down text--subtle">4</span></div>
+            <div class="ds__space-item"><div class="ds__space-bar" style="width: var(--space-5); height: var(--space-4);"></div><span class="ds__space-label text text--down text--subtle">5</span></div>
+            <div class="ds__space-item"><div class="ds__space-bar" style="width: var(--space-6); height: var(--space-4);"></div><span class="ds__space-label text text--down text--subtle">6</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds__section" id="button">
+        <h2 class="text text--up text--bold">Button</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <div class="stack" style="gap: 0;">
+                <div class="inline">
+                  <button type="button" class="btn text">Default</button>
+                  <button type="button" class="btn btn--primary text">Primary</button>
+                  <button type="button" class="btn text" disabled>Disabled</button>
+                </div>
+                <span class="ds__typo-hint text text--down text--subtle">Подпись кнопки — .text (в .btn уже text--down)</span>
+              </div>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.btn</code> <code>.btn--primary</code></p>
+          <div class="ds__do-dont">
+            <div class="ds__do"><h4 class="text text--bold">✓ Do</h4><p class="text text--down text--muted">Один primary. Короткие подписи.</p></div>
+            <div class="ds__dont"><h4 class="text text--bold">✗ Don't</h4><p class="text text--down text--muted"><span class="text text--strike">Несколько</span> primary. Primary для удаления.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds__section" id="input">
+        <h2 class="text text--up text--bold">Input & Select</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <div class="stack" style="gap: 0;">
+                <div class="inline" style="gap: var(--space-2);">
+                  <input type="text" class="input text" placeholder="Placeholder" style="width: 160px;" />
+                  <select class="select text" style="width: 120px;"><option>Option</option></select>
+                </div>
+                <span class="ds__typo-hint text text--down text--subtle">Текст поля — .text</span>
+              </div>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.input</code> <code>.select</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="checkbox">
+        <h2 class="text text--up text--bold">Checkbox</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <div class="stack" style="gap: 0;">
+                <label class="form__checkbox-label text"><input type="checkbox" class="form__checkbox" /><span>С подписью</span></label>
+                <span class="ds__typo-hint text text--down text--subtle">Подпись чекбокса — .text</span>
+              </div>
+              <div class="stack" style="gap: 0;">
+                <label class="check-row text"><input type="checkbox" /><span>Строка-клик</span></label>
+                <span class="ds__typo-hint text text--down text--subtle">Пункт списка — .text</span>
+              </div>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.form__checkbox-label</code> <code>.check-row</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="table">
+        <h2 class="text text--up text--bold">Table</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <table class="table-demo" style="max-width: 360px;">
+                <thead><tr><th class="text text--bold">Name</th><th class="text text--bold">Status</th><th class="text text--bold">Actions</th></tr></thead>
+                <tbody>
+                  <tr><td class="text">Item 1</td><td class="text"><span class="swatch swatch--success text">OK</span></td><td><button type="button" class="btn text">Open</button></td></tr>
+                  <tr><td class="text">Item 2</td><td class="text"><span class="swatch swatch--warning text">Pending</span></td><td><button type="button" class="btn text">Open</button></td></tr>
+                </tbody>
+              </table>
+              <span class="ds__typo-hint text text--down text--subtle">Заголовок колонки — .text--bold. Ячейка — .text.</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.table-demo</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="card">
+        <h2 class="text text--up text--bold">Card</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="inline" style="gap: var(--space-3);">
+              <div class="card card--square" style="min-width: 120px;">
+                <span class="text text--bold">Square</span>
+                <span class="ds__typo-hint text text--down text--subtle">Заголовок карточки — .text--bold</span>
+              </div>
+              <div class="card card--rounded" style="min-width: 120px;">
+                <span class="text text--bold">Rounded</span>
+                <span class="ds__typo-hint text text--down text--subtle">Заголовок карточки — .text--bold</span>
+              </div>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.card</code> <code>.card--square</code> <code>.card--rounded</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="panel">
+        <h2 class="text text--up text--bold">Panel</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="panel" style="max-width: 260px;">
+              <div class="section__header"><h3 class="panel__title text">Title</h3></div>
+              <div class="section__body">
+                <span class="text">Body.</span>
+                <span class="ds__typo-hint text text--down text--subtle">Заголовок панели — .text--up .text--bold. Тело — .text</span>
+              </div>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.panel</code> → <code>.section__header</code> + <code>.section__body</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="group">
+        <h2 class="text text--up text--bold">Group</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <div class="group" style="max-width: 260px;">
+                <div class="group__head text text--bold text--down text--muted">Title</div>
+                <div class="group__body group__body--row"><span class="text">A</span><span class="text text--muted">B</span></div>
+              </div>
+              <span class="ds__typo-hint text text--down text--subtle">Заголовок группы — .text--bold .text--down .text--muted. Элемент — .text. Второстепенный — .text--muted</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.group</code> <code>.group__head</code> <code>.group__body</code> <code>.group__body--row</code> <code>.group__body--grid</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="swatch">
+        <h2 class="text text--up text--bold">Status swatch</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <div class="inline">
+                <span class="swatch swatch--success text">Success</span>
+                <span class="swatch swatch--warning text">Warning</span>
+                <span class="swatch swatch--danger text">Danger</span>
+                <span class="swatch swatch--info text">Info</span>
+              </div>
+              <span class="ds__typo-hint text text--down text--subtle">Подпись статуса — .text</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.swatch</code> + модификатор</p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="toast">
+        <h2 class="text text--up text--bold">Toast</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="max-width: 360px; gap: var(--space-2);">
+              <div class="toast toast--success">
+                <span class="toast__icon" aria-hidden="true">✓</span>
+                <div class="toast__body"><span class="toast__title text">Success</span><span class="toast__message text">Done.</span></div>
+                <button type="button" class="toast__close" title="Close">×</button>
+              </div>
+              <div class="toast toast--error">
+                <span class="toast__icon" aria-hidden="true">!</span>
+                <div class="toast__body"><span class="toast__title text">Error</span><span class="toast__message text">Failed.</span></div>
+                <button type="button" class="toast__close" title="Close">×</button>
+              </div>
+              <span class="ds__typo-hint text text--down text--subtle">Заголовок тоста — .text--bold. Сообщение — .text--muted</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.toast</code> <code>.toast--success</code> <code>.toast--error</code> <code>.toast--warning</code> <code>.toast--info</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="breadcrumb">
+        <h2 class="text text--up text--bold">Breadcrumb</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <nav class="breadcrumb text" aria-label="Breadcrumb">
+                <a href="#" class="breadcrumb__item">Home</a>
+                <span class="breadcrumb__sep">/</span>
+                <span class="breadcrumb__item">Current</span>
+              </nav>
+              <span class="ds__typo-hint text text--down text--subtle">Ссылка — .text--muted. Текущая страница — .text--bold</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.breadcrumb</code> <code>.breadcrumb__item</code> <code>.breadcrumb__sep</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="menu">
+        <h2 class="text text--up text--bold">Menu item</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="width: 140px; gap: var(--space-2);">
+              <div class="stack" style="gap: 0;">
+                <button type="button" class="menu-item text">Item 1</button>
+                <button type="button" class="menu-item text">Item 2</button>
+              </div>
+              <span class="ds__typo-hint text text--down text--subtle">Пункт меню — .text</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.menu-item</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="form">
+        <h2 class="text text--up text--bold">Form pattern</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <form class="form" style="max-width: 260px;">
+                <div class="form__field">
+                  <label class="form__label text" for="f1">Label</label>
+                  <input id="f1" type="text" class="form__control text" placeholder="Placeholder" />
+                </div>
+                <div class="form__submit-row">
+                  <button type="button" class="btn text">Cancel</button>
+                  <button type="submit" class="btn btn--primary text">Submit</button>
+                </div>
+              </form>
+              <span class="ds__typo-hint text text--down text--subtle">Подпись поля — .text--bold. Значение — .text</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds__section" id="layout">
+        <h2 class="text text--up text--bold">Layout pattern</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <div class="layout-demo" style="min-height: 80px;">
+                <div class="layout-demo__nav"><button type="button" class="menu-item text">Nav</button></div>
+                <div class="layout-demo__content"><span class="text">Content</span></div>
+              </div>
+              <span class="ds__typo-hint text text--down text--subtle">Пункт навигации — .text. Контент — .text</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.layout-demo</code> <code>.layout-demo__nav</code> <code>.layout-demo__content</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="window">
+        <h2 class="text text--up text--bold">Window pattern</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <div class="window-demo" style="max-width: 300px; min-height: 140px;">
+                <header class="window-demo__header"><span class="window-demo__title text">Title</span></header>
+                <div class="window-demo__body"><span class="text">Body.</span></div>
+              </div>
+              <span class="ds__typo-hint text text--down text--subtle">Заголовок окна — .text--up .text--bold. Тело — .text</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.window-demo</code> → <code>.window-demo__header</code> + <code>.window-demo__body</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="viewport">
+        <h2 class="text text--up text--bold">App viewport pattern</h2>
+        <div class="ds__block">
+          <div class="ds__preview">
+            <div class="stack" style="gap: var(--space-2);">
+              <div class="app-viewport" style="min-height: 160px;">
+                <header class="app-viewport__header"><span class="app-viewport__title text">App</span></header>
+                <div class="app-viewport__body"><span class="text text--muted">Body</span></div>
+              </div>
+              <span class="ds__typo-hint text text--down text--subtle">Заголовок приложения — .text--up .text--bold. Тело — .text--muted</span>
+            </div>
+          </div>
+          <p class="ds__meta text text--down text--subtle"><code>.app-viewport</code> → <code>.app-viewport__header</code> + <code>.app-viewport__body</code></p>
+        </div>
+      </section>
+
+      <section class="ds__section" id="tokens">
+        <h2 class="text text--up text--bold">Tokens reference</h2>
+        <dl class="ds__tokens">
+          <dt class="text text--bold">Color</dt>
+          <dd class="text text--down text--subtle">--color-bg, --color-surface, --color-surface-muted, --color-surface-hover, --color-border, --color-text, --color-text-muted, --color-text-subtle, --color-accent, --color-danger, --color-success, --color-warning, --color-info</dd>
+          <dt class="text text--bold">Typography</dt>
+          <dd class="text text--down text--subtle">--font-base, --text-size-base, --text-size-up, --text-size-down, --text-line-height-base, --text-line-height-body, --text-weight-base, --text-weight-bold, --text-weight-thin</dd>
+          <dt class="text text--bold">Spacing</dt>
+          <dd class="text text--down text--subtle">--space-1 … --space-6, --gap-inline, --gap-stack, --user-space, --section-pad-x, --section-pad-y</dd>
+          <dt class="text text--bold">Layout</dt>
+          <dd class="text text--down text--subtle">--section-bar-height, --section-button-height</dd>
+          <dt class="text text--bold">Radius</dt>
+          <dd class="text text--down text--subtle">--radius-sm, --radius-md</dd>
+        </dl>
+      </section>
+
+      <section class="ds__section" id="implementation">
+        <h2 class="text text--up text--bold">Implementation</h2>
+        <p class="text text--muted">Скопируйте стили. <span class="text text--italic">Подключите Ubuntu 300, 400, 600.</span></p>
+        <pre class="ds__tokens">@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;600&display=swap');</pre>
+      </section>
+    </main>
+  </div>
+  <script>
+    (function(){
+      var links = document.querySelectorAll('.ds__nav-link[href^="#"]');
+      function update(){
+        var y = window.scrollY + 120;
+        links.forEach(function(a){
+          var id = a.getAttribute('href').slice(1);
+          var el = document.getElementById(id);
+          if(!el) return;
+          var t = el.getBoundingClientRect().top + window.scrollY;
+          var b = t + el.offsetHeight;
+          var active = y >= t && y < b;
+          a.classList.toggle('active', active);
+          a.classList.toggle('text--accent', active);
+        });
+      }
+      window.addEventListener('scroll', update);
+      window.addEventListener('load', update);
+
+      var userTrigger = document.querySelector('.app-viewport__user-trigger');
+      var dropdown = document.querySelector('.app-viewport__user-dropdown');
+      if(userTrigger && dropdown){
+        userTrigger.addEventListener('click', function(e){
+          e.stopPropagation();
+          var open = dropdown.classList.toggle('is-open');
+          userTrigger.setAttribute('aria-expanded', open);
+        });
+        document.addEventListener('click', function(){
+          dropdown.classList.remove('is-open');
+          userTrigger.setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      var viewport = document.querySelector('.app-viewport--demo');
+      if(viewport){
+        var win = viewport.querySelector('.window-demo');
+        var header = win && win.querySelector('.window-demo__header');
+        if(header){
+          var ox = 0, oy = 0;
+          header.addEventListener('mousedown', function(e){
+            e.preventDefault();
+            var sx = e.clientX - ox;
+            var sy = e.clientY - oy;
+            function move(e2){
+              ox = e2.clientX - sx;
+              oy = e2.clientY - sy;
+              win.style.transform = 'translate(' + ox + 'px,' + oy + 'px)';
+            }
+            function up(){
+              document.removeEventListener('mousemove', move);
+              document.removeEventListener('mouseup', up);
+            }
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
+          });
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

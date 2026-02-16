@@ -749,14 +749,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button"
+                  className="btn text"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--primary"
+                  className="btn btn--primary text"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -803,14 +803,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button"
+                  className="btn text"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--primary"
+                  className="btn btn--primary text"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -842,14 +842,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button"
+                  className="btn text"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--primary"
+                  className="btn btn--primary text"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -984,14 +984,14 @@ const SettingsPanel = ({ section = 'all' }) => {
           </div>
           <footer className="section__footer section__footer--end">
             <button
-              className="button"
+              className="btn text"
               onClick={handleCancelPasses}
               disabled={loading || calendarActionLoading || !isPassesDirty}
             >
               Отмена
             </button>
             <button
-              className="button button--primary"
+              className="btn btn--primary text"
               onClick={handleSave}
               disabled={loading || calendarActionLoading || !isFormValid() || !isPassesDirty}
             >
@@ -1014,7 +1014,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       <header className="section__header section__header--between">
         <h3 className="panel__title">Цели визита</h3>
         <button
-          className={`button button--primary${showAddGoalForm ? ' action--hidden' : ''}`}
+          className={`btn btn--primary text${showAddGoalForm ? ' action--hidden' : ''}`}
           onClick={() => {
             setShowAddGoalForm(true)
             setError(null)
@@ -1166,7 +1166,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       <header className="section__header section__header--between">
         <h3 className="panel__title">Результаты и причины</h3>
         <button
-          className={`button button--primary${showAddReasonForm ? ' action--hidden' : ''}`}
+          className={`btn btn--primary text${showAddReasonForm ? ' action--hidden' : ''}`}
           onClick={() => {
             setShowAddReasonForm(true)
             setError(null)
@@ -1348,14 +1348,14 @@ const SettingsPanel = ({ section = 'all' }) => {
       </div>
       <footer className="section__footer section__footer--end">
         <button
-          className="button"
+          className="btn text"
           onClick={handleCancelReasons}
           disabled={allowedLoading || !isReasonsDirty}
         >
           Отмена
         </button>
         <button
-          className="button button--primary"
+          className="btn btn--primary text"
           onClick={handleSaveAllowed}
           disabled={allowedLoading || !isReasonsDirty}
         >
@@ -1382,7 +1382,7 @@ const SettingsPanel = ({ section = 'all' }) => {
             <h2 className="panel__title">{SECTION_TITLES[section] || SECTION_TITLES.all}</h2>
             {showHeaderSave && (
               <button
-              className="button button--primary"
+              className="btn btn--primary text"
                 onClick={handleSave}
                 disabled={loading || calendarActionLoading || !isFormValid()}
               >
@@ -1456,14 +1456,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button"
+                  className="btn text"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--primary"
+                  className="btn btn--primary text"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -1510,14 +1510,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button"
+                  className="btn text"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--primary"
+                  className="btn btn--primary text"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -1549,14 +1549,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
                 <button
-                  className="button"
+                  className="btn text"
                   onClick={handleCancelNotifications}
                   disabled={loading || calendarActionLoading || !isNotificationsDirty}
                 >
                   Отмена
                 </button>
                 <button
-                  className="button button--primary"
+                  className="btn btn--primary text"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isNotificationsDirty}
                 >
@@ -1613,14 +1613,14 @@ const SettingsPanel = ({ section = 'all' }) => {
 
                 <div className="calendar__actions">
                   <button
-                    className="button button--primary"
+                    className="btn btn--primary text"
                     onClick={handleLoadProductionCalendar}
                     disabled={loading || calendarActionLoading}
                   >
                     {calendarActionLoading ? 'Выполняется...' : `Загрузить ${currentYear}`}
                   </button>
                   <button
-                    className="button"
+                    className="btn text"
                     onClick={handleClearProductionCalendar}
                     disabled={loading || calendarActionLoading}
                   >
@@ -1632,14 +1632,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               {section === 'production-calendar' && (
                 <div className="calendar__footer section__footer section__footer--end">
                   <button
-                    className="button"
+                    className="btn text"
                     onClick={handleCancelProductionCalendar}
                     disabled={loading || calendarActionLoading || !isCalendarDirty}
                   >
                     Отменить
                   </button>
                   <button
-                    className="button button--primary"
+                    className="btn btn--primary text"
                     onClick={handleSave}
                     disabled={loading || calendarActionLoading || !isCalendarDirty}
                   >
@@ -1771,14 +1771,14 @@ const SettingsPanel = ({ section = 'all' }) => {
               </div>
               <footer className="section__footer section__footer--end">
               <button
-                  className="button"
+                  className="btn text"
                   onClick={handleCancelPasses}
                   disabled={loading || calendarActionLoading || !isPassesDirty}
               >
                   Отмена
               </button>
               <button
-                  className="button button--primary"
+                  className="btn btn--primary text"
                   onClick={handleSave}
                   disabled={loading || calendarActionLoading || !isFormValid() || !isPassesDirty}
               >

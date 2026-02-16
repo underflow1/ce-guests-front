@@ -231,10 +231,9 @@ const EntryForm = ({
   >
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>ФИО</span>
-      <div className="form__control">
-        <input
+      <input
           ref={nameInputRef}
-          className="input"
+          className="form__control text"
           type="text"
           value={form.name}
           onChange={(event) =>
@@ -243,15 +242,14 @@ const EntryForm = ({
           placeholder="Например, Иван Петров"
           disabled={isFieldDisabled}
         />
-      </div>
     </label>
 
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Ответственный</span>
-      <div className="form__control" ref={autocompleteRef} style={{ position: 'relative' }}>
+      <div className="form__control-group relative" ref={autocompleteRef}>
         <input
           ref={responsibleInputRef}
-          className="input"
+          className="form__control text"
           type="text"
           value={form.responsible}
           onChange={(event) => {
@@ -310,7 +308,7 @@ const EntryForm = ({
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
         Цель визита
       </span>
-      <div className="form__control">
+      <div className="form__control-group">
         {isVisitGoalsReadOnly ? (
           <div className="text">{selectedVisitGoalText}</div>
         ) : (
@@ -349,7 +347,7 @@ const EntryForm = ({
         <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>
           Статус
         </span>
-        <div className="form__control">
+        <div className="form__control-group">
           <div className="text text--up text--bold">
             {Number(entryState) === 10
               ? 'Ожидаем встречу'
@@ -374,7 +372,7 @@ const EntryForm = ({
             ? 'Выберите результат'
             : 'Результат'}
         </span>
-        <div className="form__control">
+        <div className="form__control-group">
           <div className="visit-goals">
             {[
               { state: 50, label: 'Не оформлен' },
@@ -403,10 +401,10 @@ const EntryForm = ({
             <div className="visit-goals__hint text text--down text--muted">Выберите результат</div>
           )}
           {canRollback && Number(entryState) !== 50 && (
-            <div className="visit-goals__hint text text--down" style={{ marginTop: '4px' }}>
+            <div className="visit-goals__hint text text--down gap-top">
               <button
                 type="button"
-                className="button"
+                className="btn text"
                 onClick={() => {
                   if (!entry?.id) return
                   onRollbackMeetingResult?.(entry.id, editingDateKey)
@@ -419,7 +417,7 @@ const EntryForm = ({
         </div>
 
         {Number(form?.resultState) > 0 && (resultRequiresReason || resultReasonsLoading) && (
-          <div className="form__control" style={{ marginTop: 'var(--space-2)' }}>
+          <div className="form__control-group gap-top-2">
             {!isMeetingResultDisabled && resultRequiresReason && (
               <div
                 className={[
@@ -460,10 +458,10 @@ const EntryForm = ({
     )}
 
     {!isFormLocked && !(isEditingActive && isCancelled) && (
-      <div className="form__submit-row" style={{ gap: 'var(--space-2)' }}>
+      <div className="form__submit-row">
         {isEditing && (
           <button
-            className="button text"
+            className="btn text"
             type="button"
             onClick={onExitEdit}
           >
@@ -471,7 +469,7 @@ const EntryForm = ({
           </button>
         )}
         <button
-          className="button button--primary text form__submit"
+          className="btn btn--primary text form__submit"
           type="submit"
           disabled={isSubmitDisabled || isSubmitLocked}
         >
@@ -483,9 +481,8 @@ const EntryForm = ({
     {!isUser && (
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Время</span>
-      <div className="form__control">
-        <select
-          className="select"
+      <select
+          className="form__control text"
           value={form.time}
           onChange={(event) =>
             setForm((prev) => ({ ...prev, time: event.target.value }))
@@ -504,14 +501,13 @@ const EntryForm = ({
             })
           })}
         </select>
-      </div>
     </label>
     )}
 
     {!isUser && (
     <div className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Куда добавить</span>
-      <div className="form__control">
+      <div className="form__control-group">
         <div className="form__options">
           <label className="form__option">
             <input
@@ -574,7 +570,7 @@ const EntryForm = ({
     <label className="form__field">
       <span className={['form__label', labelTextClassName || 'text text--down text--muted'].join(' ')}>Дата</span>
       <div
-        className="form__control"
+        className={`form__control-group${form.target === 'other' ? ' form__control-group--clickable' : ''}`}
         onClick={(event) => {
           if (
             form.target === 'other' &&
@@ -589,11 +585,10 @@ const EntryForm = ({
             }, 0)
           }
         }}
-        style={{ cursor: form.target === 'other' ? 'pointer' : 'default' }}
       >
         <input
           ref={dateInputRef}
-          className="input"
+          className="form__control text"
           type="date"
           value={form.otherDate}
           min={todayKey}
@@ -619,7 +614,7 @@ const EntryForm = ({
       {passOrderingEnabled && (
         <button
           type="button"
-          className="button text"
+          className="btn text"
           title={passButtonTitle}
           aria-label={passButtonTitle}
           disabled={passDisabled}
@@ -635,7 +630,7 @@ const EntryForm = ({
       {isEditingActive && Number(entryState) === 30 && (
         <button
           type="button"
-          className="button text"
+          className="btn text"
           title="Откатить (вернуть в черновик)"
           aria-label="Откатить (вернуть в черновик)"
           disabled={!canUnmarkArrived}
@@ -650,7 +645,7 @@ const EntryForm = ({
       {isEditingActive && Number(entryState) === 40 && (
         <button
           type="button"
-          className="button text"
+          className="btn text"
           title="Откатить (вернуть в «Гость прибыл»)"
           aria-label="Откатить (вернуть в «Гость прибыл»)"
           disabled={!canRollbackFromRefused}
@@ -665,7 +660,7 @@ const EntryForm = ({
       {isEditingActive && Number(entryState) === 50 && (
         <button
           type="button"
-          className="button text"
+          className="btn text"
           title="Откатить (вернуть в «Гость прибыл»)"
           aria-label="Откатить (вернуть в «Гость прибыл»)"
           onClick={() => {
@@ -678,7 +673,7 @@ const EntryForm = ({
       {isEditingActive && Number(entryState) === 60 && (
         <button
           type="button"
-          className="button text"
+          className="btn text"
           title="Откатить (вернуть в «Гость прибыл»)"
           aria-label="Откатить (вернуть в «Гость прибыл»)"
           disabled={!canRollbackMeetingResult}
@@ -693,7 +688,7 @@ const EntryForm = ({
       {isEditingActive && isCancelled && (
         <button
           type="button"
-          className="button text"
+          className="btn text"
           title="Откатить отмену (вернуть в черновик)"
           aria-label="Откатить отмену (вернуть в черновик)"
           disabled={!canUnmarkCancelled}
@@ -707,7 +702,7 @@ const EntryForm = ({
       )}
       <button
         type="button"
-        className="button button--danger text"
+        className="btn btn--danger text"
         title="Удалить запись"
         aria-label="Удалить запись"
         disabled={deleteDisabled}

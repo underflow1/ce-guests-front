@@ -51,33 +51,35 @@ const LoginForm = ({ onLogin }) => {
           <div className="text text--up text--bold">Вход в систему</div>
         </div>
 
-        <form onSubmit={handleSubmit} className="login__form">
-          <label className="login__field">
-            <span className="text text--muted">Имя пользователя</span>
+        <form onSubmit={handleSubmit} className="form login__form">
+          <div className="form__field">
+            <label className="form__label text" htmlFor="login-username">Имя пользователя</label>
             <input
+              id="login-username"
               type="text"
-              className="input text"
+              className="form__control text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading}
               autoFocus
             />
-          </label>
-
-          <label className="login__field">
-            <span className="text text--muted">Пароль</span>
+          </div>
+          <div className="form__field">
+            <label className="form__label text" htmlFor="login-password">Пароль</label>
             <input
+              id="login-password"
               type="password"
-              className="input text"
+              className="form__control text"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
             />
-          </label>
-
-          <button type="submit" disabled={loading} className="button button--primary login__submit text">
-            {loading ? 'Вход...' : 'Войти'}
-          </button>
+          </div>
+          <div className="form__submit-row">
+            <button type="submit" disabled={loading} className="btn btn--primary text login__submit">
+              {loading ? 'Вход...' : 'Войти'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

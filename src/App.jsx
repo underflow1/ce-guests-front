@@ -392,7 +392,8 @@ const App = () => {
           <div className="app__user-dropdown">
             {isAdmin && (
               <button
-                className="app__user-menu-item"
+                type="button"
+                className="menu-item text"
                 onClick={() => {
                   setShowSettings(true)
                   setIsDropdownOpen(false)
@@ -402,7 +403,8 @@ const App = () => {
               </button>
             )}
             <button
-              className="app__user-menu-item"
+              type="button"
+              className="menu-item text"
               onClick={() => {
                 logout()
                 setIsDropdownOpen(false)
