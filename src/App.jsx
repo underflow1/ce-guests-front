@@ -434,6 +434,7 @@ const App = () => {
               </div>
             ),
             notifications: <SettingsPanel section="notifications" />,
+            phoneNotifications: <SettingsPanel section="phone-notifications" />,
             passes: <SettingsPanel section="passes" />,
             visitDictionaries: <SettingsPanel section="visit-dictionaries" />,
           }}
