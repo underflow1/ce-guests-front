@@ -106,6 +106,7 @@ const SettingsPanel = ({ section = 'all' }) => {
     enabled: false,
     extension: '',
     arrival_template: DEFAULT_ARRIVAL_TEMPLATE,
+    call_cooldown_seconds: 10,
     ami: {
       host: '',
       port: 5038,
@@ -200,6 +201,10 @@ const SettingsPanel = ({ section = 'all' }) => {
             extension: phoneNotif.extension || '',
             arrival_template:
               phoneNotif.arrival_template || DEFAULT_ARRIVAL_TEMPLATE,
+            call_cooldown_seconds:
+              typeof phoneNotif.call_cooldown_seconds === 'number'
+                ? Math.max(1, phoneNotif.call_cooldown_seconds)
+                : 10,
             ami: {
               host: ami.host || '',
               port: typeof ami.port === 'number' ? ami.port : 5038,
@@ -979,6 +984,29 @@ const SettingsPanel = ({ section = 'all' }) => {
                 }
                 disabled={!pn.enabled}
                 placeholder="100"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Охлаждение между звонками (сек):</span>
+              <input
+                type="number"
+                min={1}
+                className="input text text--down notify__input"
+                value={pn.call_cooldown_seconds ?? 10}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      call_cooldown_seconds: Math.max(
+                        1,
+                        parseInt(e.target.value, 10) || 10
+                      ),
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="10"
               />
             </label>
             <label className="notify__field">
@@ -2013,6 +2041,29 @@ const SettingsPanel = ({ section = 'all' }) => {
                     }
                     disabled={!form.phone_notifications?.enabled}
                     placeholder="100"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Охлаждение (сек):</span>
+                  <input
+                    type="number"
+                    min={1}
+                    className="input text text--down notify__input"
+                    value={form.phone_notifications?.call_cooldown_seconds ?? 10}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        phone_notifications: {
+                          ...prev.phone_notifications,
+                          call_cooldown_seconds: Math.max(
+                            1,
+                            parseInt(e.target.value, 10) || 10
+                          ),
+                        },
+                      }))
+                    }
+                    disabled={!form.phone_notifications?.enabled}
+                    placeholder="10"
                   />
                 </label>
                 <label className="notify__field">
