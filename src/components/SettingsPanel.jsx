@@ -6,6 +6,7 @@ import { useToast } from './ToastProvider'
 
 const SECTION_TITLES = {
   notifications: 'Уведомления',
+  'phone-notifications': 'Уведомления по телефону',
   passes: 'Пропуска',
   'production-calendar': 'Производственный календарь',
   'visit-dictionaries': 'Справочники визитов',
@@ -99,6 +100,25 @@ const SettingsPanel = ({ section = 'all' }) => {
     enabled_notification_types: fallbackNotificationTypes.map((t) => t.code),
   })
   const cloneNotifications = (value) => JSON.parse(JSON.stringify(value))
+  const DEFAULT_ARRIVAL_TEMPLATE =
+    'Привет девчонки, это оперативный дежурный беспокоит, тут подошел %GUESTNAME%, просьба встретить.'
+  const createDefaultPhoneNotifications = () => ({
+    enabled: false,
+    extension: '',
+    arrival_template: DEFAULT_ARRIVAL_TEMPLATE,
+    ami: {
+      host: '',
+      port: 5038,
+      username: 'tts-caller',
+      password: '',
+    },
+    freepbx: {
+      ssh_host: '',
+      ssh_user: 'tts_upload',
+      ssh_key: '',
+      sounds_path: '/home/tts_upload/tmp',
+    },
+  })
 
   // Форма настроек
   const [form, setForm] = useState({
@@ -113,6 +133,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       object: '',
       corpa: '',
     },
+    phone_notifications: createDefaultPhoneNotifications(),
     production_calendar: {
       enabled: false,
       status: null,
@@ -128,6 +149,9 @@ const SettingsPanel = ({ section = 'all' }) => {
     corpa: '',
   })
   const [passesInitial, setPassesInitial] = useState(() => createDefaultPassIntegration())
+  const [phoneNotificationsInitial, setPhoneNotificationsInitial] = useState(() =>
+    createDefaultPhoneNotifications()
+  )
 
   // Загрузить настройки при монтировании
   useEffect(() => {
@@ -137,6 +161,7 @@ const SettingsPanel = ({ section = 'all' }) => {
         if (settings) {
           const notifications = settings.notifications || {}
           const passIntegration = settings.pass_integration || {}
+          const phoneNotif = settings.phone_notifications || {}
           const productionCalendar = settings.production_calendar || {}
           const providers = notifications.providers || {}
           const maxProvider = providers.max_via_green_api || {}
@@ -168,6 +193,26 @@ const SettingsPanel = ({ section = 'all' }) => {
             enabled_notification_types: enabledTypes,
           }
 
+          const ami = phoneNotif.ami || {}
+          const freepbx = phoneNotif.freepbx || {}
+          const loadedPhoneNotif = {
+            enabled: !!phoneNotif.enabled,
+            extension: phoneNotif.extension || '',
+            arrival_template:
+              phoneNotif.arrival_template || DEFAULT_ARRIVAL_TEMPLATE,
+            ami: {
+              host: ami.host || '',
+              port: typeof ami.port === 'number' ? ami.port : 5038,
+              username: ami.username || '',
+              password: ami.password || '',
+            },
+            freepbx: {
+              ssh_host: freepbx.ssh_host || '',
+              ssh_user: freepbx.ssh_user || '',
+              ssh_key: freepbx.ssh_key || '',
+              sounds_path: freepbx.sounds_path || '',
+            },
+          }
           setForm({
             notifications: loadedNotifications,
             pass_integration: {
@@ -178,6 +223,7 @@ const SettingsPanel = ({ section = 'all' }) => {
               object: passIntegration.object || '',
               corpa: passIntegration.corpa || '',
             },
+            phone_notifications: loadedPhoneNotif,
             production_calendar: {
               enabled: !!productionCalendar.enabled,
               status: productionCalendar.status || null,
@@ -192,6 +238,7 @@ const SettingsPanel = ({ section = 'all' }) => {
             object: passIntegration.object || '',
             corpa: passIntegration.corpa || '',
           })
+          setPhoneNotificationsInitial(loadedPhoneNotif)
           setProductionCalendarInitialEnabled(!!productionCalendar.enabled)
         }
       } catch (err) {
@@ -199,6 +246,7 @@ const SettingsPanel = ({ section = 'all' }) => {
         console.log('Настройки не найдены, используем значения по умолчанию')
         setNotificationsInitial(cloneNotifications(createDefaultNotifications()))
         setPassesInitial(createDefaultPassIntegration())
+        setPhoneNotificationsInitial(createDefaultPhoneNotifications())
       }
     }
     loadSettings()
@@ -305,6 +353,20 @@ const SettingsPanel = ({ section = 'all' }) => {
       if (!String(passIntegration.corpa || '').trim()) return false
     }
 
+    const phoneNotif = form.phone_notifications || {}
+    if (phoneNotif.enabled) {
+      if (!String(phoneNotif.extension || '').trim()) return false
+      const ami = phoneNotif.ami || {}
+      if (!String(ami.host || '').trim()) return false
+      if (!String(ami.username || '').trim()) return false
+      if (!String(ami.password || '').trim()) return false
+      const freepbx = phoneNotif.freepbx || {}
+      if (!String(freepbx.ssh_host || '').trim()) return false
+      if (!String(freepbx.ssh_user || '').trim()) return false
+      if (!String(freepbx.ssh_key || '').trim()) return false
+      if (!String(freepbx.sounds_path || '').trim()) return false
+    }
+
     return true
   }
 
@@ -321,6 +383,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       const settingsData = {
         notifications: form.notifications,
         pass_integration: form.pass_integration,
+        phone_notifications: form.phone_notifications,
         production_calendar: {
           enabled: !!form.production_calendar?.enabled,
         },
@@ -328,6 +391,7 @@ const SettingsPanel = ({ section = 'all' }) => {
       const updatedSettings = await updateSettings(settingsData)
       setNotificationsInitial(cloneNotifications(settingsData.notifications))
       setPassesInitial({ ...settingsData.pass_integration })
+      setPhoneNotificationsInitial(settingsData.phone_notifications)
       if (updatedSettings?.production_calendar) {
         setForm((prev) => ({
           ...prev,
@@ -662,10 +726,11 @@ const SettingsPanel = ({ section = 'all' }) => {
   }
 
   const showNotifications = section === 'all' || section === 'notifications'
+  const showPhoneNotifications = section === 'all' || section === 'phone-notifications'
   const showPasses = section === 'all' || section === 'passes'
   const showCalendar = section === 'all' || section === 'production-calendar'
   const showVisitDictionaries = section === 'all' || section === 'visit-dictionaries'
-  const canSaveSettings = showNotifications || showPasses
+  const canSaveSettings = showNotifications || showPhoneNotifications || showPasses
   const showHeaderSave = canSaveSettings && !showNotifications
   const panelClassName = 'panel'
   const isNotificationsDirty =
@@ -682,6 +747,14 @@ const SettingsPanel = ({ section = 'all' }) => {
     setForm((prev) => ({
       ...prev,
       pass_integration: { ...passesInitial },
+    }))
+  }
+  const isPhoneNotificationsDirty =
+    JSON.stringify(form.phone_notifications) !== JSON.stringify(phoneNotificationsInitial)
+  const handleCancelPhoneNotifications = () => {
+    setForm((prev) => ({
+      ...prev,
+      phone_notifications: { ...phoneNotificationsInitial },
     }))
   }
 
@@ -859,6 +932,256 @@ const SettingsPanel = ({ section = 'all' }) => {
             </div>
       </div>
     );
+  }
+
+  if (section === 'phone-notifications') {
+    const pn = form.phone_notifications || {}
+    const ami = pn.ami || {}
+    const freepbx = pn.freepbx || {}
+    return (
+      <div className="section-stack">
+        {error && <div className="error-message section-block-end">{error}</div>}
+        <div className="panel section notify">
+          <header className="section__header section__header--start">
+            <h3 className="panel__title">Уведомления по телефону (FreePBX)</h3>
+          </header>
+          <div className="section__body">
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={!!pn.enabled}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      enabled: e.target.checked,
+                    },
+                  }))
+                }
+              />
+              <span className="text">Использовать</span>
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Extension (куда звонить):</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={pn.extension || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      extension: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="100"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Шаблон уведомления о приходе (%GUESTNAME%):</span>
+              <textarea
+                className="input text text--down notify__input"
+                rows={4}
+                value={pn.arrival_template || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      arrival_template: e.target.value,
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder={DEFAULT_ARRIVAL_TEMPLATE}
+              />
+            </label>
+            <h4 className="text text--up text--muted section-block-end">AMI</h4>
+            <label className="notify__field">
+              <span className="text text--muted">Host:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={ami.host || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      ami: { ...prev.phone_notifications.ami, host: e.target.value },
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="192.168.1.100"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Port:</span>
+              <input
+                type="number"
+                className="input text text--down notify__input"
+                value={ami.port ?? 5038}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      ami: {
+                        ...prev.phone_notifications.ami,
+                        port: parseInt(e.target.value, 10) || 5038,
+                      },
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="5038"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Username:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={ami.username || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      ami: { ...prev.phone_notifications.ami, username: e.target.value },
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="tts-caller"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Password:</span>
+              <input
+                type="password"
+                className="input text text--down notify__input"
+                value={ami.password || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      ami: { ...prev.phone_notifications.ami, password: e.target.value },
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="••••••••"
+              />
+            </label>
+            <h4 className="text text--up text--muted section-block-end">FreePBX</h4>
+            <label className="notify__field">
+              <span className="text text--muted">SSH Host:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={freepbx.ssh_host || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      freepbx: { ...prev.phone_notifications.freepbx, ssh_host: e.target.value },
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="192.168.1.100"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">SSH User:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={freepbx.ssh_user || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      freepbx: { ...prev.phone_notifications.freepbx, ssh_user: e.target.value },
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="tts_upload"
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Закрытый ключ:</span>
+              <textarea
+                className="input text text--down notify__input"
+                rows={6}
+                value={freepbx.ssh_key || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      freepbx: { ...prev.phone_notifications.freepbx, ssh_key: e.target.value },
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="-----BEGIN OPENSSH PRIVATE KEY-----..."
+              />
+            </label>
+            <label className="notify__field">
+              <span className="text text--muted">Sounds path:</span>
+              <input
+                type="text"
+                className="input text text--down notify__input"
+                value={freepbx.sounds_path || ''}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    phone_notifications: {
+                      ...prev.phone_notifications,
+                      freepbx: { ...prev.phone_notifications.freepbx, sounds_path: e.target.value },
+                    },
+                  }))
+                }
+                disabled={!pn.enabled}
+                placeholder="/home/tts_upload/tmp"
+              />
+            </label>
+          </div>
+          <footer className="section__footer section__footer--end">
+            <button
+              className="btn text"
+              onClick={handleCancelPhoneNotifications}
+              disabled={loading || calendarActionLoading || !isPhoneNotificationsDirty}
+            >
+              Отмена
+            </button>
+            <button
+              className="btn btn--primary text"
+              onClick={handleSave}
+              disabled={
+                loading ||
+                calendarActionLoading ||
+                !isFormValid() ||
+                !isPhoneNotificationsDirty
+              }
+            >
+              {loading ? 'Сохранение...' : 'Сохранить'}
+            </button>
+          </footer>
+        </div>
+      </div>
+    )
   }
 
   if (section === 'passes') {
@@ -1649,6 +1972,110 @@ const SettingsPanel = ({ section = 'all' }) => {
               )}
             </div>
           </div>
+          )}
+
+          {showPhoneNotifications && (
+            <div className="panel section section-group__item notify">
+              <header className="section__header section__header--start">
+                <h3 className="panel__title">Уведомления по телефону (FreePBX)</h3>
+              </header>
+              <div className="section__body">
+                <label className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={!!form.phone_notifications?.enabled}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        phone_notifications: {
+                          ...prev.phone_notifications,
+                          enabled: e.target.checked,
+                        },
+                      }))
+                    }
+                  />
+                  <span className="text">Использовать</span>
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">Extension:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.phone_notifications?.extension || ''}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        phone_notifications: {
+                          ...prev.phone_notifications,
+                          extension: e.target.value,
+                        },
+                      }))
+                    }
+                    disabled={!form.phone_notifications?.enabled}
+                    placeholder="100"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">AMI Host:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.phone_notifications?.ami?.host || ''}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        phone_notifications: {
+                          ...prev.phone_notifications,
+                          ami: { ...prev.phone_notifications.ami, host: e.target.value },
+                        },
+                      }))
+                    }
+                    disabled={!form.phone_notifications?.enabled}
+                    placeholder="192.168.1.100"
+                  />
+                </label>
+                <label className="notify__field">
+                  <span className="text text--muted">SSH Host:</span>
+                  <input
+                    type="text"
+                    className="input text text--down notify__input"
+                    value={form.phone_notifications?.freepbx?.ssh_host || ''}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        phone_notifications: {
+                          ...prev.phone_notifications,
+                          freepbx: { ...prev.phone_notifications.freepbx, ssh_host: e.target.value },
+                        },
+                      }))
+                    }
+                    disabled={!form.phone_notifications?.enabled}
+                    placeholder="192.168.1.100"
+                  />
+                </label>
+              </div>
+              <footer className="section__footer section__footer--end">
+                <button
+                  className="btn text"
+                  onClick={handleCancelPhoneNotifications}
+                  disabled={loading || calendarActionLoading || !isPhoneNotificationsDirty}
+                >
+                  Отмена
+                </button>
+                <button
+                  className="btn btn--primary text"
+                  onClick={handleSave}
+                  disabled={
+                    loading ||
+                    calendarActionLoading ||
+                    !isFormValid() ||
+                    !isPhoneNotificationsDirty
+                  }
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить'}
+                </button>
+              </footer>
+            </div>
           )}
 
           {showPasses && (

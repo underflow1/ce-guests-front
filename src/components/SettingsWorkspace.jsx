@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { key: 'roles', label: 'Роли' },
   { key: 'maintenance', label: 'Обслуживание' },
   { key: 'notifications', label: 'Уведомления' },
+  { key: 'phoneNotifications', label: 'Уведомления по телефону' },
   { key: 'passes', label: 'Пропуска' },
   { key: 'visitDictionaries', label: 'Справочники визитов' },
 ]
